@@ -49,6 +49,7 @@ class CVars:
 		On = 'on'
 		Emtpy = 'empty'
 		New = 'new'
+		Move = 'move'
 		CopyProxy = 'copy_proxy'
 		Down = 'down'
 		AsA = 'as_a'
@@ -118,6 +119,10 @@ class CVars:
 		cpp.CSP.__name__,
 		cpp.CUPConst.__name__,
 		cpp.CSPConst.__name__,
+	]
+	AddrUniqueKeys: ClassVar[list[str]] = [
+		cpp.CUP.__name__,
+		cpp.CUPConst.__name__,
 	]
 	ConstKeys: ClassVar[list[str]] = [
 		cpp.CPConst.__name__,
@@ -275,6 +280,16 @@ class CVars:
 			True = スマートポインター
 		"""
 		return self._var_name_to_key[var_name] in CVars.AddrSmartKeys
+
+	def is_addr_unique(self, var_name: str) -> bool:
+		"""占有ポインターか判定(不変性型を含む)
+
+		Args:
+			var_name: 変数型名
+		Returns:
+			True = 占有ポインター
+		"""
+		return self._var_name_to_key[var_name] in CVars.AddrUniqueKeys
 
 	def is_const(self, var_name: str) -> bool:
 		"""不変性型か判定

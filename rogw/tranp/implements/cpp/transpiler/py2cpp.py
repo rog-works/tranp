@@ -1088,6 +1088,10 @@ class Py2Cpp(ITranspiler):
 			# 期待値: receiver.as_a(A)
 			receiver, _ = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
+		elif spec == FuncCallSpec.Tags.cvar_move:
+			# 期待値: receiver.move(to)
+			receiver, _ = PatternParser.break_relay(calls)
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.cvar_copy:
 			# 期待値: cref_to.copy(cref_via)
 			receiver, _ = PatternParser.break_relay(calls)
@@ -1196,6 +1200,11 @@ class Py2Cpp(ITranspiler):
 					return FuncCallSpec.Tags.str, prop, None
 			elif prop == PythonClassOperations.copy_constructor:
 				return FuncCallSpec.Tags.copy_constructor, '', None
+			elif prop == CVars.Verbs.Move.value:
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
+				cvar_key = self.cvars.var_name_from(receiver_raw)
+				if self.cvars.is_addr_unique(cvar_key):
+					return FuncCallSpec.Tags.cvar_move, '', None
 			elif prop == CVars.Verbs.CopyProxy.value:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
@@ -1531,15 +1540,16 @@ class FuncCallSpec:
 		dict = 304
 		# cvar
 		cvar_as_a = 400
-		cvar_copy = 401
-		cvar_down = 402
-		cvar_new_addr = 403
-		cvar_new_smart_list = 404
-		cvar_new_smart = 405
-		cvar_smart_empty = 406
-		cvar_to = 407
-		cvar_to_addr_hex = 408
-		cvar_to_addr_id = 409
+		cvar_move = 401
+		cvar_copy = 402
+		cvar_down = 403
+		cvar_new_addr = 404
+		cvar_new_smart_list = 405
+		cvar_new_smart = 406
+		cvar_smart_empty = 407
+		cvar_to = 408
+		cvar_to_addr_hex = 409
+		cvar_to_addr_id = 410
 
 	convertion_scalars: ClassVar[list[str]] = [
 		bool.__name__,

@@ -55,6 +55,7 @@ aliases.rogw.tranp.compatible.cpp.classes#map.erase: erase
 aliases.rogw.tranp.compatible.cpp.classes#map.iterator: iterator
 aliases.rogw.tranp.compatible.cpp.classes#make_shared: std::make_shared
 aliases.rogw.tranp.compatible.cpp.classes#make_unique: std::make_unique
+aliases.rogw.tranp.compatible.cpp.classes#move: std::move
 aliases.rogw.tranp.compatible.cpp.classes#shared_ptr: std::shared_ptr
 aliases.rogw.tranp.compatible.cpp.classes#smart_ptr.get: get
 aliases.rogw.tranp.compatible.cpp.classes#string.stod: std::stod

@@ -137,7 +137,7 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.binary_calc', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'Sub calc = (*(ap)) + (*(aup)) * (*(asp)) - ar / a;'),
 		('CVarOps.binary_calc', 'function_def_raw.block.assign[6]', defs.MoveAssign, 'bool is_a = a == (*(ap)) == (*(aup)) == (*(asp)) == ar;'),
 		('CVarOps.binary_calc', 'function_def_raw.block.assign[7]', defs.MoveAssign, 'bool is_not_a = a != (*(ap)) != (*(aup)) != (*(asp)) != ar;'),
-		('CVarOps.binary_calc', 'function_def_raw.block.assign[8]', defs.MoveAssign, 'bool is_null = upn == nullptr && upn != nullptr && spn == nullptr && spn != nullptr;'),
+		('CVarOps.binary_calc', 'function_def_raw.block.assign[8]', defs.MoveAssign, 'bool is_null = pn == nullptr && pn != nullptr;'),
 
 		('CVarOps.ternary_calc', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Sub a2 = true ? a : Sub();'),
 		('CVarOps.ternary_calc', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Sub a3 = true ? a : a;'),
@@ -213,8 +213,10 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.Sub2', '', defs.AltClass, 'public: using Sub2 = Sub;'),
 
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'ap->call();'),
-		('CVarOps.alias_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'asp->call();'),
-		('CVarOps.alias_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'aref.call();'),
+		('CVarOps.alias_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'aw->call();'),
+		('CVarOps.alias_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'aup->call();'),
+		('CVarOps.alias_call', 'function_def_raw.block.funccall[3]', defs.FuncCall, 'asp->call();'),
+		('CVarOps.alias_call', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'aref.call();'),
 
 		('FuncOps.kw_params', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
 

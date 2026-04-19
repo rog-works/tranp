@@ -155,7 +155,7 @@ class CVarOps:
 		neg_a4 = -asp.raw
 		neg_a5 = -ar.raw
 
-	def binary_calc(self, a: Sub, ap: CP[Sub], aup: CUP[Sub], asp: CSP[Sub], ar: CRef[Sub], upn: CP[Sub] | None, spn: CP[Sub] | None) -> None:
+	def binary_calc(self, a: Sub, ap: CP[Sub], aup: CUP[Sub], asp: CSP[Sub], ar: CRef[Sub], pn: CP[Sub] | None) -> None:
 		add = a + ap.raw + aup.raw + asp.raw + ar.raw
 		sub = a - ap.raw - aup.raw - asp.raw - ar.raw
 		mul = a * ap.raw * aup.raw * asp.raw * ar.raw
@@ -164,7 +164,7 @@ class CVarOps:
 		calc = ap.raw + aup.raw * asp.raw - ar.raw / a
 		is_a = a is ap.raw is aup.raw is asp.raw is ar.raw
 		is_not_a = a is not ap.raw is not aup.raw is not asp.raw is not ar.raw
-		is_null = upn is None and upn is not None and spn is None and spn is not None
+		is_null = pn is None and pn is not None
 
 	def ternary_calc(self, a: Sub, ap: CP[Sub], aup: CUP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		a2 = a if True else Sub()
@@ -256,8 +256,10 @@ class CVarOps:
 
 	Sub2: TypeAlias = Sub
 
-	def alias_call(self, ap: CP[Sub2], asp: CSP[Sub2], aref: CRef[Sub2]) -> None:
+	def alias_call(self, ap: CP[Sub2], aw: CWP[Sub2], aup: CUP[Sub2], asp: CSP[Sub2], aref: CRef[Sub2]) -> None:
 		ap.on.call()
+		aw.on.call()
+		aup.on.call()
 		asp.on.call()
 		aref.on.call()
 

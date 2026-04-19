@@ -449,8 +449,6 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& value : values',
 				'condition': '',
 				'projection_types': ['int'],
-				'is_const': False,
-				'is_addr_p': False,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -469,8 +467,6 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& value : values',
 				'condition': 'value == 1',
 				'projection_types': ['int'],
-				'is_const': False,
-				'is_addr_p': False,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -492,8 +488,6 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& [key, value] : items',
 				'condition': '',
 				'projection_types': ['int', 'float'],
-				'is_const': False,
-				'is_addr_p': False,
 			},
 			'\n'.join([
 				'[&]() -> std::map<int, float> {',
@@ -513,8 +507,6 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& [key, value] : items',
 				'condition': 'key == 1',
 				'projection_types': ['int', 'float'],
-				'is_const': False,
-				'is_addr_p': False,
 			},
 			'\n'.join([
 				'[&]() -> std::map<int, float> {',
@@ -533,12 +525,12 @@ class TestRenderer(TestCase):
 		self.assertRender(f'comp/{spec}', vars, expected)
 
 	@data_provider([
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_p': False}, 'auto& value : values'),
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_p': False}, 'const auto& value : values'),
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_p': True}, 'auto value : values'),
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_p': True}, 'const auto value : values'),
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': False, 'is_addr_p': False}, 'auto& [key, value] : items'),
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True, 'is_addr_p': False}, 'const auto& [key, value] : items'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_raw': False}, 'auto& value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_raw': False}, 'const auto& value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_raw': True}, 'auto value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_raw': True}, 'const auto value : values'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': False, 'is_addr_raw': False}, 'auto& [key, value] : items'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True, 'is_addr_raw': False}, 'const auto& [key, value] : items'),
 	])
 	def test_render_comp_for(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('comp/comp_for', vars, expected)
@@ -739,7 +731,8 @@ class TestRenderer(TestCase):
 		self.assertRender('class/enum', vars, expected)
 
 	@data_provider([
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': []}, 'for (auto& [key, value] : items) {\n}'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': [], 'is_const': False, 'is_addr_raw': False}, 'for (auto& [key, value] : items) {\n}'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': [], 'is_const': True, 'is_addr_raw': False}, 'for (const auto& [key, value] : items) {\n}'),
 	])
 	def test_render_for_dict(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('flow/for/dict', vars, expected)
@@ -769,8 +762,10 @@ class TestRenderer(TestCase):
 		self.assertRender('flow/for/range', vars, expected)
 
 	@data_provider([
-		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False}, 'for (auto& value : values) {\n\tpass;\n}'),
-		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True}, 'for (const auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False, 'is_addr_raw': False}, 'for (auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True, 'is_addr_raw': False}, 'for (const auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False, 'is_addr_raw': True}, 'for (auto value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True, 'is_addr_raw': True}, 'for (const auto value : values) {\n\tpass;\n}'),
 	])
 	def test_render_for(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('flow/for/default', vars, expected)
@@ -887,34 +882,46 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cvar_as_a', vars, expected)
 
 	@data_provider([
+		({'arguments': ['from'], 'receiver': 'to', 'is_statement': True}, 'to = from;'),
+	])
+	def test_render_func_call_cvar_copy(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_copy', vars, expected)
+
+	@data_provider([
 		({'receiver': 'p', 'arguments': ['int'], 'is_statement': True}, 'static_cast<int*>(p);'),
 	])
 	def test_render_func_call_cvar_down(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cvar_down', vars, expected)
 
 	@data_provider([
+		({'receiver': 'up', 'is_statement': True}, 'std::move(up);'),
+	])
+	def test_render_func_call_cvar_move(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_move', vars, expected)
+
+	@data_provider([
 		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),
 	])
-	def test_render_func_call_cvar_new_p(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_new_p', vars, expected)
+	def test_render_func_call_cvar_new_addr(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_addr', vars, expected)
 
 	@data_provider([
-		({'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
+		({'cvar_type': 'CSP', 'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
 	])
-	def test_render_func_call_cvar_new_sp_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_new_sp_list', vars, expected)
+	def test_render_func_call_cvar_new_smart_list(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_smart_list', vars, expected)
 
 	@data_provider([
-		({'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
+		({'cvar_type': 'CSP', 'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
 	])
-	def test_render_func_call_cvar_new_sp(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_new_sp', vars, expected)
+	def test_render_func_call_cvar_new_smart(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_smart', vars, expected)
 
 	@data_provider([
-		({'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
+		({'cvar_type': 'CSP', 'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
 	])
-	def test_render_func_call_cvar_sp_empty(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_sp_empty', vars, expected)
+	def test_render_func_call_cvar_smart_empty(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_smart_empty', vars, expected)
 
 	@data_provider([
 		({'cvar_type': 'CP', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
@@ -1420,7 +1427,7 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),
 		({'receiver': 'addr', 'move': 'ToActual'}, '(*(addr))'),
-		({'receiver': 'sp', 'move': 'UnpackSp'}, '(sp).get()'),
+		({'receiver': 'sp', 'move': 'UnpackSmart'}, '(sp).get()'),
 		({'receiver': 'raw', 'move': 'Copy'}, 'raw'),
 	])
 	def test_render_relay_cvar_to(self, vars: dict[str, Any], expected: str) -> None:

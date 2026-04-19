@@ -2,8 +2,8 @@
 (&({{ receiver }}))
 {%- elif move == 'ToActual' -%}
 (*({{ receiver }}))
-{%- elif move == 'UnpackSp' -%}
-({{ receiver }}).{{ i18n('cpp', 'shared_ptr.get') }}()
+{%- elif move == 'UnpackSmart' -%}
+({{ receiver }}).{{ i18n('cpp', 'smart_ptr.get') }}()
 {%- else %}{# move == 'Copy' -#}
 {{ receiver }}
 {%- endif -%}

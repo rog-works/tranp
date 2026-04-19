@@ -1,0 +1,2 @@
+{%- set maker = i18n('cpp', 'make_unique' if cvar_type == 'CUP' else 'make_shared') -%}
+{{ maker }}<{{ var_type }}>({{ initializer }}){% if is_statement %};{% endif %}

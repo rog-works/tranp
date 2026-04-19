@@ -314,6 +314,55 @@ class CWP(CVar[T_co]):
 		return self.down(down_type)
 
 
+class CUP(CVarNullable[T_co]):
+	"""C++型変数の互換クラス(占有ポインター)"""
+
+	@classmethod
+	def empty(cls) -> 'CUP[T_co] | None':
+		"""空の占有ポインターの初期化を代替するメソッド。C++では`std::unique_ptr<T>()`に相当
+
+		Returns:
+			インスタンス
+		"""
+		return CUP(None)
+
+	@classmethod
+	def new(cls, origin: T_New) -> 'CUP[T_New]':
+		"""メモリを生成し、占有ポインター型を返却するメモリ生成代替メソッド。C++では`std::make_unique`に相当
+
+		Args:
+			origin: 実体のインタンス
+		Returns:
+			インスタンス
+		"""
+		return CUP(CP(origin))
+
+	@property
+	def ref(self) -> 'CRef[T_co]':
+		"""Returns: 参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		return CRef(self.raw)
+
+	@property
+	def addr(self) -> CP[T_co]:
+		"""Returns: ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		return CP(self.raw)
+
+	@property
+	def const(self) -> 'CUPConst[T_co]':
+		"""Returns: Constを返却する参照変換代替メソッド。C++では削除"""
+		return CUPConst(self.raw)
+
+	def move(self: Self) -> Self:
+		"""所有権をコピー先に移譲。自身は所有権を失う。C++では`std::move`に相当
+
+		Returns:
+			インスタンス
+		"""
+		clone = self.__class__(self.addr)
+		self._origin = None
+		return clone
+
+
 class CSP(CVarNullable[T_co]):
 	"""C++型変数の互換クラス(共有ポインター)"""
 
@@ -406,6 +455,20 @@ class CPConst(CVarNotNull[T_co]):
 	def ref(self) -> 'CRefConst[T_co]':
 		"""Returns: 不変性参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
+
+
+class CUPConst(CVarNotNull[T_co]):
+	"""C++型変数の互換クラス(不変性占有ポインター)"""
+
+	@property
+	def ref(self) -> 'CRefConst[T_co]':
+		"""Returns: 不変性参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		return CRefConst(self.raw)
+
+	@property
+	def addr(self) -> CPConst[T_co]:
+		"""Returns: 不変性ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		return CPConst(self.raw)
 
 
 class CSPConst(CVarNotNull[T_co]):

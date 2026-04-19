@@ -449,8 +449,6 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& value : values',
 				'condition': '',
 				'projection_types': ['int'],
-				'is_const': False,
-				'is_addr_raw': False,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -469,8 +467,6 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& value : values',
 				'condition': 'value == 1',
 				'projection_types': ['int'],
-				'is_const': False,
-				'is_addr_raw': False,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -492,8 +488,6 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& [key, value] : items',
 				'condition': '',
 				'projection_types': ['int', 'float'],
-				'is_const': False,
-				'is_addr_raw': False,
 			},
 			'\n'.join([
 				'[&]() -> std::map<int, float> {',
@@ -513,8 +507,6 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& [key, value] : items',
 				'condition': 'key == 1',
 				'projection_types': ['int', 'float'],
-				'is_const': False,
-				'is_addr_raw': False,
 			},
 			'\n'.join([
 				'[&]() -> std::map<int, float> {',
@@ -739,7 +731,8 @@ class TestRenderer(TestCase):
 		self.assertRender('class/enum', vars, expected)
 
 	@data_provider([
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': []}, 'for (auto& [key, value] : items) {\n}'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': [], 'is_const': False, 'is_addr_raw': False}, 'for (auto& [key, value] : items) {\n}'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': [], 'is_const': True, 'is_addr_raw': False}, 'for (const auto& [key, value] : items) {\n}'),
 	])
 	def test_render_for_dict(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('flow/for/dict', vars, expected)
@@ -769,8 +762,10 @@ class TestRenderer(TestCase):
 		self.assertRender('flow/for/range', vars, expected)
 
 	@data_provider([
-		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False}, 'for (auto& value : values) {\n\tpass;\n}'),
-		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True}, 'for (const auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False, 'is_addr_raw': False}, 'for (auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True, 'is_addr_raw': False}, 'for (const auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False, 'is_addr_raw': True}, 'for (auto value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True, 'is_addr_raw': True}, 'for (const auto value : values) {\n\tpass;\n}'),
 	])
 	def test_render_for(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('flow/for/default', vars, expected)

@@ -38,24 +38,12 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		"""Returns: アドレス値(16進数 ※先頭の'0x'は除外)"""
 		return hex(hash(self))[2:].upper()
 
-	def __eq__(self, other: Self | None) -> bool:
-		"""比較演算子(==)のオーバーロード
-
-		Args:
-			other: 対象
-		Returns:
-			True = 一致
-		"""
+	def __eq__(self, other: 'CVar | None') -> bool:
+		"""Args: other: 対象 Returns: True = 一致"""
 		return other is not None and hash(self) == hash(other)
 
-	def __ne__(self, other: Self | None) -> bool:
-		"""比較演算子(!=)のオーバーロード
-
-		Args:
-			other: 対象
-		Returns:
-			True = 不一致
-		"""
+	def __ne__(self, other: 'CVar | None') -> bool:
+		"""Args: other: 対象 Returns: True = 不一致"""
 		return not self.__eq__(other)
 
 	def __hash__(self) -> int:

@@ -496,7 +496,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.List.len', 'function_def_raw.block.funccall', defs.FuncCall, 'ns.size();'),
 		('ForFuncCall.List.copy', 'function_def_raw.block.assign', defs.MoveAssign, 'std::vector<int> new_ns = ns;'),
 		('ForFuncCall.List.sort', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'ns.sort();'),
-		('ForFuncCall.List.sort', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'arr.sort([](Sub& a, Sub& b) -> bool { return a.base_n < b.base_n; });'),
+		('ForFuncCall.List.sort', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'arr.sort([](const Sub& a, const Sub& b) -> bool { return a.base_n < b.base_n; });'),
 
 		('ForFuncCall.Dict.pop', 'function_def_raw.block.funccall[0]', defs.FuncCall, BlockExpects.dict_pop(symbol='dsn', key='"a"', var_type='int')),
 		('ForFuncCall.Dict.pop', 'function_def_raw.block.funccall[1]', defs.FuncCall, BlockExpects.dict_pop(symbol='dsn', key='"b"', var_type='int')),

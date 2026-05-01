@@ -61,6 +61,9 @@ class digit(int):
 	def __rshift__(self, n: int) -> Self:
 		return self.__class__(super().__rshift__(n))
 
+	def __neg__(self) -> Self:
+		return self.__class__(super().__neg__())
+
 
 class byte(digit): ...
 class int8(digit): ...
@@ -107,6 +110,9 @@ class double(float):
 
 	def __mod__(self, other: Self | float | int | bool) -> Self:
 		return self.__class__(super().__mod__(other))
+
+	def __neg__(self) -> Self:
+		return self.__class__(super().__neg__())
 
 # Object
 

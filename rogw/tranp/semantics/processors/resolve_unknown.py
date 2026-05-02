@@ -167,6 +167,13 @@ class ResolveUnknown:
 				arg_index = func_call.arguments.index(parent)
 				arg_raw = org_calls.attrs[arg_index].impl(refs.Object).actualize('nullable', 'alt')
 				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
+		elif isinstance(parent, defs.Return):
+			# 期待値: return lambda a, b: ...
+			method_raw = reflections.type_of(parent.function).impl(refs.Function)
+			if method_raw.types.is_a(defs.Constructor, defs.Method, defs.ClassMethod):
+				return method_raw.attrs[-1].attrs[index + 1]
+			else:
+				return method_raw.attrs[-1].attrs[index]
 		else:
 			# 期待値: (lambda a, b: ...)(a_value, b_value)
 			arg = as_a(defs.Group, parent).parent.as_a(defs.FuncCall).arguments[index]

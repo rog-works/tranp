@@ -268,7 +268,7 @@ class TemplateManipulator:
 				if target_template != schema_template:
 					continue
 
-				found_path = cls._find_actual_path(schema_path, normalize_schema_props, normalize_actual_props)
+				found_path = cls._find_actual_path(schema_path, normalize_schema_props, normalize_actual_props, actual_props)
 				if len(found_path) == 0:
 					continue
 
@@ -289,7 +289,7 @@ class TemplateManipulator:
 		Returns:
 			正規化したマップ表
 		Note:
-			@see tests.unit.rogw.tranp.semantics.reflection.test_helper.py
+			@see tests.unit.rogw.tranp.semantics.reflection.helper.test_helper.Template
 		"""
 		unique_keys: list[str] = []
 		keys = list(props.keys())
@@ -320,17 +320,18 @@ class TemplateManipulator:
 		return {key: DSN.join(*map(str, indexs)) for key, indexs in elem_indexs.items()}
 
 	@classmethod
-	def _find_actual_path(cls, schema_path: str, schema_props: dict[str, str], actual_props: dict[str, str]) -> str:
+	def _find_actual_path(cls, schema_path: str, schema_props: dict[str, str], actual_props: dict[str, str], org_actual_props: SymbolMap) -> str:
 		"""テンプレート型に対応する実行時型のシンボルへのパスを探索
 
 		Args:
 			schema_path: 対象のスキーマのパス
 			schema_elems: 正規化したシンボルの階層パス(スキーマ)
 			actual_props: 正規化したシンボルのマップ表(実行時型)
+			org_actual_props: シンボルのマップ表(実行時型)
 		Returns:
 			実行時型のパス
 		Note:
-			@see tests.unit.rogw.tranp.semantics.reflection.test_helper.py
+			@see tests.unit.rogw.tranp.semantics.reflection.helper.test_helper.Template
 		"""
 		# 1階層目(klass/returns)は選別が不要なため除外
 		if DSN.elem_counts(schema_path) == 1:
@@ -348,6 +349,11 @@ class TemplateManipulator:
 			elif diff > 0:
 				# 正規化後はスキーマより実行時型の方が必ず長い
 				return DSN.left(actual_path, DSN.elem_counts(actual_path) - diff)
+
+		# 実行時型の1階層目から解決
+		schema_first_elem = DSN.left(schema_path, 1)
+		if schema_first_elem in org_actual_props:
+			return schema_first_elem
 
 		return ''
 

@@ -36,7 +36,7 @@ class Helper:
 		return {key: DSN.join(*map(str, indexs)) for key, indexs in elem_indexs.items()}
 
 	@classmethod
-	def find_actual_path(cls, schema_path: str, schema_props: dict[str, str], actual_props: dict[str, str]) -> str:
+	def find_actual_path(cls, schema_path: str, schema_props: dict[str, str], actual_props: dict[str, str], org_actual_props: dict[str, str]) -> str:
 		# 1階層目(klass/returns)は選別が不要なため除外
 		if DSN.elem_counts(schema_path) == 1:
 			return schema_path
@@ -53,6 +53,11 @@ class Helper:
 			elif diff > 0:
 				# 正規化後はスキーマより実行時型の方が必ず長い
 				return DSN.left(actual_path, DSN.elem_counts(actual_path) - diff)
+
+		# 実行時型の1階層目から解決
+		schema_first_elem = DSN.left(schema_path, 1)
+		if schema_first_elem in org_actual_props:
+			return schema_first_elem
 
 		return ''
 
@@ -122,6 +127,25 @@ class TestTemplateManipulator(TestCase):
 				'klass.1.1': 'B',
 			},
 			'klass.1.0',
+		),
+		(
+			'parameter.0',
+			### schema: (Self, Union<Self, int, float>) => Self
+			{
+				'klass': 'Self',
+				'parameter': 'Union',
+				'parameter.0': 'Self',
+				'parameter.1': 'int',
+				'parameter.2': 'float',
+				'returns': 'Self',
+			},
+			### actual: (int64, int64) => int64
+			{
+				'klass': 'int64',
+				'parameter': 'int64',
+				'returns': 'int64',
+			},
+			'parameter',
 		),
 		# (Self) => Self
 		(
@@ -238,5 +262,5 @@ class TestTemplateManipulator(TestCase):
 	def test_find_actual_path(self, schema_path: str, schema_props: dict[str, str], actual_props: dict[str, str], expected: str) -> None:
 		normalize_schema_props = Helper.normalize_props(schema_props)
 		normalize_actual_props = Helper.normalize_props(actual_props)
-		actual = Helper.find_actual_path(schema_path, normalize_schema_props, normalize_actual_props)
+		actual = Helper.find_actual_path(schema_path, normalize_schema_props, normalize_actual_props, actual_props)
 		self.assertEqual(expected, actual)

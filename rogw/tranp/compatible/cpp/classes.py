@@ -1,4 +1,4 @@
-from typing import Self, TypeAlias
+from typing import Self, TypeAlias, cast
 
 # String
 
@@ -32,19 +32,20 @@ class digit(int):
 		return super().__ge__(int(other))
 
 	def __add__(self, other: Self | int | bool) -> Self:
-		return self.__class__(super().__add__(other))
+		# XXX 本質的には戻り値の型を`Self | type[NotImplemented]`にするべき
+		return self.__class__(super().__add__(other)) if isinstance(other, int) else cast(Self, NotImplemented)
 
 	def __sub__(self, other: Self | int | bool) -> Self:
-		return self.__class__(super().__sub__(other))
+		return self.__class__(super().__sub__(other)) if isinstance(other, int) else cast(Self, NotImplemented)
 
 	def __mul__(self, other: Self | int | bool) -> Self:
-		return self.__class__(super().__mul__(other))
+		return self.__class__(super().__mul__(other)) if isinstance(other, int ) else cast(Self, NotImplemented)
 
 	def __truediv__(self, other: Self | int | bool) -> float:
-		return self.__class__(super().__truediv__(other))
+		return self.__class__(super().__truediv__(other)) if isinstance(other, int) else cast(Self, NotImplemented)
 
 	def __mod__(self, other: Self | int | bool) -> Self:
-		return self.__class__(super().__mod__(other))
+		return self.__class__(super().__mod__(other)) if isinstance(other, int) else cast(Self, NotImplemented)
 
 	def __and__(self, other: Self | int | bool) -> Self:
 		return self.__class__(super().__and__(other))
@@ -60,6 +61,9 @@ class digit(int):
 
 	def __rshift__(self, n: int) -> Self:
 		return self.__class__(super().__rshift__(n))
+
+	def __neg__(self) -> Self:
+		return self.__class__(super().__neg__())
 
 
 class byte(digit): ...
@@ -107,6 +111,9 @@ class double(float):
 
 	def __mod__(self, other: Self | float | int | bool) -> Self:
 		return self.__class__(super().__mod__(other))
+
+	def __neg__(self) -> Self:
+		return self.__class__(super().__neg__())
 
 # Object
 

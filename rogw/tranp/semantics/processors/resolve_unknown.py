@@ -169,11 +169,8 @@ class ResolveUnknown:
 				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
 		elif isinstance(parent, defs.Return):
 			# 期待値: return lambda a, b: ...
-			method_raw = reflections.type_of(parent.function).impl(refs.Function)
-			if method_raw.types.is_a(defs.Constructor, defs.Method, defs.ClassMethod):
-				return method_raw.attrs[-1].attrs[index + 1]
-			else:
-				return method_raw.attrs[-1].attrs[index]
+			returns_raw = reflections.type_of(parent.function).attrs[-1]
+			return returns_raw.attrs[index]
 		else:
 			# 期待値: (lambda a, b: ...)(a_value, b_value)
 			arg = as_a(defs.Group, parent).parent.as_a(defs.FuncCall).arguments[index]

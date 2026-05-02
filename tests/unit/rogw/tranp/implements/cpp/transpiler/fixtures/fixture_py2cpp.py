@@ -1030,6 +1030,9 @@ class ForLambda:
 		a = ForLambda.A[int](lambda e: print(e))
 		a.call(lambda e: print(e))
 
+		def make() -> Callable[[int, float], str]:
+			return lambda n, f: str(n)
+
 	def expression(self) -> None:
 		f = lambda: 1
 		n = f()

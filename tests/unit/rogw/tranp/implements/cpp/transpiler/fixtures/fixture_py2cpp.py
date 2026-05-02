@@ -938,21 +938,21 @@ class ForBinaryOperator:
 		t_eq = (t1 is t2) and (t1 is not t2) and not t1
 
 	def ops(self, c: char, wc: wchar_t, b: byte, ui32: uint32, ui64: uint64, d: double) -> None:
-		print(str('') + c + wc)
-		print(0 + b + ui32 + ui64 + d)
-		print(0 * b * ui32 * ui64 * d)
-		print(0 / b / ui32 / ui64 / d)
-		print(0 % b % ui32 % ui64 % d)
-		print(0 < b < ui32 < ui64 < d)
-		print(0 > b > ui32 > ui64 > d)
-		print(0 == b == ui32 == ui64 == d)
-		print(0 != b != ui32 != ui64 != d)
-		print(0 & b & ui32 & ui64)
-		print(0 | b | ui32 | ui64)
-		print(0 ^ b ^ ui32 ^ ui64)
-		print(b << 1)
-		print(ui32 << 1)
-		print(ui64 << 1)
+		s = str('') + c + wc
+		add = 0 + b + ui32 + ui64 + d
+		mul = 0 * b * ui32 * ui64 * d
+		div = 0 / b / ui32 / ui64 / d
+		mod = 0 % b % ui32 % ui64 % d
+		lt = 0 < b < ui32 < ui64 < d
+		gt = 0 > b > ui32 > ui64 > d
+		eq = 0 == b == ui32 == ui64 == d
+		ne = 0 != b != ui32 != ui64 != d
+		bit_and = 0 & b & ui32 & ui64
+		bit_or = 0 | b | ui32 | ui64
+		bit_xor = 0 ^ b ^ ui32 ^ ui64
+		shift_b = b << 1
+		shift_i32 = ui32 << 1
+		shift_u64 = ui64 << 1
 
 	def op_to_assign(self, c: char, ui64: uint64, d: double) -> None:
 		# XXX 演算によってAltClassがアンパックされる点に注意

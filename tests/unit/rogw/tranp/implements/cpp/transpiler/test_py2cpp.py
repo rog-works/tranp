@@ -547,7 +547,7 @@ class TestPy2Cpp(TestCase):
 		('ForBinaryOperator.ops', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string s = std::string("") + c + wc;'),
 		('ForBinaryOperator.ops', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int add = 0 + b + ui32 + ui64 + d;'),
 		('ForBinaryOperator.ops', 'function_def_raw.block.assign[7]', defs.MoveAssign, 'bool eq = 0 == b == ui32 == ui64 == d;'),
-		('ForBinaryOperator.ops', 'function_def_raw.block.assign[12]', defs.MoveAssign, 'Self shift_b = b << 1;'),  # FIXME byte
+		('ForBinaryOperator.ops', 'function_def_raw.block.assign[12]', defs.MoveAssign, 'Self shift_b = b << 1;'),  # FIXME byteになるように修正
 		('ForBinaryOperator.op_to_assign', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string s = c + std::string("");'),
 		('ForBinaryOperator.op_to_assign', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int i = ui64 * 0;'),
 		('ForBinaryOperator.op_to_assign', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'float f = d * 0.0;'),

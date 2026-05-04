@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.compatible.cpp.classes import digit, double, uint64
+from rogw.tranp.compatible.cpp.classes import double, uint64
 from rogw.tranp.test.helper import data_provider
 
 
@@ -15,7 +15,7 @@ class TestDigit(TestCase):
 		(uint64(1), '+', 1, 2),
 		(uint64(1), '-', 1, 0),
 		(uint64(3), '*', 2, 6),
-		(uint64(3), '/', 2, 1),
+		(uint64(3), '/', 2, 1.5),
 		(uint64(5), '%', 3, 2),
 		(uint64(3), '&', 1, 1),
 		(uint64(3), '|', 1, 3),
@@ -23,7 +23,7 @@ class TestDigit(TestCase):
 		(uint64(1), '<<', 2, 4),
 		(uint64(4), '>>', 1, 2),
 	])
-	def test_operation(self, left: digit, operator: str, right: int, expected: bool | int) -> None:
+	def test_operation(self, left: int, operator: str, right: int, expected: bool | int | float) -> None:
 		actual = 0
 		if operator == '==':
 			actual = left == right
@@ -58,7 +58,7 @@ class TestDigit(TestCase):
 		elif operator == '>>':
 			actual = left >> right
 
-		self.assertEqual(actual, expected)
+		self.assertEqual(expected, actual)
 
 
 class TestDouble(TestCase):
@@ -100,4 +100,4 @@ class TestDouble(TestCase):
 		elif operator == '%':
 			actual = left % right
 
-		self.assertEqual(actual, expected)
+		self.assertEqual(expected, actual)

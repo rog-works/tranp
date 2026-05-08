@@ -588,16 +588,16 @@ class ProceduralResolver:
 		return value.stack(node)
 
 	def on_not_compare(self, node: defs.NotCompare, operator: IReflection, value: IReflection) -> IReflection:
-		return value.to(node, self.reflections.from_standard(bool))
+		return self.reflections.from_standard(bool).stack(node)
 
 	def on_or_compare(self, node: defs.OrCompare, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements).stack(node)
+		return self.reflections.from_standard(bool).stack(node)
 
 	def on_and_compare(self, node: defs.AndCompare, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements).stack(node)
+		return self.reflections.from_standard(bool).stack(node)
 
 	def on_comparison(self, node: defs.Comparison, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements).stack(node)
+		return self.reflections.from_standard(bool).stack(node)
 
 	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[IReflection]) -> IReflection:
 		return self.each_binary_operator(node, elements).stack(node)

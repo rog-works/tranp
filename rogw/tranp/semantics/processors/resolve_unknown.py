@@ -1,6 +1,5 @@
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.locator import Invoker
@@ -152,12 +151,15 @@ class ResolveUnknown:
 			org_calls = reflections.type_of(func_call.calls).impl(refs.Object)
 			# クラスシンボルはコンストラクターから解決 @see Reflections.on_func_call
 			if org_calls.type_is(type):
+				# 実体コールをコンストラクターの定義に反映
 				actual_calls = org_calls.actualize()
-				class_calls = org_calls.actualize('nullable', 'self', 'type', 'template')
-				method_raw = actual_calls.constructor().impl(refs.Function).signature(class_calls)
-				arg_index = func_call.arguments.index(parent) + 1
-				arg_raw = method_raw.attrs[arg_index].impl(refs.Object).actualize('nullable', 'alt')
-				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
+				method_raw = actual_calls.constructor().impl(refs.Function).signature(actual_calls)
+				# コンストラクター内のラムダの引数を解決
+				arg_index = func_call.arguments.index(parent)
+				decl_arg_raw = method_raw.attrs[arg_index + 1]
+				resolve_arg_raw = method_raw.impl(refs.Function).parameter_at(arg_index, decl_arg_raw)
+				actual_arg_raw = resolve_arg_raw.impl(refs.Object).actualize('nullable', 'alt')
+				return var_raw.declare(var_raw.node.as_a(defs.Declable), actual_arg_raw.attrs[index])
 			elif org_calls.types.is_a(defs.Constructor, defs.Method, defs.ClassMethod):
 				method_raw = org_calls.impl(refs.Function).signature(org_calls.context)
 				arg_index = func_call.arguments.index(parent) + 1

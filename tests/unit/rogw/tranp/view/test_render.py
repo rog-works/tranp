@@ -286,6 +286,8 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'/** Hoge */',
 				'class Hoge : public Base, public Interface {',
+				'	using Base::Base;',
+				'	using Interface::Interface;',
 				'	private: int __value;',
 				'	private: std::string __text;',
 				'	public: Hoge() {',
@@ -314,6 +316,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'/** Hoge */',
 				'class Hoge : public AB {',
+				'	using AB::AB;',
 				'	public: Hoge() {',
 				'	}',
 				'};',

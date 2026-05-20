@@ -1,0 +1,5 @@
+{%- for inherit in inherits -%}
+	{%- if not deco_ignore.any_args(inherit) %}
+	using {{ inherit }}::{{ inherit }};
+	{%- endif -%}
+{%- endfor -%}

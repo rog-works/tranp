@@ -1,4 +1,5 @@
 {%- set deco_query = parse_decorators(decorators) -%}
+{%- set deco_ignore = deco_query.any('Embed.ignore') -%}
 {%- if deco_query.contains('Embed.python') -%}
 // class {{ symbol }}
 {%- else -%}
@@ -7,6 +8,7 @@
 {%- include('class/_prepare.j2') %}
 {%- include('class/_template_types.j2') %}
 {% include('class/_definition_class.j2') %} {
+{%- include('class/_constructor_inherits.j2') %}
 {%- include('class/_before.j2') %}
 {%- include('class/_statements.j2') %}
 {%- include('class/_after.j2') %}

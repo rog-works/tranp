@@ -268,7 +268,7 @@ class TestRenderer(TestCase):
 				'symbol': 'Hoge',
 				'accessor': '',
 				'decorators': ['deco(A, A.B)'],
-				'inherits': ['Base', 'Interface'],
+				'inherits': ['Base', 'C<int>'],
 				'template_types': [],
 				'comment': '',
 				'statements': [
@@ -285,7 +285,9 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** Hoge */',
-				'class Hoge : public Base, public Interface {',
+				'class Hoge : public Base, public C<int> {',
+				'	using Base::Base;',
+				'	using C::C;',
 				'	private: int __value;',
 				'	private: std::string __text;',
 				'	public: Hoge() {',
@@ -314,6 +316,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'/** Hoge */',
 				'class Hoge : public AB {',
+				'	using AB::AB;',
 				'	public: Hoge() {',
 				'	}',
 				'};',

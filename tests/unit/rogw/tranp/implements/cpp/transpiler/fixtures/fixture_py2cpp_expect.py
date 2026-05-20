@@ -178,6 +178,7 @@ class DeclOps {
 	DeclProps = """public:
 /** DeclProps */
 class DeclProps : public DeclPropsBase {
+	using DeclPropsBase::DeclPropsBase;
 	public: inline static bool cls_b = true;
 	public: std::map<std::string, int> move_dsn;
 	public:

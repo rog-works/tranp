@@ -1,0 +1,6 @@
+{%- for inherit in inherits -%}
+	{%- if not deco_ignore.any_args(inherit) -%}
+	{%- set _inherit = inherit.split('<')[0] %}
+	using {{ _inherit }}::{{ _inherit }};
+	{%- endif -%}
+{%- endfor -%}

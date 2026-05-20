@@ -53,8 +53,23 @@ class TestPy2CppEdge(TestCase):
 		('run', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'A::C<std::string> c{};'),
 		('run', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string cv = c.v();'),
 		('run', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'std::string cv2 = A::C<std::string>().v().split()[0];'),
-		('A.B', '', defs.Class, 'public:\n/** B */\nclass B : public G<int> {\n\n};'),
-		('A.C', '', defs.Class, 'public:\n/** C */\ntemplate<typename T_Scalar>\nclass C : public G<T_Scalar> {\n\n};'),
+		('A.B', '', defs.Class, '\n'.join([
+			'public:',
+			'/** B */',
+			'class B : public G<int> {',
+			'	using G::G;',
+			'',
+			'};',
+		])),
+		('A.C', '', defs.Class, '\n'.join([
+			'public:',
+			'/** C */',
+			'template<typename T_Scalar>',
+			'class C : public G<T_Scalar> {',
+			'	using G::G;',
+			'',
+			'};',
+		])),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

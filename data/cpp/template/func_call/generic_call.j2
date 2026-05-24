@@ -1,1 +1,1 @@
-{{ calls }}<{{ arguments[0] }}>({{ arguments[1:] | join(', ') }}){% if is_statement %};{% endif %}
+{{ calls }}<{{ arguments[:begin_index] | join(', ') }}>({{ arguments[begin_index:] | join(', ') }}){% if is_statement %};{% endif %}

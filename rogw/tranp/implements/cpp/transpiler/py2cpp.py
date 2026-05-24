@@ -999,7 +999,13 @@ class Py2Cpp(ITranspiler):
 			receiver, _ = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.generic_call:
-			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+			begin_index = 1
+			for i in range(1, len(node.arguments)):
+				if not self.reflections.type_of(node.arguments[i]).impl(refs.Object).type_is(type):
+					begin_index = i
+					break
+
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'begin_index': begin_index})
 		elif spec == FuncCallSpec.Tags.cast_char:
 			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.cast_enum:

@@ -922,6 +922,10 @@ class ForFuncCall:
 		def len(self, s: str) -> None:
 			len(s)
 
+	class Generic:
+		def call(self, t1: type[T], t2: type[T2], arg: int) -> None:
+			self.call(int, float, 1)
+
 
 class ForBinaryOperator:
 	def char_op_by_str(self, string: str) -> None:

@@ -1002,8 +1002,9 @@ class Py2Cpp(ITranspiler):
 			begin_index = 1
 			for i in range(1, len(node.arguments)):
 				if not self.reflections.type_of(node.arguments[i]).impl(refs.Object).type_is(type):
-					begin_index = i
 					break
+
+				begin_index += 1
 
 			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'begin_index': begin_index})
 		elif spec == FuncCallSpec.Tags.cast_char:

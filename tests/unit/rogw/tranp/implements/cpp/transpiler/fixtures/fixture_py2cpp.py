@@ -923,8 +923,17 @@ class ForFuncCall:
 			len(s)
 
 	class Generic:
-		def call(self, t1: type[T], t2: type[T2], arg: int) -> None:
-			self.call(int, float, 1)
+		def call_t1(self, t1: type[T]) -> None:
+			self.call_t1(int)
+
+		def call_t1a1(self, t1: type[T], arg: int) -> None:
+			self.call_t1a1(int, 1)
+
+		def call_t1t2(self, t1: type[T], t2: type[T2]) -> None:
+			self.call_t1t2(int, float)
+
+		def call_t1t2a1(self, t1: type[T], t2: type[T2], arg: int) -> None:
+			self.call_t1t2a1(int, float, 1)
 
 
 class ForBinaryOperator:

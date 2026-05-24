@@ -537,6 +537,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.String.encode', 'function_def_raw.block.funccall[1]', defs.FuncCall, '("");'),
 		('ForFuncCall.String.decode', 'function_def_raw.block.funccall', defs.FuncCall, 'b.decode();'),  # FIXME 現状は一旦decodeのまま出力
 		('ForFuncCall.String.len', 'function_def_raw.block.funccall', defs.FuncCall, 's.size();'),
+		('ForFuncCall.Generic.call', 'function_def_raw.block.funccall', defs.FuncCall, 'this->call<int, float>(1);'),
 
 		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[0]', defs.MoveAssign, "bool a = string[0] >= 'A';"),
 		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[1]', defs.MoveAssign, "bool b = string[0] <= 'Z';"),

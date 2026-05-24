@@ -1013,7 +1013,9 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/dict_values', vars, expected)
 
 	@data_provider([
-		({'calls': 'static_cast', 'arguments': ['Class*', 'p'], 'is_statement': True}, 'static_cast<Class*>(p);'),
+		({'calls': 'static_cast', 'arguments': ['Class*', 'p'], 'begin_index': 1, 'is_statement': True}, 'static_cast<Class*>(p);'),
+		({'calls': 'number', 'arguments': ['int', 'float'], 'begin_index': 2, 'is_statement': True}, 'number<int, float>();'),
+		({'calls': 'number', 'arguments': ['int', 'float', '1'], 'begin_index': 2, 'is_statement': True}, 'number<int, float>(1);'),
 	])
 	def test_render_func_call_generic_call(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/generic_call', vars, expected)

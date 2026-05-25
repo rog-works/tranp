@@ -554,9 +554,10 @@ class TestRenderer(TestCase):
 		self.assertRender('element/decorator', vars, expected)
 
 	@data_provider([
-		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}]}, 'l.erase(l.begin() + 1);'),
-		({'targets': [{'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'd.erase("a");'),
-		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}, {'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'l.erase(l.begin() + 1);\nd.erase("a");'),
+		({'targets': [{'receiver': 'obj', 'type': 'otherwise'}]}, 'delete obj;'),
+		({'targets': [{'receiver': 'l', 'type': 'list', 'key': '1'}]}, 'l.erase(l.begin() + 1);'),
+		({'targets': [{'receiver': 'd', 'type': 'dict', 'key': '"a"'}]}, 'd.erase("a");'),
+		({'targets': [{'receiver': 'l', 'type': 'list', 'key': '1'}, {'receiver': 'd', 'type': 'dict', 'key': '"a"'}]}, 'l.erase(l.begin() + 1);\nd.erase("a");'),
 	])
 	def test_render_delete(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'statement/delete', vars, expected)

@@ -665,17 +665,20 @@ class Py2Cpp(ITranspiler):
 	def on_delete(self, node: defs.Delete, targets: str) -> str:
 		target_types: list[str] = []
 		for target_node in node.targets:
-			if not isinstance(target_node, defs.Indexer):
-				raise Errors.OperationNotAllowed(node, target_node, 'Reject delete. Must be list or dict')
-
-			target_symbol = self.reflections.type_of(target_node.receiver)
-			target_types.append('list' if target_symbol.impl(refs.Object).type_is(list) else 'dict')
+			if isinstance(target_node, defs.Indexer):
+				target_symbol = self.reflections.type_of(target_node.receiver)
+				target_types.append('list' if target_symbol.impl(refs.Object).type_is(list) else 'dict')
+			else:
+				target_types.append('otherwise')
 
 		_targets: list[dict[str, str]] = []
 		for i in range(len(targets)):
 			target = targets[i]
-			receiver, key = PatternParser.break_indexer(target)
-			_targets.append({'receiver': receiver, 'key': key, 'list_or_dict': target_types[i]})
+			if target_types[i] != 'otherwise':
+				receiver, key = PatternParser.break_indexer(target)
+				_targets.append({'receiver': receiver, 'type': target_types[i], 'key': key})
+			else:
+				_targets.append({'receiver': target, 'type': target_types[i]})
 
 		return self.view.render(f'statement/{node.classification}', vars={'targets': _targets})
 

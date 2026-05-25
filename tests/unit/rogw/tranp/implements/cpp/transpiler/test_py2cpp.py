@@ -409,10 +409,11 @@ class TestPy2Cpp(TestCase):
 		('ForAssign.for_enum', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'Values e = es[0];'),
 		('ForAssign.for_enum', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string s = des[Values::A];'),
 
-		('ForSimple.delete_list_dict', 'function_def_raw.block.del_stmt[0]', defs.Delete, 'ns.erase(ns.begin() + 0);'),
-		('ForSimple.delete_list_dict', 'function_def_raw.block.del_stmt[1]', defs.Delete, 'ns.erase(ns.begin() + 1);\nns.erase(ns.begin() + 2);'),
-		('ForSimple.delete_list_dict', 'function_def_raw.block.del_stmt[2]', defs.Delete, 'dsn.erase("a");'),
-		('ForSimple.delete_list_dict', 'function_def_raw.block.del_stmt[3]', defs.Delete, 'dsn.erase("b");\ndsn.erase("c");'),
+		('ForSimple.delete', 'function_def_raw.block.del_stmt[0]', defs.Delete, 'ns.erase(ns.begin() + 0);'),
+		('ForSimple.delete', 'function_def_raw.block.del_stmt[1]', defs.Delete, 'ns.erase(ns.begin() + 1);\nns.erase(ns.begin() + 2);'),
+		('ForSimple.delete', 'function_def_raw.block.del_stmt[2]', defs.Delete, 'dsn.erase("a");'),
+		('ForSimple.delete', 'function_def_raw.block.del_stmt[3]', defs.Delete, 'dsn.erase("b");\ndsn.erase("c");'),
+		('ForSimple.delete', 'function_def_raw.block.del_stmt[4]', defs.Delete, 'delete p;'),
 
 		('ForSimple.return_none', 'function_def_raw.block.return_stmt', defs.Return, 'return;'),
 		('ForSimple.return_value', 'function_def_raw.block.return_stmt', defs.Return, 'return 0;'),

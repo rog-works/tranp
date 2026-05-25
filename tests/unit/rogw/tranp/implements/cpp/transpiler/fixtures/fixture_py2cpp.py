@@ -693,11 +693,12 @@ class ForAssign:
 
 
 class ForSimple:
-	def delete_list_dict(self, ns: list[int], dsn: dict[str, int]) -> None:
+	def delete(self, ns: list[int], dsn: dict[str, int], p: CP[int]) -> None:
 		del ns[0]
 		del ns[1], ns[2]
 		del dsn['a']
 		del dsn['b'], dsn['c']
+		del p
 
 	def return_none(self) -> None:
 		return

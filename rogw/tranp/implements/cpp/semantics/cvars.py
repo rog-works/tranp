@@ -87,6 +87,24 @@ class CVars:
 			for value in cls:
 				yield value.value
 
+	class Types(Enum):
+		Raw = 0x0001
+		CRef = 0x0002
+		CP = 0x0010
+		CWP = 0x0020
+		CUP = 0x0040
+		CSP = 0x0080
+		# 不変型
+		RawConst = 0x1001
+		CRefConst = 0x1002
+		CPConst = 0x1010
+		CWPConst = 0x1020
+		CUPConst = 0x1040
+		CSPConst = 0x1080
+		# マスク
+		RawMask = 0x000f
+		AddrMask = 0x00f0
+
 	RawKeys: ClassVar[list[str]] = [
 		cpp.CRaw.__name__,
 		cpp.CRef.__name__,

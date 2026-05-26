@@ -46,6 +46,7 @@ class CVars:
 		"""操作メソッド Note: @see rogw.tranp.compatible.cpp.cvar"""
 		ToAddrId = 'to_addr_id'
 		ToAddrHex = 'to_addr_hex'
+		ToImmutable = 'to_immutable'
 		On = 'on'
 		Emtpy = 'empty'
 		New = 'new'

@@ -218,6 +218,8 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[3]', defs.FuncCall, 'asp->call();'),
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'aref.call();'),
 
+		('CVarOps.immutable', 'function_def_raw.block.funccall', defs.FuncCall, 'this->immutable(*this);'),
+
 		('FuncOps.kw_params', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
 
 		('AccessOps.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAccessOps() : Sub(0), sub_s("") {}'),

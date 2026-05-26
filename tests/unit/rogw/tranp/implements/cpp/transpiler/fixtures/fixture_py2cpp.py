@@ -263,6 +263,9 @@ class CVarOps:
 		asp.on.call()
 		aref.on.call()
 
+	def immutable(self, p: Annotated['CVarOps', Embed.immutable]) -> None:
+		self.immutable(CP.to_immutable(self))
+
 
 class FuncOps:
 	def kw_params(self, **kwargs: int) -> str:

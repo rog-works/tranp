@@ -168,7 +168,7 @@ class CVars:
 			cpp.CSPConst.__name__: CVars.Types.CSPConst,
 		}
 		for add_name, org_name in name_to_key.items():
-			assert add_name not in self._name_to_type, Errors.InvalidSchema(add_name)
+			assert add_name not in self._name_to_type, Errors.InvalidSchema(add_name, org_name)
 			self._name_to_type[add_name] = self._name_to_type[org_name]
 
 	def names(self) -> Iterator[str]:

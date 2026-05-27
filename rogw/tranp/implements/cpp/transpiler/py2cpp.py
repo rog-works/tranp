@@ -1096,7 +1096,8 @@ class Py2Cpp(ITranspiler):
 		elif spec == FuncCallSpec.Tags.cvar_as_a:
 			# 期待値: receiver.as_a(A)
 			receiver, _ = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
+			cvar_key = context_name
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'cvar_type': cvar_key})
 		elif spec == FuncCallSpec.Tags.cvar_move:
 			# 期待値: receiver.move(to)
 			receiver, _ = PatternParser.break_relay(calls)
@@ -1108,7 +1109,8 @@ class Py2Cpp(ITranspiler):
 		elif spec == FuncCallSpec.Tags.cvar_down:
 			# 期待値: receiver.down(A)
 			receiver, _ = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
+			cvar_key = context_name
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'cvar_type': cvar_key})
 		elif spec == FuncCallSpec.Tags.cvar_new_addr:
 			# 期待値: CP.new(A(a, b, c))
 			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
@@ -1229,10 +1231,10 @@ class Py2Cpp(ITranspiler):
 					return FuncCallSpec.Tags.cvar_copy, '', None
 			elif prop in [CVars.Verbs.Down.value, CVars.Verbs.AsA.value]:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
-				cvar_type = self.cvars.resolve_type(receiver_raw)
-				if self.cvars.contains(cvar_type, CVars.Types.AddrRawMask):
+				cvar_type, cvar_key = self.cvars.resolve(receiver_raw)
+				if self.cvars.contains(cvar_type, CVars.Types.AddrDownableMask):
 					spec = FuncCallSpec.Tags.cvar_down if prop == CVars.Verbs.Down.value else FuncCallSpec.Tags.cvar_as_a
-					return spec, '', None
+					return spec, cvar_key, None
 			elif prop == CVars.Verbs.Emtpy.value and isinstance(node.calls.receiver, defs.Indexer):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_type, cvar_key = self.cvars.resolve(receiver_raw)

@@ -100,6 +100,7 @@ class CVars:
 		AddrMask = 0x00f0
 		AddrRawMask = CP | CWP
 		AddrSmartMask = CUP | CSP
+		AddrDownableMask = CP | CWP | CSP
 
 	TypeToOperator: ClassVar[dict[Types, RelayOperators]] = {
 		Types.CP: RelayOperators.Address,

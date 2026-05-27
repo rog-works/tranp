@@ -47,6 +47,8 @@ aliases.rogw.tranp.compatible.libralies.classes#str.upper: upper # FIXME 暫定�
 aliases.rogw.tranp.compatible.libralies.classes#tuple: std::tuple
 # cpp
 aliases.rogw.tranp.compatible.cpp.classes#PluckMethod: PluckMethod
+aliases.rogw.tranp.compatible.cpp.classes#cast.as_a: dynamic_pointer_cast
+aliases.rogw.tranp.compatible.cpp.classes#cast.down: static_pointer_cast
 aliases.rogw.tranp.compatible.cpp.classes#char: char
 aliases.rogw.tranp.compatible.cpp.classes#container.size: size
 aliases.rogw.tranp.compatible.cpp.classes#float.mod: fmod

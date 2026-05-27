@@ -1,10 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable, ItemsView, Iterator
 from enum import Enum
-from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
+from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast, override
 
 from rogw.tranp.compatible.cpp.classes import byte, char, double, int64, uint32, uint64, void, wchar_t
-from rogw.tranp.compatible.cpp.cvar import CP, CSP, CUP, CWP, CPConst, CRawConst, CRef, T_co
+from rogw.tranp.compatible.cpp.cvar import CP, CSP, CUP, CWP, CPConst, CRawConst, CRef, T_co, T_New
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
@@ -265,6 +265,18 @@ class CVarOps:
 
 	def immutable(self, p: Annotated['CVarOps', Embed.immutable]) -> None:
 		self.immutable(CP.to_immutable(self))
+	
+	class AltCSP(CSP[T_co]):
+		@classmethod
+		@override
+		def new(cls, origin: T_New) -> 'CVarOps.AltCSP[T_New]':
+			"""Note: XXX 戻り値の型がCSPになるため、overrideが必要"""
+			return CVarOps.AltCSP(CP(origin))
+
+	def alt_csp(self) -> None:
+		alt_sp = CVarOps.AltCSP.new(Sub(0))
+		n = alt_sp.on.base_n
+		p = alt_sp.addr
 
 
 class FuncOps:

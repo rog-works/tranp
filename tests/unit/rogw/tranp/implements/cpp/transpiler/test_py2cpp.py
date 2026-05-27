@@ -54,7 +54,7 @@ class TestPy2Cpp(TestCase):
 		to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 		to_fullyname(RendererSetting): make_renderer_setting,
 		to_fullyname(TranslationMapping): fixture_translation_mapping,
-		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=verbose_on(), env={}),
+		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=verbose_on(), env={'cvars': {'AltCSP': 'CSP'}}),
 	})
 
 	@profiler(on=profiler_on())
@@ -219,6 +219,10 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'aref.call();'),
 
 		('CVarOps.immutable', 'function_def_raw.block.funccall', defs.FuncCall, 'this->immutable(*this);'),
+
+		('CVarOps.alt_csp', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'CVarOps::AltCSP<Sub> alt_sp = CVarOps::AltCSP::new(Sub(0));'),  # newをCSPと合わせるには翻訳側の対応が必要
+		('CVarOps.alt_csp', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = alt_sp->base_n;'),
+		('CVarOps.alt_csp', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'Sub* p = (alt_sp).get();'),
 
 		('FuncOps.kw_params', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
 

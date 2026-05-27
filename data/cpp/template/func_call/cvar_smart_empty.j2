@@ -1,2 +1,5 @@
-{%- set smart_type = i18n('cpp', 'unique_ptr' if cvar_type == 'CUP' else 'shared_ptr') -%}
-{{ smart_type | replace('{var_type}', var_type) }}(){% if is_statement %};{% endif %}
+{%- if cvar_type == 'CUP' -%}
+{{ i18n('cpp', 'unique_ptr') }}<{{ var_type }}>(){% if is_statement %};{% endif %}
+{%- else -%}
+{{ i18n('cpp', 'shared_ptr') }}<{{ var_type }}>(){% if is_statement %};{% endif %}
+{%- endif -%}

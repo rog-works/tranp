@@ -4,6 +4,7 @@ from typing import ClassVar
 
 import rogw.tranp.compatible.cpp.cvar as cpp
 import rogw.tranp.semantics.reflection.definition as refs
+from rogw.tranp.errors import Errors
 from rogw.tranp.semantics.reflection.base import IReflection
 
 
@@ -64,13 +65,7 @@ class CVars:
 
 		@classmethod
 		def in_value(cls, key: str) -> bool:
-			"""型変換メソッド名が存在するか判定
-
-			Args:
-				key: キー
-			Returns:
-				True = 存在
-			"""
+			"""Args: key: キー Returns: True = 存在"""
 			for value in cls:
 				if value.value == key:
 					return True
@@ -79,280 +74,142 @@ class CVars:
 
 		@classmethod
 		def values(cls) -> Iterator[str]:
-			"""全ての型変換メソッド名を取得
-
-			Returns:
-				型変換メソッドのイテレーター
-			"""
+			"""Returns: 型変換メソッドのイテレーター"""
 			for value in cls:
 				yield value.value
 
-	RawKeys: ClassVar[list[str]] = [
-		cpp.CRaw.__name__,
-		cpp.CRef.__name__,
-		cpp.CRawConst.__name__,
-		cpp.CRefConst.__name__,
-	]
-	RawRawKeys: ClassVar[list[str]] = [
-		cpp.CRaw.__name__,
-		cpp.CRawConst.__name__,
-	]
-	RawRefKeys: ClassVar[list[str]] = [
-		cpp.CRef.__name__,
-		cpp.CRefConst.__name__,
-	]
-	AddrKeys: ClassVar[list[str]] = [
-		cpp.CP.__name__,
-		cpp.CWP.__name__,
-		cpp.CUP.__name__,
-		cpp.CSP.__name__,
-		cpp.CPConst.__name__,
-		cpp.CUPConst.__name__,
-		cpp.CSPConst.__name__,
-	]
-	AddrRawKeys: ClassVar[list[str]] = [
-		cpp.CP.__name__,
-		cpp.CWP.__name__,
-		cpp.CPConst.__name__,
-	]
-	AddrSmartKeys: ClassVar[list[str]] = [
-		cpp.CUP.__name__,
-		cpp.CSP.__name__,
-		cpp.CUPConst.__name__,
-		cpp.CSPConst.__name__,
-	]
-	AddrUniqueKeys: ClassVar[list[str]] = [
-		cpp.CUP.__name__,
-		cpp.CUPConst.__name__,
-	]
-	ConstKeys: ClassVar[list[str]] = [
-		cpp.CPConst.__name__,
-		cpp.CUPConst.__name__,
-		cpp.CSPConst.__name__,
-		cpp.CRefConst.__name__,
-		cpp.CRawConst.__name__,
-	]
-	Keys: ClassVar[list[str]] = [
-		cpp.CP.__name__,
-		cpp.CWP.__name__,
-		cpp.CUP.__name__,
-		cpp.CSP.__name__,
-		cpp.CRef.__name__,
-		cpp.CRaw.__name__,
-		cpp.CPConst.__name__,
-		cpp.CUPConst.__name__,
-		cpp.CSPConst.__name__,
-		cpp.CRefConst.__name__,
-		cpp.CRawConst.__name__,
-	]
-	KeyToOperator: ClassVar[dict[str, RelayOperators]] = {
-		cpp.CP.__name__: RelayOperators.Address,
-		cpp.CWP.__name__: RelayOperators.Address,
-		cpp.CUP.__name__: RelayOperators.Address,
-		cpp.CSP.__name__: RelayOperators.Address,
-		cpp.CRef.__name__: RelayOperators.Raw,
-		cpp.CPConst.__name__: RelayOperators.Address,
-		cpp.CUPConst.__name__: RelayOperators.Address,
-		cpp.CSPConst.__name__: RelayOperators.Address,
-		cpp.CRefConst.__name__: RelayOperators.Raw,
-		cpp.CRawConst.__name__: RelayOperators.Raw,
-		cpp.CRaw.__name__: RelayOperators.Raw,
+	class Types(Enum):
+		"""C++型変数種別"""
+		CRaw = 0x0001
+		CRef = 0x0002
+		CP = 0x0010
+		CWP = 0x0020
+		CUP = 0x0040
+		CSP = 0x0080
+		# 修飾子
+		Const = 0x1000
+		# 不変型
+		CRawConst = 0x1001
+		CRefConst = 0x1002
+		CPConst = 0x1010
+		CWPConst = 0x1020
+		CUPConst = 0x1040
+		CSPConst = 0x1080
+		# マスク
+		RawMask = 0x000f
+		AddrMask = 0x00f0
+		AddrRawMask = CP | CWP
+		AddrSmartMask = CUP | CSP
+
+	TypeToOperator: ClassVar[dict[Types, RelayOperators]] = {
+		Types.CP: RelayOperators.Address,
+		Types.CWP: RelayOperators.Address,
+		Types.CUP: RelayOperators.Address,
+		Types.CSP: RelayOperators.Address,
+		Types.CRef: RelayOperators.Raw,
+		Types.CPConst: RelayOperators.Address,
+		Types.CUPConst: RelayOperators.Address,
+		Types.CSPConst: RelayOperators.Address,
+		Types.CRefConst: RelayOperators.Raw,
+		Types.CRawConst: RelayOperators.Raw,
+		Types.CRaw: RelayOperators.Raw,
 	}
-	CastToMove: ClassVar[dict[str, Moves]] = {
-		f'{cpp.CP.__name__}.{Casts.Raw.value}': Moves.ToActual,
-		f'{cpp.CP.__name__}.{Casts.Ref.value}': Moves.ToActual,
-		f'{cpp.CP.__name__}.{Casts.Const.value}': Moves.Copy,
-		f'{cpp.CWP.__name__}.{Casts.Raw.value}': Moves.ToActual,
-		f'{cpp.CWP.__name__}.{Casts.Addr.value}': Moves.Copy,
-		f'{cpp.CUP.__name__}.{Casts.Raw.value}': Moves.ToActual,
-		f'{cpp.CUP.__name__}.{Casts.Ref.value}': Moves.ToActual,
-		f'{cpp.CUP.__name__}.{Casts.Addr.value}': Moves.UnpackSmart,
-		f'{cpp.CUP.__name__}.{Casts.Const.value}': Moves.Copy,
-		f'{cpp.CSP.__name__}.{Casts.Raw.value}': Moves.ToActual,
-		f'{cpp.CSP.__name__}.{Casts.Ref.value}': Moves.ToActual,
-		f'{cpp.CSP.__name__}.{Casts.Addr.value}': Moves.UnpackSmart,
-		f'{cpp.CSP.__name__}.{Casts.Const.value}': Moves.Copy,
-		f'{cpp.CRef.__name__}.{Casts.Raw.value}': Moves.Copy,
-		f'{cpp.CRef.__name__}.{Casts.Addr.value}': Moves.ToAddress,
-		f'{cpp.CRef.__name__}.{Casts.Const.value}': Moves.Copy,
-		f'{cpp.CPConst.__name__}.{Casts.Raw.value}': Moves.ToActual,
-		f'{cpp.CPConst.__name__}.{Casts.Ref.value}': Moves.ToActual,
-		f'{cpp.CUPConst.__name__}.{Casts.Raw.value}': Moves.ToActual,
-		f'{cpp.CUPConst.__name__}.{Casts.Ref.value}': Moves.ToActual,
-		f'{cpp.CUPConst.__name__}.{Casts.Addr.value}': Moves.UnpackSmart,
-		f'{cpp.CSPConst.__name__}.{Casts.Raw.value}': Moves.ToActual,
-		f'{cpp.CSPConst.__name__}.{Casts.Ref.value}': Moves.ToActual,
-		f'{cpp.CSPConst.__name__}.{Casts.Addr.value}': Moves.UnpackSmart,
-		f'{cpp.CRefConst.__name__}.{Casts.Raw.value}': Moves.Copy,
-		f'{cpp.CRefConst.__name__}.{Casts.Addr.value}': Moves.ToAddress,
-		f'{cpp.CRawConst.__name__}.{Casts.Raw.value}': Moves.Copy,
-		f'{cpp.CRawConst.__name__}.{Casts.Ref.value}': Moves.Copy,
-		f'{cpp.CRawConst.__name__}.{Casts.Addr.value}': Moves.ToAddress,
+	CastToMove: ClassVar[dict[tuple[Types, str], Moves]] = {
+		(Types.CP, Casts.Raw.value): Moves.ToActual,
+		(Types.CP, Casts.Ref.value): Moves.ToActual,
+		(Types.CP, Casts.Const.value): Moves.Copy,
+		(Types.CWP, Casts.Raw.value): Moves.ToActual,
+		(Types.CWP, Casts.Addr.value): Moves.Copy,
+		(Types.CUP, Casts.Raw.value): Moves.ToActual,
+		(Types.CUP, Casts.Ref.value): Moves.ToActual,
+		(Types.CUP, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CUP, Casts.Const.value): Moves.Copy,
+		(Types.CSP, Casts.Raw.value): Moves.ToActual,
+		(Types.CSP, Casts.Ref.value): Moves.ToActual,
+		(Types.CSP, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CSP, Casts.Const.value): Moves.Copy,
+		(Types.CRef, Casts.Raw.value): Moves.Copy,
+		(Types.CRef, Casts.Addr.value): Moves.ToAddress,
+		(Types.CRef, Casts.Const.value): Moves.Copy,
+		(Types.CPConst, Casts.Raw.value): Moves.ToActual,
+		(Types.CPConst, Casts.Ref.value): Moves.ToActual,
+		(Types.CUPConst, Casts.Raw.value): Moves.ToActual,
+		(Types.CUPConst, Casts.Ref.value): Moves.ToActual,
+		(Types.CUPConst, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CSPConst, Casts.Raw.value): Moves.ToActual,
+		(Types.CSPConst, Casts.Ref.value): Moves.ToActual,
+		(Types.CSPConst, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CRefConst, Casts.Raw.value): Moves.Copy,
+		(Types.CRefConst, Casts.Addr.value): Moves.ToAddress,
+		(Types.CRawConst, Casts.Raw.value): Moves.Copy,
+		(Types.CRawConst, Casts.Ref.value): Moves.Copy,
+		(Types.CRawConst, Casts.Addr.value): Moves.ToAddress,
 	}
 
-	def __init__(self, var_name_to_key: dict[str, str] = {}) -> None:
+	def __init__(self, name_to_key: dict[str, str] = {}) -> None:
 		"""インスタンスを生成
 
 		Args:
-			var_name_to_key: 変数型名とC++変数型のキーマップ (default = {})
+			name_to_key: 新規変数型名とC++型変数名のマップ (default = {})
+		Raises:
+			Errors.InvalieSchema: 既存の型名を指定
 		"""
-		self._var_name_to_key = {
-			cpp.CP.__name__: cpp.CP.__name__,
-			cpp.CWP.__name__: cpp.CWP.__name__,
-			cpp.CUP.__name__: cpp.CUP.__name__,
-			cpp.CSP.__name__: cpp.CSP.__name__,
-			cpp.CRef.__name__: cpp.CRef.__name__,
-			cpp.CRaw.__name__: cpp.CRaw.__name__,
-			cpp.CPConst.__name__: cpp.CPConst.__name__,
-			cpp.CUPConst.__name__: cpp.CUPConst.__name__,
-			cpp.CSPConst.__name__: cpp.CSPConst.__name__,
-			cpp.CRefConst.__name__: cpp.CRefConst.__name__,
-			cpp.CRawConst.__name__: cpp.CRawConst.__name__,
+		self._name_to_type = {
+			cpp.CRaw.__name__: CVars.Types.CRaw,
+			cpp.CRef.__name__: CVars.Types.CRef,
+			cpp.CP.__name__: CVars.Types.CP,
+			cpp.CWP.__name__: CVars.Types.CWP,
+			cpp.CUP.__name__: CVars.Types.CUP,
+			cpp.CSP.__name__: CVars.Types.CSP,
+			cpp.CRawConst.__name__: CVars.Types.CRawConst,
+			cpp.CRefConst.__name__: CVars.Types.CRefConst,
+			cpp.CPConst.__name__: CVars.Types.CPConst,
+			cpp.CUPConst.__name__: CVars.Types.CUPConst,
+			cpp.CSPConst.__name__: CVars.Types.CSPConst,
 		}
-		for symbol, key in var_name_to_key.items():
-			self._var_name_to_key[symbol] = key
+		for add_name, org_name in name_to_key.items():
+			assert add_name not in self._name_to_type, Errors.InvalidSchema(add_name, org_name)
+			self._name_to_type[add_name] = self._name_to_type[org_name]
 
-	def is_entity(self, var_name: str) -> bool:
-		"""実体か判定(不変性型は除外)
-
-		Args:
-			var_name: 変数型名
-		Returns:
-			True = 実体
-		"""
-		return self._var_name_to_key[var_name] == cpp.CRaw.__name__
-
-	def is_raw(self, var_name: str) -> bool:
-		"""実体か判定(不変性型を含む)
-
-		Args:
-			var_name: 変数型名
-		Returns:
-			True = 実体/参照
-		"""
-		return self._var_name_to_key[var_name] in CVars.RawKeys
-
-	def is_addr(self, var_name: str) -> bool:
-		"""アドレスか判定(不変性型を含む)
-
-		Args:
-			var_name: 変数型名
-		Returns:
-			True = ポインター/スマートポインター
-		"""
-		return self._var_name_to_key[var_name] in CVars.AddrKeys
-
-	def is_raw_raw(self, var_name: str) -> bool:
-		"""実体か判定(不変性型を含む)
-
-		Args:
-			var_name: 変数型名
-		Returns:
-			True = 実体
-		"""
-		return self._var_name_to_key[var_name] in CVars.RawRawKeys
-
-	def is_raw_ref(self, var_name: str) -> bool:
-		"""参照か判定(不変性型を含む)
-
-		Args:
-			var_name: 変数型名
-		Returns:
-			True = 参照
-		"""
-		return self._var_name_to_key[var_name] in CVars.RawRefKeys
-
-	def is_addr_raw(self, var_name: str) -> bool:
-		"""ポインターか判定(不変性型を含む)
-
-		Args:
-			var_name: 変数型名
-		Returns:
-			True = ポインター
-		"""
-		return self._var_name_to_key[var_name] in CVars.AddrRawKeys
-
-	def is_addr_smart(self, var_name: str) -> bool:
-		"""スマートポインターか判定(不変性型を含む)
-
-		Args:
-			var_name: 変数型名
-		Returns:
-			True = スマートポインター
-		"""
-		return self._var_name_to_key[var_name] in CVars.AddrSmartKeys
-
-	def is_addr_unique(self, var_name: str) -> bool:
-		"""占有ポインターか判定(不変性型を含む)
-
-		Args:
-			var_name: 変数型名
-		Returns:
-			True = 占有ポインター
-		"""
-		return self._var_name_to_key[var_name] in CVars.AddrUniqueKeys
-
-	def is_const(self, var_name: str) -> bool:
-		"""不変性型か判定
-
-		Args:
-			var_name: 変数型名
-		Returns:
-			True = 不変性型
-		"""
-		return self._var_name_to_key[var_name] in CVars.ConstKeys
-
-	def var_names(self) -> Iterator[str]:
-		"""全ての変数型名を取得
-
-		Returns:
-			変数型名のイテレーター
-		"""
-		for key in self._var_name_to_key.keys():
+	def names(self) -> Iterator[str]:
+		"""Returns: イテレーター(C++型変数名)"""
+		for key in self._name_to_type.keys():
 			yield key
 
-	def var_name_from(self, symbol: IReflection) -> str:
-		"""シンボルから変数型名を取得
-
-		Args:
-			symbol: シンボル
-		Returns:
-			変数型名
-		Note:
-			```
-			* nullはポインターとして扱う
-			* XXX 返却値を既定のC++変数型のキーに変換するべきでは？(テンプレートの型名変換のため)
-			```
-		"""
-		if symbol.types.domain_name in self.var_names():
-			return symbol.types.domain_name
+	def resolve(self, symbol: IReflection) -> tuple[Types, str]:
+		"""Args: symbol: シンボル Returns: (C++型変数種別, C++型変数名) Note: Noneはポインターとして扱う"""
+		if symbol.types.domain_name in self._name_to_type:
+			return self._name_to_type[symbol.types.domain_name], symbol.types.domain_name
+			return 
 		elif symbol.impl(refs.Object).type_is(None):
-			return cpp.CP.__name__
+			return CVars.Types.CP, cpp.CP.__name__
 		else:
-			return cpp.CRaw.__name__
+			return CVars.Types.CRaw, cpp.CRaw.__name__
 
-	def to_operator(self, var_name: str) -> RelayOperators:
-		"""変数型名に応じたリレー演算子に変換
+	def resolve_type(self, symbol: IReflection) -> Types:
+		"""Args: symbol: シンボル Returns: C++型変数種別 Note: @see resolve"""
+		return self.resolve(symbol)[0]
 
-		Args:
-			var_name: 変数型名
-		Returns:
-			リレー演算子
-		"""
-		key = self._var_name_to_key[var_name]
-		return CVars.KeyToOperator[key]
+	def name_to_type(self, var_name: str) -> Types:
+		"""Args: var_name: C++型変数名 Returns: C++型変数種別"""
+		return self._name_to_type[var_name]
 
-	def to_move(self, var_name: str, cast_key: str) -> Moves:
-		"""変数型名の各メソッドに応じた移動操作の種別に変換
+	def equals(self, var_type: Types, expect_type: Types) -> bool:
+		"""Args: var_type: C++型変数種別, expect_type: C++型変数種別 Returns: True = 同じ"""
+		return var_type == expect_type
 
-		Args:
-			var_name: 変数型名
-			cast_key: 型変換メソッド名
-		Returns:
-			移動操作の種別
-		"""
-		key = self._var_name_to_key[var_name]
-		return CVars.CastToMove.get(f'{key}.{cast_key}', CVars.Moves.Deny)
+	def contains(self, var_type: Types, mask: Types) -> bool:
+		"""Args: var_type: C++型変数種別, mask: 種別マスク Returns: True = 含む"""
+		return (var_type.value & mask.value) != 0
+
+	def to_operator(self, var_type: Types) -> RelayOperators:
+		"""Args: var_type: C++型変数種別 Returns: リレー演算子"""
+		return CVars.TypeToOperator[var_type]
+
+	def to_move(self, var_type: Types, cast_key: str) -> Moves:
+		"""Args: var_type: C++型変数種別, cast_key: 型変換メソッド名 Returns: 移動操作の種別"""
+		key = (var_type, cast_key)
+		return CVars.CastToMove.get(key, CVars.Moves.Deny)
 
 	# @classmethod
 	# @deprecated

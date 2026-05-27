@@ -270,6 +270,7 @@ class CVarOps:
 		@classmethod
 		@override
 		def new(cls, origin: T_New) -> 'CVarOps.AltCSP[T_New]':
+			"""Note: XXX 戻り値の型がCSPになるため、overrideが必要"""
 			return CVarOps.AltCSP(CP(origin))
 
 	def alt_csp(self) -> None:

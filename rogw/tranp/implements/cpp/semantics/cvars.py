@@ -151,6 +151,8 @@ class CVars:
 
 		Args:
 			name_to_key: 新規変数型名とC++型変数名のマップ (default = {})
+		Raises:
+			Errors.InvalieSchema: 既存の型名を指定
 		"""
 		self._name_to_type = {
 			cpp.CRaw.__name__: CVars.Types.CRaw,
@@ -169,38 +171,28 @@ class CVars:
 			assert add_name not in self._name_to_type, Errors.InvalidSchema(add_name)
 			self._name_to_type[add_name] = self._name_to_type[org_name]
 
-	def to_type(self, symbol: IReflection) -> Types:
-		"""Args: symbol: シンボル Returns: C++型変数種別
+	def names(self) -> Iterator[str]:
+		"""Returns: イテレーター(C++型変数名)"""
+		for key in self._name_to_type.keys():
+			yield key
 
-		Note:
-			```
-			* nullはポインターとして扱う
-			* XXX 返却値を既定のC++変数型のキーに変換するべきでは？(テンプレートの型名変換のため)
-			```
-		"""
+	def resolve(self, symbol: IReflection) -> tuple[Types, str]:
+		"""Args: symbol: シンボル Returns: (C++型変数種別, C++型変数名) Note: Noneはポインターとして扱う"""
 		if symbol.types.domain_name in self._name_to_type:
-			return self._name_to_type[symbol.types.domain_name]
+			return self._name_to_type[symbol.types.domain_name], symbol.types.domain_name
+			return 
 		elif symbol.impl(refs.Object).type_is(None):
-			return CVars.Types.CP
+			return CVars.Types.CP, cpp.CP.__name__
 		else:
-			return CVars.Types.CRaw
+			return CVars.Types.CRaw, cpp.CRaw.__name__
 
-	def type_to_name(self, var_type: Types) -> str:
-		"""Args: var_type: C++型変数種別 Returns: C++型変数名"""
-		for var_name, in_var_type in self._name_to_type.items():
-			if var_type == in_var_type:
-				return var_name
-
-		assert False, Errors.Never
+	def resolve_type(self, symbol: IReflection) -> Types:
+		"""Args: symbol: シンボル Returns: C++型変数種別 Note: @see resolve"""
+		return self.resolve(symbol)[0]
 
 	def name_to_type(self, var_name: str) -> Types:
 		"""Args: var_name: C++型変数名 Returns: C++型変数種別"""
 		return self._name_to_type[var_name]
-
-	def var_names(self) -> Iterator[str]:
-		"""Returns: イテレーター(C++型変数名)"""
-		for key in self._name_to_type.keys():
-			yield key
 
 	def equals(self, var_type: Types, expect_type: Types) -> bool:
 		"""Args: var_type: C++型変数種別, expect_type: C++型変数種別 Returns: True = 同じ"""

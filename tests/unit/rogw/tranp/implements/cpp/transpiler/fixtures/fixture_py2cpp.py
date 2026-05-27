@@ -26,6 +26,14 @@ class Values(Enum):
 	B = 1
 
 
+class AltCSP(CSP[T_co]):
+	@classmethod
+	@override
+	def new(cls, origin: T_New) -> 'AltCSP[T_New]':
+		"""Note: XXX 戻り値の型がCSPになるため、overrideが必要"""
+		return AltCSP(CP(origin))
+
+
 class Base(metaclass=ABCMeta):
 	@abstractmethod
 	def sub_implements(self) -> None: ...
@@ -248,11 +256,15 @@ class CVarOps:
 		p.to_addr_hex()
 		CP(n).to_addr_hex()
 
-	def down_cast(self, p: CP[void], wp: CWP[void]) -> None:
+	def down_cast(self, p: CP[void], wp: CWP[void], sp: CSP[void], alt_sp: AltCSP[void]) -> None:
 		down_p = p.down(int)
 		down_wp = wp.down(int)
+		down_sp = sp.down(int)
+		down_alt_sp = alt_sp.down(int)
 		as_p = p.as_a(int)
 		as_wp = wp.as_a(int)
+		as_sp = sp.as_a(int)
+		as_alt_sp = alt_sp.as_a(int)
 
 	Sub2: TypeAlias = Sub
 
@@ -266,15 +278,8 @@ class CVarOps:
 	def immutable(self, p: Annotated['CVarOps', Embed.immutable]) -> None:
 		self.immutable(CP.to_immutable(self))
 	
-	class AltCSP(CSP[T_co]):
-		@classmethod
-		@override
-		def new(cls, origin: T_New) -> 'CVarOps.AltCSP[T_New]':
-			"""Note: XXX 戻り値の型がCSPになるため、overrideが必要"""
-			return CVarOps.AltCSP(CP(origin))
-
 	def alt_csp(self) -> None:
-		alt_sp = CVarOps.AltCSP.new(Sub(0))
+		alt_sp = AltCSP.new(Sub(0))
 		n = alt_sp.on.base_n
 		p = alt_sp.addr
 

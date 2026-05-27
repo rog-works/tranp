@@ -207,8 +207,12 @@ class TestPy2Cpp(TestCase):
 
 		('CVarOps.down_cast', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int* down_p = static_cast<int*>(p);'),
 		('CVarOps.down_cast', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int* down_wp = static_cast<int*>(wp);'),
-		('CVarOps.down_cast', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int* as_p = dynamic_cast<int*>(p);'),
-		('CVarOps.down_cast', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'int* as_wp = dynamic_cast<int*>(wp);'),
+		('CVarOps.down_cast', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::shared_ptr<int> down_sp = static_pointer_cast<int>(sp);'),
+		('CVarOps.down_cast', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::shared_ptr<int> down_alt_sp = static_cast<int*>(alt_sp);'),  # XXX CSPと同様の変換を行うにはテンプレートの対応が必要
+		('CVarOps.down_cast', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'int* as_p = dynamic_cast<int*>(p);'),
+		('CVarOps.down_cast', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'int* as_wp = dynamic_cast<int*>(wp);'),
+		('CVarOps.down_cast', 'function_def_raw.block.assign[6]', defs.MoveAssign, 'std::shared_ptr<int> as_sp = dynamic_pointer_cast<int>(sp);'),
+		('CVarOps.down_cast', 'function_def_raw.block.assign[7]', defs.MoveAssign, 'std::shared_ptr<int> as_alt_sp = dynamic_cast<int*>(alt_sp);'),  # XXX CSPと同様の変換を行うにはテンプレートの対応が必要
 
 		('CVarOps.Sub2', '', defs.AltClass, 'public: using Sub2 = Sub;'),
 
@@ -220,7 +224,7 @@ class TestPy2Cpp(TestCase):
 
 		('CVarOps.immutable', 'function_def_raw.block.funccall', defs.FuncCall, 'this->immutable(*this);'),
 
-		('CVarOps.alt_csp', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'CVarOps::AltCSP<Sub> alt_sp = CVarOps::AltCSP::new(Sub(0));'),  # newをCSPと合わせるには翻訳側の対応が必要
+		('CVarOps.alt_csp', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'AltCSP<Sub> alt_sp = std::make_shared<Sub>(0);'),  # XXX CSPと同様の変換を行うにはテンプレートの対応が必要
 		('CVarOps.alt_csp', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = alt_sp->base_n;'),
 		('CVarOps.alt_csp', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'Sub* p = (alt_sp).get();'),
 

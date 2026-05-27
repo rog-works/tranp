@@ -273,8 +273,9 @@ class CVarOps:
 			return CVarOps.AltCSP(CP(origin))
 
 	def alt_csp(self) -> None:
-		csp = CVarOps.AltCSP.new(Sub(0))
-		n = csp.on.base_n
+		alt_sp = CVarOps.AltCSP.new(Sub(0))
+		n = alt_sp.on.base_n
+		p = alt_sp.addr
 
 
 class FuncOps:

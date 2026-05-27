@@ -220,8 +220,9 @@ class TestPy2Cpp(TestCase):
 
 		('CVarOps.immutable', 'function_def_raw.block.funccall', defs.FuncCall, 'this->immutable(*this);'),
 
-		('CVarOps.alt_csp', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'CVarOps::AltCSP<Sub> csp = CVarOps::AltCSP::new(Sub(0));'),  # newをCSPに合わせるには翻訳側の対応が必要
-		('CVarOps.alt_csp', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = csp->base_n;'),
+		('CVarOps.alt_csp', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'CVarOps::AltCSP<Sub> alt_sp = CVarOps::AltCSP::new(Sub(0));'),  # newをCSPと合わせるには翻訳側の対応が必要
+		('CVarOps.alt_csp', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = alt_sp->base_n;'),
+		('CVarOps.alt_csp', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'Sub* p = (alt_sp).get();'),
 
 		('FuncOps.kw_params', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
 

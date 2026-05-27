@@ -285,7 +285,7 @@ class CWP(CVar[T_co]):
 		origin = self._weak()
 		return CP(origin) if origin else None
 
-	def down[T](self, down_type: type[T]) -> 'CP[T]':
+	def down[T](self, down_type: type[T]) -> 'CWP[T]':
 		"""派生クラスにキャスト。C++では`static_cast<T>`に相当
 
 		Args:
@@ -300,7 +300,7 @@ class CWP(CVar[T_co]):
 
 		return self
 
-	def as_a[T](self, down_type: type[T]) -> 'CP[T]':
+	def as_a[T](self, down_type: type[T]) -> 'CWP[T]':
 		"""派生クラスにキャスト。C++では`dynamic_cast<T>`に相当。Python上はdownと等価
 
 		Args:
@@ -399,6 +399,33 @@ class CSP(CVarNullable[T_co]):
 	def const(self) -> 'CSPConst[T_co]':
 		"""Returns: 不変型共有ポインター Note: 参照変換代替メソッド。C++では削除"""
 		return CSPConst(self.raw)
+
+	def down[T](self, down_type: type[T]) -> 'CSP[T]':
+		"""派生クラスにキャスト。C++では`static_pointer_cast<T>`に相当
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		if not can_down_smart(self, down_type):
+			raise Errors.IllegalConvertion(self, down_type)
+
+		return self
+
+	def as_a[T](self, down_type: type[T]) -> 'CSP[T]':
+		"""派生クラスにキャスト。C++では`dynamic_pointer_cast<T>`に相当。Python上はdownと等価
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		return self.down(down_type)
 
 
 class CRef(CVarNotNull[T_co]):
@@ -529,3 +556,15 @@ def can_down_weak[T](weak: CWP[Any], down_type: type[T]) -> TypeIs[CWP[T]]:
 		True = 同じか派生クラス
 	"""
 	return isinstance(weak.raw, down_type)
+
+
+def can_down_smart[T](smart: CSP[Any], down_type: type[T]) -> TypeIs[CSP[T]]:
+	"""同じか派生クラスか判定
+
+	Args:
+		smart: スマートポインター
+		down_type: 派生クラスの型
+	Returns:
+		True = 同じか派生クラス
+	"""
+	return isinstance(smart.raw, down_type)

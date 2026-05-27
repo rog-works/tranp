@@ -1,1 +1,5 @@
+{%- if cvar_type == 'CSP' -%}
+{{ i18n('cpp', 'cast.as_a') }}<{{ arguments[0] }}>({{ receiver }}){% if is_statement %};{% endif %}
+{%- else -%}
 {{ i18n('lang', 'cast.as_a') }}<{{ arguments[0] }}*>({{ receiver }}){% if is_statement %};{% endif %}
+{%- endif -%}

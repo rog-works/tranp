@@ -57,8 +57,7 @@ class Py2Cpp(ITranspiler):
 		self.evaluator = evaluator
 		self.module_meta_factory = module_meta_factory
 		self.include_dirs = self.__make_include_dirs(options)
-		# XXX config.ymlから設定を読み込む想定だが、不完全なため現状は非対応
-		self.cvars = CVars()
+		self.cvars = CVars(options.env.get('cvars', {}))
 		self.__procedure = self.__make_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []

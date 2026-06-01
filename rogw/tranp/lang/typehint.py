@@ -492,7 +492,7 @@ class ClassTypehint(Typehint):
 				# FIXME 型の不一致は一旦castで対処
 				# XXX メタ情報が含まれる場合はAnnotatedを復元
 				if meta is not None:
-					vars[key] = cast(type, Annotated[origin, meta])
+					vars[key] = cast(type, Annotated[origin, *meta])
 				else:
 					vars[key] = cast(type, origin)
 
@@ -518,8 +518,7 @@ class OriginUnpacker:
 			return cls.forward_to_type(origin, via_module_path), None
 		elif get_origin(origin) is Annotated:
 			_origin = getattr(origin, '__origin__')
-			# FIXME 可変長tupleは扱いにくいため、一旦先頭要素のみ使用
-			meta: Any = getattr(origin, '__metadata__')[0]
+			meta: Any = getattr(origin, '__metadata__')
 			if type(_origin) is ForwardRef:
 				return cls.forward_to_type(_origin.__forward_arg__, via_module_path), meta
 			else:

@@ -190,6 +190,22 @@ class DeclProps : public DeclPropsBase {
 	}
 };"""
 
+	ForClassAliasInner = """public:
+/** Inner2 */
+class Inner2 {
+	public: inline static int V2 = 0;
+	public: int n;
+	public: std::string s;
+	public:
+	/** __init__ */
+	Inner2() : n(0), s("1") {
+		int ns = this->n + std::stoi(this->s);
+	}
+	public:
+	/** func */
+	void func() {}
+};"""
+
 	ForTemplateClass_Delegate = """public:
 /** Delegate */
 template<typename ...T_Args>

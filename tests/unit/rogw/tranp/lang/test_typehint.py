@@ -235,7 +235,7 @@ class TestClassTypehint(TestCase):
 		(Sub, {'inherit': True, 'private': False}, {'cn': (int, None), 'cl': (list, None)}),
 		(Sub, {'inherit': False, 'private': False}, {'cl': (list, None)}),
 		(Gen[str], {'inherit': True, 'private': False}, {}),
-		(Annos, {'inherit': True, 'private': False}, {'cls_self': (UnionType, 'meta')}),
+		(Annos, {'inherit': True, 'private': False}, {'cls_self': (UnionType, ('meta',))}),
 	])
 	def test_class_vars(self, origin: type, flags: dict[str, bool], expected: dict[str, Any]) -> None:
 		hint = ClassTypehint(origin)
@@ -243,15 +243,16 @@ class TestClassTypehint(TestCase):
 		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in vars.items()}, expected)
 
 	@data_provider([
-		(Sub, {'inherit': True, 'private': False}, {'an': (int, 'meta'), 'd': (dict, None), 't': (tuple, None), 'obj': (Base, None), 'p': (UnionType, None)}),
+		(Sub, {'inherit': True, 'private': False}, {'an': (int, ('meta',)), 'd': (dict, None), 't': (tuple, None), 'obj': (Base, None), 'p': (UnionType, None)}),
 		(Sub, {'inherit': False, 'private': False}, {'t': (tuple, None), 'obj': (Base, None), 'p': (UnionType, None)}),
 		(Gen[str], {'inherit': True, 'private': False}, {}),
-		(Annos, {'inherit': True, 'private': False}, {'a_imported': (ScalarTypehint, 'meta'), 'an': (int, 'meta'), 'ad': (dict, 'meta')}),
+		(Annos, {'inherit': True, 'private': False}, {'a_imported': (ScalarTypehint, ('meta',)), 'an': (int, ('meta',)), 'ad': (dict, ('meta',))}),
 	])
 	def test_self_vars(self, origin: type, flags: dict[str, bool], expected: dict[str, Any]) -> None:
 		hint = ClassTypehint(origin)
 		vars = hint.self_vars(with_inherit=flags['inherit'], with_private=flags['private'])
-		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in vars.items()}, expected)
+		actual = {key: (var.origin, var.meta(str)) for key, var in vars.items()}
+		self.assertEqual(actual, expected)
 
 	@data_provider([
 		(Sub, {'inherit': True, 'private': False, 'special': False}, [Sub.cls_method.__name__, Sub.self_method.__name__, 'prop']),
@@ -283,7 +284,7 @@ class TestTypehints(TestCase):
 		(type(None), {'type': ScalarTypehint, 'meta': None}),
 		(Base | None, {'type': ScalarTypehint, 'meta': None}),
 		(Gen[Base] | None, {'type': ScalarTypehint, 'meta': None}),
-		(Annotated[int, 'metadata'], {'type': ScalarTypehint, 'meta': 'metadata'}),
+		(Annotated[int, 'metadata'], {'type': ScalarTypehint, 'meta': ('metadata',)}),
 		(func, {'type': FunctionTypehint, 'meta': None}),
 		(Typehints.resolve, {'type': FunctionTypehint, 'meta': None}),
 		(Typehints, {'type': ClassTypehint, 'meta': None}),
@@ -296,11 +297,11 @@ class TestTypehints(TestCase):
 	@data_provider([
 		(Sub, {
 			'type': {'class_vars': {'cn': ScalarTypehint, 'cl': ScalarTypehint}, 'self_vars': {'an': ScalarTypehint, 'd': ScalarTypehint, 't': ScalarTypehint, 'obj': ClassTypehint, 'p': ScalarTypehint}},
-			'meta': {'class_vars': {'cn': None, 'cl': None}, 'self_vars': {'an': 'meta', 'd': None, 't': None, 'obj': None, 'p': None}},
+			'meta': {'class_vars': {'cn': None, 'cl': None}, 'self_vars': {'an': ('meta',), 'd': None, 't': None, 'obj': None, 'p': None}},
 		}),
 		(func, {
 			'type': {'params': {'n': ScalarTypehint, 'fn': ScalarTypehint, 'an': ScalarTypehint, 'afn': ScalarTypehint}, 'returns': ScalarTypehint},
-			'meta': {'params': {'n': None, 'fn': None, 'an': 'meta', 'afn': 'meta'}, 'returns': None},
+			'meta': {'params': {'n': None, 'fn': None, 'an': ('meta',), 'afn': ('meta',)}, 'returns': None},
 		}),
 	])
 	def test_resolve_internal(self, origin: type, expected: dict[str, Any]) -> None:

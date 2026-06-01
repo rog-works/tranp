@@ -406,6 +406,13 @@ class ForClass:
 		@Embed.alias('Inner2')
 		class Inner:
 			V: ClassVar[int] = 0
+			anno_n: Annotated[int, Embed.alias('n')]
+			anno_s: Annotated[str, 'meta', Embed.alias('s')]
+
+			def __init__(self) -> None:
+				self.anno_n = 0
+				self.anno_s = '1'
+				ns = self.anno_n + int(self.anno_s)
 
 			def func(self) -> None: ...
 

@@ -316,11 +316,8 @@ class Type(Node, IDomain):
 		return self
 
 	@property
-	def annotation(self) -> 'Node | Empty':
-		if not self._exists('anno_meta'):
-			return self.dirty_child(Empty, '__empty__', tokens='')
-
-		return self._by('anno_meta')._at(0)
+	def annotations(self) -> list[Node]:
+		return [node._at(0) for node in self._children() if node.tag == 'anno_meta']
 
 
 class GeneralType(Type): pass

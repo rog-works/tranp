@@ -276,7 +276,7 @@ class TestPy2Cpp(TestCase):
 		('ForClass.Proto', '', defs.Class, '// class Proto'),
 		('ForClass.DeclProps', '', defs.Class, BlockExpects.DeclProps),
 
-		('ForClass.Alias.Inner', '', defs.Class, 'public:\n/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
+		('ForClass.Alias.Inner', '', defs.Class, BlockExpects.ForClassAliasInner),
 		('ForClass.Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b{} {}'),
 		('ForClass.Alias.in_param_return', '', defs.Method, BlockExpects.method(access='public', name='in_param_return', return_type='ForClass::Alias2', params=['ForClass::Alias2 a'])),
 		('ForClass.Alias.in_param_return2', '', defs.Method, BlockExpects.method(access='public', name='in_param_return2', return_type='ForClass::Alias2::Inner2', params=['ForClass::Alias2::Inner2 i'])),

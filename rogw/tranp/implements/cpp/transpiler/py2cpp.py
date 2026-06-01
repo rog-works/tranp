@@ -216,17 +216,17 @@ class Py2Cpp(ITranspiler):
 		make_org_var_type = lambda: ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
 		var_type = ''
 		if actual_raw.types.is_a(defs.Method):
-			var_type = self.to_accessible_name_for_method(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in actual_raw.attrs])
+			var_type = self.__accessible_name_for_method(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in actual_raw.attrs])
 		elif actual_raw.types.is_a(defs.ClassMethod):
-			var_type = self.to_accessible_name_for_class_method(actual_raw, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
+			var_type = self.__accessible_name_for_class_method(actual_raw, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
 		elif actual_raw.types.is_a(defs.Function):
-			var_type = self.to_accessible_name_for_function(actual_raw, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
+			var_type = self.__accessible_name_for_function(actual_raw, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
 		elif actual_raw.type_is(Callable):
-			var_type = self.to_accessible_name_for_callable(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in actual_raw.attrs])
+			var_type = self.__accessible_name_for_callable(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in actual_raw.attrs])
 		elif actual_raw.types.is_a(defs.Class):
-			var_type = self.to_accessible_name_for_class(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in self.explicit_class_attrs(actual_raw)])
+			var_type = self.__accessible_name_for_class(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in self.explicit_class_attrs(actual_raw)])
 		elif actual_raw.types.is_a(defs.AltClass):
-			var_type = self.to_accessible_name_for_alt_class(actual_raw, make_org_var_type())
+			var_type = self.__accessible_name_for_alt_class(actual_raw, make_org_var_type())
 		elif actual_raw.types.is_a(defs.TemplateClass):
 			var_type = ClassDomainNaming.domain_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
 		else:
@@ -235,35 +235,35 @@ class Py2Cpp(ITranspiler):
 		var_type = self.view.render('type/custom_type', vars={'var_type': var_type})
 		return DSN.join(*DSN.elements(var_type), delimiter='::')
 
-	def to_accessible_name_for_method(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
+	def __accessible_name_for_method(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(Method)"""
 		# FIXME アノテーションを考慮しておらず場当たり的な対応
 		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[1:-1]]
 		return f'{attrs[-1]}({DSN.join(*DSN.elements(var_type)[:-1])}::*)({", ".join(param_types)})'
 
-	def to_accessible_name_for_class_method(self, raw: IReflection, attrs: list[str]) -> str:
+	def __accessible_name_for_class_method(self, raw: IReflection, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(ClassMethod)"""
 		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[1:-1]]
 		return f'{attrs[-1]}(*)({", ".join(param_types)})'
 
-	def to_accessible_name_for_function(self, raw: IReflection, attrs: list[str]) -> str:
+	def __accessible_name_for_function(self, raw: IReflection, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(Function)"""
 		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[:-1]]
 		return f'{attrs[-1]}(*)({", ".join(param_types)})'
 
-	def to_accessible_name_for_callable(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
+	def __accessible_name_for_callable(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(Callable)"""
 		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[:-1]]
 		return f'{var_type}<{attrs[-1]}({", ".join(param_types)})>'
 
-	def to_accessible_name_for_class(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
+	def __accessible_name_for_class(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(Class)"""
 		if len(attrs) > 0:
 			return f'{var_type}<{", ".join(attrs)}>'
 		else:
 			return var_type
 
-	def to_accessible_name_for_alt_class(self, raw: IReflection, var_type: str) -> str:
+	def __accessible_name_for_alt_class(self, raw: IReflection, var_type: str) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(AltClass)"""
 		if not self.cvars.equals(self.cvars.resolve_type(raw.attrs[0]), CVars.Types.CRaw):
 			# XXX C++型変数のAltClassの特殊化であり、一般解に程遠いため修正を検討
@@ -301,21 +301,64 @@ class Py2Cpp(ITranspiler):
 		"""プロパティーの名前を取得
 
 		Args:
-			prop_raw: プロパティー
+			prop_raw: メソッド・プロパティー
 		Returns:
 			プロパティー名
 		"""
 		return self.to_prop_name_by_decl(prop_raw.node.one_of(*defs.DeclAllTs))
 
 	def to_prop_name_by_decl(self, decl: defs.DeclAll) -> str:
-		"""プロパティーの名前を取得
+		"""定義ノードからプロパティーの名前を取得
 
 		Args:
 			decl: メソッド・変数宣言ノード
 		Returns:
 			プロパティー名
 		"""
+		embedder = self.__analyze_prop_alias_embedder(decl)
+		if embedder:
+			return self.__prop_name_via_embedder(decl, embedder)
+		else:
+			return self.__prop_name_via_decl(decl)
+
+	def __analyze_prop_alias_embedder(self, decl: defs.DeclAll) -> defs.FuncCall | None:
+		"""プロパティー名の埋め込みを解析
+
+		Args:
+			decl: メソッド・変数宣言ノード
+		Returns:
+			埋め込み関数コールノード
+		"""
+		declare: defs.AnnoAssign | None = None
+		if isinstance(decl.declare, defs.AnnoAssign):
+			declare = decl.declare
+		elif isinstance(decl, defs.DeclThisVar):
+			# クラス自身が所有している変数のみが対象
+			decl_this_vars = decl.class_types.as_a(defs.Class).decl_this_vars
+			if decl.domain_name in decl_this_vars:
+				declare = decl_this_vars[decl.domain_name]
+
+		if not declare:
+			return None
+
+		anno = declare.var_type.annotation
+		if not (isinstance(anno, defs.FuncCall) and anno.calls.tokens == Embed.alias.__qualname__):
+			return None
+
+		return anno
+
+	def __prop_name_via_decl(self, decl: defs.DeclAll) -> str:
+		"""Args: decl: メソッド・変数宣言ノード Returns: プロパティー名(オリジナル/翻訳)"""
 		return self.i18n.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
+
+	def __prop_name_via_embedder(self, decl: defs.DeclAll, embedder: defs.FuncCall) -> str:
+		"""Args: decl: メソッド・変数宣言ノード embedder: 埋め込み関数コールノード Returns: プロパティー名(埋め込み)"""
+		alias_name = self.transpile(embedder.arguments[0])[1:-1]
+		if len(embedder.arguments) == 1:
+			return alias_name
+
+		origin_name = self.__prop_name_via_decl(decl)
+		return f'{alias_name}{origin_name}'
 
 	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名を取得
@@ -530,8 +573,9 @@ class Py2Cpp(ITranspiler):
 		initializers: list[dict[str, str]] = []
 		for index, this_var in enumerate(this_vars):
 			# 期待値: `this->a = 1234;`
+			this_var_name = self.to_prop_name_by_decl(this_var)
 			initial_value = PatternParser.pluck_decl_right(initializer_statements[index])
-			initializer = {'symbol': self.i18n.t(alias_dsn(this_var.fullyname), this_var.domain_name), 'value': initial_value}
+			initializer = {'symbol': this_var_name, 'value': initial_value}
 			initializers.append(initializer)
 
 		class_name = self.to_domain_name_by_class(node.class_types)
@@ -747,10 +791,10 @@ class Py2Cpp(ITranspiler):
 		return self.i18n.t(alias_dsn(node.fullyname), node.tokens)
 
 	def on_decl_this_var_forward(self, node: defs.DeclThisVarForward) -> str:
-		return node.tokens
+		return self.to_prop_name_by_decl(node)
 
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> str:
-		prop_name = self.i18n.t(alias_dsn(node.fullyname), node.domain_name)
+		prop_name = self.to_prop_name_by_decl(node)
 		return f'this->{prop_name}'
 
 	def on_decl_local_var(self, node: defs.DeclLocalVar) -> str:

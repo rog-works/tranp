@@ -180,6 +180,7 @@ class DeclOps {
 class DeclProps : public DeclPropsBase {
 	using DeclPropsBase::DeclPropsBase;
 	public: inline static bool cls_b = true;
+	public: inline static int cls_n = 0;
 	public: std::map<std::string, int> move_dsn;
 	public:
 	/** __init__ */

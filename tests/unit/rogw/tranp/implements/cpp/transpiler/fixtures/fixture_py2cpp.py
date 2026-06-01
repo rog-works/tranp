@@ -383,6 +383,7 @@ class ForClass:
 
 	class DeclProps(DeclPropsBase):
 		cls_b: ClassVar[bool] = True
+		cls_n: ClassVar = 0
 		move_dsn: dict[str, int]
 
 		def __init__(self, n: int, s: str) -> None:

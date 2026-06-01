@@ -100,11 +100,11 @@ typed_argvalue: typed_expression
 ?typed_expression: typed_or_expr
 ?typed_or_expr: typed_primary
 	| typed_primary ("|" typed_primary)+
-	| "Annotated" "[" "'"? (typed_primary ("|" typed_primary)+) "'"? "," anno_meta "]"
+	| "Annotated" "[" "'"? (typed_primary ("|" typed_primary)+) "'"? ("," anno_meta)+ "]"
 ?typed_primary: typed_primary "." name -> typed_getattr
 	| typed_primary "[" typed_slices "]" -> typed_getitem
-	| "Annotated" "[" "'"? (typed_primary "." name) "'"? "," anno_meta "]" -> typed_getattr
-	| "Annotated" "[" "'"? (typed_primary "[" typed_slices "]") "'"? "," anno_meta "]" -> typed_getitem
+	| "Annotated" "[" "'"? (typed_primary "." name) "'"? ("," anno_meta)+ "]" -> typed_getattr
+	| "Annotated" "[" "'"? (typed_primary "[" typed_slices "]") "'"? ("," anno_meta)+ "]" -> typed_getitem
 	| typed_atom
 
 // @custom
@@ -117,7 +117,7 @@ typed_slices: typed_slice ("," typed_slice)* [","]
 
 // @custom
 ?typed_atom: name -> typed_var
-	| "Annotated" "[" "'"? name "'"? "," anno_meta "]" -> typed_var
+	| "Annotated" "[" "'"? name "'"? ("," anno_meta)+ "]" -> typed_var
 	| "Literal" "[" (string | number) ("," (string | number))* [","] "]"-> typed_literal
 	| "None" -> typed_none
 	| "..." -> typed_elipsis
@@ -303,7 +303,7 @@ comment_stmt: COMMENT
 // @lark ?subscript: test | ([test] ":" [test] [sliceop]) -> slice
 slices: slice ("," slice)* [","]
 	| [slice] ":" [slice] [":" slice] -> slice
-?slice: expression
+?slice: expression | star_expr
 
 // @note XXX 相違点のみ抜粋
 // @lark "(" yield_expr ")"

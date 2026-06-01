@@ -97,7 +97,7 @@ class Expects:
 		}
 
 	@classmethod
-	def class_method(cls, accessor: str, class_symbol: str, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False, is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, return_type_annotation: str = '') -> dict[str, Any]:
+	def class_method(cls, accessor: str, class_symbol: str, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False, is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, return_type_annotations: list[str] = []) -> dict[str, Any]:
 		return {
 			'symbol': symbol,
 			'parameters': parameters,
@@ -114,11 +114,11 @@ class Expects:
 			'is_override': is_override,
 			'allow_override': allow_override,
 			# method only
-			'return_type_annotation': return_type_annotation,
+			'return_type_annotations': return_type_annotations,
 		}
 
 	@classmethod
-	def method(cls, accessor: str, class_symbol: str, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False, is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, is_property: bool = False, return_type_annotation: str = '') -> dict[str, Any]:
+	def method(cls, accessor: str, class_symbol: str, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False, is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, is_property: bool = False, return_type_annotations: list[str] = []) -> dict[str, Any]:
 		return {
 			'symbol': symbol,
 			'parameters': parameters,
@@ -136,7 +136,7 @@ class Expects:
 			'allow_override': allow_override,
 			# method only
 			'is_property': is_property,
-			'return_type_annotation': return_type_annotation,
+			'return_type_annotations': return_type_annotations,
 		}
 
 
@@ -196,10 +196,10 @@ class TestRenderer(TestCase):
 		('move_assign_declare', {'receiver': 'hoge', 'value': 'Embed::static(A::f).decl([]() -> int { return 1234; })', 'var_type': 'int', 'is_static': True}, 'static int hoge = 1234;'),
 		('move_assign_declare', {'receiver': 'hoge', 'value': 'A(1)', 'var_type': 'A', 'is_initializer': True}, 'A hoge{1};'),
 		('move_assign_destruction', {'receivers': ['hoge', 'fuga'], 'value': '{1234, 2345}'}, 'auto [hoge, fuga] = {1234, 2345};'),
-		('anno_assign', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'annotation': ''}, 'int hoge = 1234;'),
-		('anno_assign', {'receiver': 'hoge', 'var_type': 'int', 'value': '', 'annotation': ''}, 'int hoge;'),
-		('anno_assign', {'receiver': 'hoge', 'value': 'A(1)', 'var_type': 'A', 'annotation': '', 'is_initializer': True}, 'A hoge{1};'),
-		('anno_assign', {'receiver': 'm', 'var_type': 'std::map<int, int>', 'value': '{{0, 0}, {1, 10}}', 'annotation': 'Embed::static'}, 'static std::map<int, int> m = {{0, 0}, {1, 10}};'),
+		('anno_assign', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'annotations': []}, 'int hoge = 1234;'),
+		('anno_assign', {'receiver': 'hoge', 'var_type': 'int', 'value': '', 'annotations': []}, 'int hoge;'),
+		('anno_assign', {'receiver': 'hoge', 'value': 'A(1)', 'var_type': 'A', 'annotations': [], 'is_initializer': True}, 'A hoge{1};'),
+		('anno_assign', {'receiver': 'm', 'var_type': 'std::map<int, int>', 'value': '{{0, 0}, {1, 10}}', 'annotations': ['Embed::static']}, 'static std::map<int, int> m = {{0, 0}, {1, 10}};'),
 		('aug_assign', {'receiver': 'hoge', 'value': '1234', 'operator': '+='}, 'hoge += 1234;'),
 	])
 	def test_render_assign(self, template: str, vars: dict[str, Any], expected: str) -> None:
@@ -257,7 +257,7 @@ class TestRenderer(TestCase):
 		self.assertRender('class/_decl_class_var', vars, expected)
 
 	@data_provider([
-		({'accessor': 'public', 'decl_this_var': 'float a;', 'annotation': ''}, 'public: float a;'),
+		({'accessor': 'public', 'decl_this_var': 'float a;', 'annotations': []}, 'public: float a;'),
 	])
 	def test_render_class_decl_this_var(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('class/_decl_this_var', vars, expected)
@@ -1256,7 +1256,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			Expects.method(accessor='public', class_symbol='Hoge', symbol='method_anno_returns', return_type='std::string', statements=['return this->s;'], return_type_annotation='Embed::immutable'),
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='method_anno_returns', return_type='std::string', statements=['return this->s;'], return_type_annotations=['Embed::immutable']),
 			'\n'.join([
 				'public:',
 				'/** method_anno_returns */',
@@ -1401,35 +1401,35 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		# 明示変換系
-		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': ''}, 'int n'),
-		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': 'Embed::mutable'}, 'int n'),
-		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': 'Embed::immutable'}, 'const int& n'),
-		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotation': ''}, 'int n = 1'),
-		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotation': 'Embed::mutable'}, 'int n = 1'),
-		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotation': 'Embed::immutable'}, 'const int& n = 1'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotations': []}, 'int n'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotations': ['Embed::mutable']}, 'int n'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotations': ['Embed::immutable']}, 'const int& n'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotations': []}, 'int n = 1'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotations': ['Embed::mutable']}, 'int n = 1'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotations': ['Embed::immutable']}, 'const int& n = 1'),
 		# 暗黙変換系
-		({'var_type': 'std::string', 'symbol': 's', 'annotation': ''}, 'const std::string& s'),
-		({'var_type': 'std::string', 'symbol': 's', 'annotation': 'Embed::mutable'}, 'std::string s'),
-		({'var_type': 'std::string', 'symbol': 's', 'annotation': 'Embed::immutable'}, 'const std::string& s'),
-		({'var_type': 'std::string*', 'symbol': 'p', 'annotation': ''}, 'const std::string* p'),
-		({'var_type': 'std::string*', 'symbol': 'p', 'annotation': 'Embed::mutable'}, 'std::string* p'),
-		({'var_type': 'std::string*', 'symbol': 'p', 'annotation': 'Embed::immutable'}, 'const std::string* p'),
-		({'var_type': 'std::string&', 'symbol': 'p', 'annotation': ''}, 'const std::string& p'),
-		({'var_type': 'std::string&', 'symbol': 'p', 'annotation': 'Embed::mutable'}, 'std::string& p'),
-		({'var_type': 'std::string&', 'symbol': 'p', 'annotation': 'Embed::immutable'}, 'const std::string& p'),
-		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotation': ''}, 'const std::vector<int>& ns'),
-		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotation': 'Embed::mutable'}, 'std::vector<int> ns'),
-		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotation': 'Embed::immutable'}, 'const std::vector<int>& ns'),
-		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotation': ''}, 'const std::map<std::string, int>& dns'),
-		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotation': 'Embed::mutable'}, 'std::map<std::string, int> dns'),
-		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotation': 'Embed::immutable'}, 'const std::map<std::string, int>& dns'),
+		({'var_type': 'std::string', 'symbol': 's', 'annotations': []}, 'const std::string& s'),
+		({'var_type': 'std::string', 'symbol': 's', 'annotations': ['Embed::mutable']}, 'std::string s'),
+		({'var_type': 'std::string', 'symbol': 's', 'annotations': ['Embed::immutable']}, 'const std::string& s'),
+		({'var_type': 'std::string*', 'symbol': 'p', 'annotations': []}, 'const std::string* p'),
+		({'var_type': 'std::string*', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'std::string* p'),
+		({'var_type': 'std::string*', 'symbol': 'p', 'annotations': ['Embed::immutable']}, 'const std::string* p'),
+		({'var_type': 'std::string&', 'symbol': 'p', 'annotations': []}, 'const std::string& p'),
+		({'var_type': 'std::string&', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'std::string& p'),
+		({'var_type': 'std::string&', 'symbol': 'p', 'annotations': ['Embed::immutable']}, 'const std::string& p'),
+		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotations': []}, 'const std::vector<int>& ns'),
+		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotations': ['Embed::mutable']}, 'std::vector<int> ns'),
+		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotations': ['Embed::immutable']}, 'const std::vector<int>& ns'),
+		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotations': []}, 'const std::map<std::string, int>& dns'),
+		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotations': ['Embed::mutable']}, 'std::map<std::string, int> dns'),
+		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotations': ['Embed::immutable']}, 'const std::map<std::string, int>& dns'),
 		# 変換不可系
-		({'var_type': 'const std::string', 'symbol': 'p', 'annotation': ''}, 'const std::string p'),
-		({'var_type': 'const std::string', 'symbol': 'p', 'annotation': 'Embed::mutable'}, 'const std::string p'),
-		({'var_type': 'const std::string', 'symbol': 'p', 'annotation': 'Embed::immutable'}, 'const std::string p'),
-		({'var_type': 'const std::string&', 'symbol': 'p', 'annotation': ''}, 'const std::string& p'),
-		({'var_type': 'const std::string&', 'symbol': 'p', 'annotation': 'Embed::mutable'}, 'const std::string& p'),
-		({'var_type': 'const std::string&', 'symbol': 'p', 'annotation': 'Embed::immutable'}, 'const std::string& p'),
+		({'var_type': 'const std::string', 'symbol': 'p', 'annotations': []}, 'const std::string p'),
+		({'var_type': 'const std::string', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'const std::string p'),
+		({'var_type': 'const std::string', 'symbol': 'p', 'annotations': ['Embed::immutable']}, 'const std::string p'),
+		({'var_type': 'const std::string&', 'symbol': 'p', 'annotations': []}, 'const std::string& p'),
+		({'var_type': 'const std::string&', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'const std::string& p'),
+		({'var_type': 'const std::string&', 'symbol': 'p', 'annotations': ['Embed::immutable']}, 'const std::string& p'),
 	])
 	def test_render_parameter(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('element/parameter', vars, expected)

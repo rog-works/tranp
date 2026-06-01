@@ -341,11 +341,11 @@ class Py2Cpp(ITranspiler):
 		if not declare:
 			return None
 
-		anno = declare.var_type.annotation
-		if not (isinstance(anno, defs.FuncCall) and anno.calls.tokens == Embed.alias.__qualname__):
-			return None
+		for annotation in declare.var_type.annotations:
+			if isinstance(annotation, defs.FuncCall) and annotation.calls.tokens == Embed.alias.__qualname__:
+				return annotation
 
-		return anno
+		return None
 
 	def __prop_name_via_decl(self, decl: defs.DeclAll) -> str:
 		"""Args: decl: メソッド・変数宣言ノード Returns: プロパティー名(オリジナル/翻訳)"""
@@ -540,9 +540,9 @@ class Py2Cpp(ITranspiler):
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = {template_name: True for template_name in [*template_params, *self.fetch_function_template_names(node)]}.keys()
-		return_type_annotation = self.transpile(node.return_type.annotation) if not isinstance(node.return_type.annotation, defs.Empty) else ''
+		return_type_annotations = [self.transpile(annotation) for annotation in node.return_type.annotations]
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
-		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'return_type_annotation': return_type_annotation}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'return_type_annotations': return_type_annotations}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
@@ -588,10 +588,10 @@ class Py2Cpp(ITranspiler):
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = {template_name: True for template_name in [*template_params, *self.fetch_function_template_names(node)]}.keys()
-		return_type_annotation = self.transpile(node.return_type.annotation) if not isinstance(node.return_type.annotation, defs.Empty) else ''
+		return_type_annotations = [self.transpile(annotation) for annotation in node.return_type.annotations]
 		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
-		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotation': return_type_annotation}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotations': return_type_annotations}
 		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
 		return self.view.render(f'function/{spec}', vars={**function_vars, **method_vars})
 
@@ -623,8 +623,8 @@ class Py2Cpp(ITranspiler):
 		for var_index, decl_this_var_item in enumerate(node.decl_this_vars.items()):
 			index, this_var_statement = this_var_statements[var_index]
 			this_var_name, decl_this_var = decl_this_var_item
-			this_var_annotation = self.transpile(decl_this_var.var_type.annotation) if not isinstance(decl_this_var.var_type.annotation, defs.Empty) else ''
-			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'decl_this_var': this_var_statement, 'annotation': this_var_annotation}
+			this_var_annotations = [self.transpile(annotation) for annotation in decl_this_var.var_type.annotations]
+			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'decl_this_var': this_var_statement, 'annotations': this_var_annotations}
 			a_statements[index] = self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars)
 
 		# XXX サブタイプからテンプレートタイプを抽出
@@ -653,8 +653,8 @@ class Py2Cpp(ITranspiler):
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
-		annotation = self.transpile(node.var_type.annotation) if isinstance(node.var_type, defs.Type) and not isinstance(node.var_type.annotation, defs.Empty) else ''
-		return self.view.render(f'element/{node.classification}', vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotation': annotation})
+		annotations = [self.transpile(annotation) for annotation in node.var_type.annotations] if isinstance(node.var_type, defs.Type) else []
+		return self.view.render(f'element/{node.classification}', vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotations': annotations})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
 		return self.view.render(f'element/{node.classification}', vars={'path': path, 'arguments': arguments})
@@ -698,8 +698,8 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'assign/{node.classification}_destruction', vars={'receivers': receivers, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
-		annotation = self.transpile(node.var_type.annotation) if not isinstance(node.var_type.annotation, defs.Empty) else ''
-		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value, 'annotation': annotation}
+		annotations = [self.transpile(annotation) for annotation in node.var_type.annotations]
+		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value, 'annotations': annotations}
 		if isinstance(node.value, defs.FuncCall) and value.startswith(f'{var_type}('):
 			return self.view.render(f'assign/{node.classification}', vars={**assign_vars, 'is_initializer': True})
 		else:

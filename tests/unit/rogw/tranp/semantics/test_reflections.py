@@ -88,9 +88,9 @@ class TestReflections(TestCase):
 		('Sub', 'class_def_raw.inherit_arguments.typed_argvalue.typed_var', _mod('__main__', 'Base'), 'Base'),
 
 		('Sub.Inner', '', _mod('type', 'type'), 'type<Inner>'),
-		('Sub.Inner', 'class_def_raw.block.class_var_assign.assign_namelist.var', _mod('classes', 'str'), 'str'),
-		('Sub.Inner', 'class_def_raw.block.class_var_assign.typed_var', _mod('classes', 'str'), 'str'),
-		('Sub.Inner', 'class_def_raw.block.class_var_assign.string', _mod('classes', 'str'), 'str'),
+		('Sub.Inner', 'class_def_raw.block.class_var_anno_assign.assign_namelist.var', _mod('classes', 'str'), 'str'),
+		('Sub.Inner', 'class_def_raw.block.class_var_anno_assign.typed_var', _mod('classes', 'str'), 'str'),
+		('Sub.Inner', 'class_def_raw.block.class_var_anno_assign.string', _mod('classes', 'str'), 'str'),
 
 		('Sub.Inner.class_func', 'function_def_raw.block.return_stmt.dict.key_value.getattr.var', _mod('type', 'type'), 'type<Inner>'),
 		('Sub.Inner.class_func', 'function_def_raw.block.return_stmt.dict', _mod('classes', 'dict'), 'dict<str, int>'),

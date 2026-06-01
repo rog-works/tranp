@@ -711,7 +711,8 @@ class DeclableMatcher:
 			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
-		is_decl_class_var = via_full_path.de_identify().shift(-1).origin.endswith('class_var_assign.assign_namelist')
+		parent_origin = via_full_path.de_identify().shift(-1).origin
+		is_decl_class_var = parent_origin.endswith('class_var_anno_assign.assign_namelist') or parent_origin.endswith('class_var_anno_assign.assign_namelist')
 		return is_decl_class_var
 
 	@classmethod

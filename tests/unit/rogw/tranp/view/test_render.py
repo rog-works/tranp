@@ -1102,6 +1102,17 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/print', vars, expected)
 
 	@data_provider([
+		({'arguments': ['this->b', 'this->n', '1.0', 'this->s'], 'is_statement': True, 'receiver': '"b: {b}, n: {n}, f: {f}, s: {s}"', 'is_literal': True, 'formatters': [
+			{'label': 'b', 'tag': '%d', 'var_type': 'bool', 'is_literal': False},
+			{'label': 'n', 'tag': '%d', 'var_type': 'int', 'is_literal': False},
+			{'label': 'f', 'tag': '%f', 'var_type': 'float', 'is_literal': True},
+			{'label': 's', 'tag': '%s', 'var_type': 'std::string', 'is_literal': False},
+		]}, 'std::format("b: %d, n: %d, f: %f, s: %s", this->b, this->n, 1.0, (this->s).c_str());'),
+	])
+	def test_render_func_call_str_format(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/str_format', vars, expected)
+
+	@data_provider([
 		({'calls': 'A.func', 'arguments': ['1 + 2', 'A.value']}, 'A.func(1 + 2, A.value)'),
 	])
 	def test_render_func_call(self, vars: dict[str, Any], expected: str) -> None:

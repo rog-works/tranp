@@ -670,9 +670,9 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('a: dict[str, int] = {}', 'file_input.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'var_type': defs.DictType, 'value': defs.Dict, 'annotation': defs.Empty}),
 		('def __init__(self) -> None: self.a: list[str] = []', 'file_input.function_def.function_def_raw.block.anno_assign', {'receiver': 'self.a', 'receiver_type': defs.DeclThisVar, 'var_type': defs.ListType, 'value': defs.List, 'annotation': defs.Empty}),
-		('class A: a: ClassVar[str] = ""', 'file_input.class_def.class_def_raw.block.class_var_assign', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.VarOfType, 'value': defs.String, 'annotation': defs.Empty}),
+		('class A: a: ClassVar[str] = ""', 'file_input.class_def.class_def_raw.block.class_var_anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.VarOfType, 'value': defs.String, 'annotation': defs.Empty}),
 		('class A: a: str', 'file_input.class_def.class_def_raw.block.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclThisVarForward, 'var_type': defs.VarOfType, 'value': defs.Empty, 'annotation': defs.Empty}),
-		('class A: a: ClassVar[Literal[0]] = 0', 'file_input.class_def.class_def_raw.block.class_var_assign', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.LiteralType, 'value': defs.Integer, 'annotation': defs.Empty}),
+		('class A: a: ClassVar[Literal[0]] = 0', 'file_input.class_def.class_def_raw.block.class_var_anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.LiteralType, 'value': defs.Integer, 'annotation': defs.Empty}),
 		('class A: a: Literal[0]', 'file_input.class_def.class_def_raw.block.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclThisVarForward, 'var_type': defs.LiteralType, 'value': defs.Empty, 'annotation': defs.Empty}),
 		('a: Annotated[dict[str, int], embed("metadata")] = {}', 'file_input.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'var_type': defs.DictType, 'value': defs.Dict, 'annotation': defs.FuncCall}),
 	])
@@ -685,6 +685,7 @@ class TestDefinition(TestCase):
 		self.assertTrue(node.var_type.annotation.is_a(expected['annotation']))
 
 	@data_provider([
+		('class A: a: ClassVar = ""', 'file_input.class_def.class_def_raw.block.class_var_assign', {'receivers': ['a'], 'receiver_types': [defs.DeclClassVar], 'value': defs.String, 'var_type': defs.Empty}),
 		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict, 'var_type': defs.Empty}),
 		('a.b = 1', 'file_input.assign', {'receivers': ['a.b'], 'receiver_types': [defs.Relay], 'value': defs.Integer, 'var_type': defs.Empty}),
 		('a[0] = []', 'file_input.assign', {'receivers': ['a.0'], 'receiver_types': [defs.Indexer], 'value': defs.List, 'var_type': defs.Empty}),
@@ -817,7 +818,8 @@ class TestDefinition(TestCase):
 		('lambda a: None', 'file_input.lambdadef.lambdaparams.name', defs.DeclLocalVar),
 		('lambda a, b: None', 'file_input.lambdadef.lambdaparams.name[1]', defs.DeclLocalVar),
 		# Class/This
-		('class B(A):\n\tb: ClassVar[int] = a', 'file_input.class_def.class_def_raw.block.class_var_assign.assign_namelist.var', defs.DeclClassVar),
+		('class B(A):\n\tb: ClassVar[int] = 0', 'file_input.class_def.class_def_raw.block.class_var_anno_assign.assign_namelist.var', defs.DeclClassVar),
+		('class B(A):\n\tb: ClassVar = a', 'file_input.class_def.class_def_raw.block.class_var_assign.assign_namelist.var', defs.DeclClassVar),
 		('class B(A):\n\tb: int', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclThisVarForward),
 		('def __init__(self) -> None:\n\tself.b: int = self.a', 'file_input.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar),
 		# Param/Class/This

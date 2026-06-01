@@ -566,6 +566,9 @@ class Py2Cpp(ITranspiler):
 					class_var_statements.append((index, statements[index]))
 				elif isinstance(statement.receiver, defs.DeclThisVarForward):
 					this_var_statements.append((index, statements[index]))
+			elif isinstance(statement, defs.MoveAssign):
+				if isinstance(statement.receivers[0], defs.DeclClassVar):
+					class_var_statements.append((index, statements[index]))
 
 		# XXX メンバー変数の展開方法を検討
 		for index, class_var_statement in class_var_statements:

@@ -6,7 +6,7 @@
 {% include('function/_comment.j2') %}
 {%- include('function/_template_types.j2') %}
 {%- include('function/_decorators.j2') %}
-{%- if is_abstract %}
+{%- if (statements | select('!=', '') | list | length) == 0 %}
 {% include('function/_signature_prefix.j2') %}~{{ class_symbol }}() = default;
 {%- else %}
 {% include('function/_signature_prefix.j2') %}~{{ class_symbol }}() {% include('function/_block.j2') %}

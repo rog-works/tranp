@@ -41,8 +41,8 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Parameter: ['paramvalue', 'starparam', 'kwparams'],
 			defs.Decorator: ['decorator'],
 			# -- Statement simple --
-			defs.MoveAssign: ['assign'],
-			defs.AnnoAssign: ['anno_assign', 'class_var_assign'],
+			defs.MoveAssign: ['assign', 'class_var_assign'],
+			defs.AnnoAssign: ['anno_assign', 'class_var_anno_assign'],
 			defs.AugAssign: ['aug_assign'],
 			defs.Delete: ['del_stmt'],
 			defs.Return: ['return_stmt'],

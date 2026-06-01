@@ -2,7 +2,7 @@ from typing import override
 
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.syntax.node.behavior import ITerminal
-from rogw.tranp.syntax.node.definition.primary import DeclThisVar, FuncCall, ImportAsName, ImportPath, Reference, Declable, Type, Var
+from rogw.tranp.syntax.node.definition.primary import Declable, DeclThisVar, FuncCall, ImportAsName, ImportPath, Reference, Type, Var
 from rogw.tranp.syntax.node.definition.terminal import Empty, Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.syntax.node.interface import IDeclaration
@@ -19,7 +19,7 @@ class Assign(Node):
 		return self._children()
 
 
-@Meta.embed(Node, accept_tags('assign'))
+@Meta.embed(Node, accept_tags('assign', 'class_var_assign'))
 class MoveAssign(Assign, IDeclaration):
 	@property
 	@override
@@ -52,7 +52,7 @@ class MoveAssign(Assign, IDeclaration):
 		return self.dirty_child(Empty, '__empty__', tokens='')
 
 
-@Meta.embed(Node, accept_tags('anno_assign', 'class_var_assign'))
+@Meta.embed(Node, accept_tags('anno_assign', 'class_var_anno_assign'))
 class AnnoAssign(Assign, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)

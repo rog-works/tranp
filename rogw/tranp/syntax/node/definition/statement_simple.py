@@ -19,7 +19,7 @@ class Assign(Node):
 		return self._children()
 
 
-@Meta.embed(Node, accept_tags('assign'))
+@Meta.embed(Node, accept_tags('assign', 'class_var_assign'))
 class MoveAssign(Assign, IDeclaration):
 	@property
 	@override

@@ -91,6 +91,8 @@ class TestReflections(TestCase):
 		('Sub.Inner', 'class_def_raw.block.class_var_anno_assign.assign_namelist.var', _mod('classes', 'str'), 'str'),
 		('Sub.Inner', 'class_def_raw.block.class_var_anno_assign.typed_var', _mod('classes', 'str'), 'str'),
 		('Sub.Inner', 'class_def_raw.block.class_var_anno_assign.string', _mod('classes', 'str'), 'str'),
+		('Sub.Inner', 'class_def_raw.block.class_var_assign.assign_namelist.var', _mod('classes', 'int'), 'int'),
+		('Sub.Inner', 'class_def_raw.block.class_var_assign.number', _mod('classes', 'int'), 'int'),
 
 		('Sub.Inner.class_func', 'function_def_raw.block.return_stmt.dict.key_value.getattr.var', _mod('type', 'type'), 'type<Inner>'),
 		('Sub.Inner.class_func', 'function_def_raw.block.return_stmt.dict', _mod('classes', 'dict'), 'dict<str, int>'),

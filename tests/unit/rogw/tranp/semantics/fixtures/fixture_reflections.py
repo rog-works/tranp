@@ -48,11 +48,12 @@ class Sub(Base):
 		self.numbers = []
 
 	class Inner:
-		value: ClassVar[str] = ''
+		cls_s: ClassVar[str] = ''
+		cls_n: ClassVar = 0
 
 		@classmethod
 		def class_func(cls) -> dict[str, int]:
-			return {cls.value: value}
+			return {cls.cls_s: value}
 
 	@property
 	def C(self) -> C:
@@ -75,7 +76,7 @@ class Sub(Base):
 
 	def member_write(self) -> None:
 		A.nx = 2
-		Sub.Inner.value = 'update'
+		Sub.Inner.cls_s = 'update'
 
 	def param_ref(self, param: int) -> None:
 		print(param)

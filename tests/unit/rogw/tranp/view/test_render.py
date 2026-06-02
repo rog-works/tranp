@@ -1102,7 +1102,7 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/print', vars, expected)
 
 	@data_provider([
-		({'arguments': ['this->b', 'this->n', '1.0', 'this->s'], 'is_statement': True, 'receiver': '"b: {b}, n: {n}, f: {f}, s: {s}"', 'is_literal': True, 'formatters': [
+		({'arguments': ['this->b', 'this->n', '1.0', 'this->s'], 'is_statement': True, 'format': '"b: {b}, n: {n}, f: {f}, s: {s}"', 'is_literal': True, 'formatters': [
 			{'label': 'b', 'tag': '%d', 'var_type': 'bool', 'is_literal': False},
 			{'label': 'n', 'tag': '%d', 'var_type': 'int', 'is_literal': False},
 			{'label': 'f', 'tag': '%f', 'var_type': 'float', 'is_literal': True},
@@ -1499,8 +1499,9 @@ class TestRenderer(TestCase):
 		self.assertRender('reference/this_ref', vars, expected)
 
 	@data_provider([
-		({'throws': 'e', 'via': '', 'is_new': False}, 'throw e;'),
-		({'throws': 'std::exception()', 'via': 'e', 'is_new': True}, 'throw new std::exception();'),
+		({'var': 'e', 'via': '', 'formatters': []}, 'throw e;'),
+		({'exception': 'std::exception', 'via': '', 'arguments': [], 'format': '', 'formatters': []}, 'throw std::exception();'),
+		({'exception': 'std::exception', 'via': '', 'arguments': ['this->n'], 'format': '"n: {n}"', 'formatters': [{'label': 'n', 'tag': '%d', 'var_type': 'int', 'is_literal': True}]}, 'throw std::exception(std::format("n: %d", this->n));'),
 	])
 	def test_render_throw(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('statement/throw', vars, expected)

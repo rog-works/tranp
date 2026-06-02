@@ -77,7 +77,7 @@ class Py2Cpp(ITranspiler):
 
 	def __build_string_formats(self, options: TranspilerOptions) -> dict[str, str]:
 		"""Args: options: 実行オプション Returns: 書式変換タグ一覧"""
-		default = {
+		return {
 			bool.__name__: '%d',
 			int.__name__: '%d',
 			float.__name__: '%f',
@@ -85,8 +85,8 @@ class Py2Cpp(ITranspiler):
 			CP.__name__: '%p',
 			CWP.__name__: '%p',
 			'default': '%s',
+			**options.env.get('string_formats', {})
 		}
-		return options.env.get('string_formats', default)
 
 	def __build_procedure(self, options: TranspilerOptions) -> Procedure[str]:
 		"""Args: options: 実行オプション Returns: プロシージャー"""

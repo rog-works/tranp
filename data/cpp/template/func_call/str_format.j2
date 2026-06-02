@@ -1,2 +1,2 @@
 {%- import 'func_call/_str_format.j2' as block -%}
-{{ i18n('cpp', 'string.format') }}({{ block.get_content(format, formatters, arguments) }}){% if is_statement %};{% endif %}
+{{ i18n('cpp', 'string.format') }}({{ block.get_content(format, formatters, arguments, False) }}){% if is_statement %};{% endif %}

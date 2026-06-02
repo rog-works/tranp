@@ -1,15 +1,15 @@
 {%- macro get_content(format, formatters, arguments) -%}
-{%- set alt_receiver = namespace(at=format) -%}
+{%- set alt_format = namespace(at=format) -%}
 {%- set alt_arguments = namespace(at=[]) -%}
 {%- for i in range(formatters | length) -%}
 	{%- set formatter = formatters[i] -%}
 	{%- set tag = '{' + formatter.label + '}' -%}
-	{%- set alt_receiver.at = alt_receiver.at | replace(tag, formatter.tag) -%}
+	{%- set alt_format.at = alt_format.at | replace(tag, formatter.tag) -%}
 	{%- if formatter.tag == '%s' and not formatter.is_literal -%}
 		{%- set alt_arguments.at = alt_arguments.at + ['(' + arguments[i] + ').c_str()'] -%}
 	{%- else -%}
 		{%- set alt_arguments.at = alt_arguments.at + [arguments[i]] -%}
 	{%- endif -%}
 {%- endfor -%}
-{{ alt_receiver.at }}, {{ alt_arguments.at | join(', ') }}
+{{ alt_format.at }}, {{ alt_arguments.at | join(', ') }}
 {%- endmacro -%}

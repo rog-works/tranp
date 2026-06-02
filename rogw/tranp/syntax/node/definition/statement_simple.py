@@ -2,7 +2,7 @@ from typing import override
 
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.syntax.node.behavior import ITerminal
-from rogw.tranp.syntax.node.definition.primary import Declable, DeclThisVar, FuncCall, ImportAsName, ImportPath, Reference, Type, Var
+from rogw.tranp.syntax.node.definition.primary import Declable, DeclThisVar, FuncCall, ImportAsName, ImportPath, Reference, Relay, Type, Var
 from rogw.tranp.syntax.node.definition.terminal import Empty, Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.syntax.node.interface import IDeclaration
@@ -143,8 +143,8 @@ class Assert(Node):
 class Throw(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def throws(self) -> FuncCall | Var:
-		return self._at(0).one_of(FuncCall, Var)
+	def throws(self) -> FuncCall | Var | Relay:
+		return self._at(0).one_of(FuncCall, Var, Relay)
 
 	@property
 	@Meta.embed(Node, expandable)

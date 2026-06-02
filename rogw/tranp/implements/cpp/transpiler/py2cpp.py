@@ -736,13 +736,14 @@ class Py2Cpp(ITranspiler):
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		if isinstance(node.throws, defs.FuncCall):
 			formatters = self.make_string_formatters(node.throws)
-			exception = throws[:throws.find('(')]
+			end_calls = throws.find('(')
+			calls = throws[:end_calls]
 			join_format = ', '.join([formatter['tag'] for formatter in formatters])
 			format = f'"{join_format}"' if join_format else ''
-			arguments = BlockParser.break_separator(throws[throws.find('(') + 1:-1], ',')
-			return self.view.render(f'statement/{node.classification}', vars={'exception': exception, 'via': via, 'format': format, 'formatters': formatters, 'arguments': arguments})
+			arguments = BlockParser.break_separator(throws[end_calls + 1:-1], ',')
+			return self.view.render(f'statement/{node.classification}', vars={'calls': calls, 'via': via, 'format': format, 'formatters': formatters, 'arguments': arguments})
 		else:
-			return self.view.render(f'statement/{node.classification}', vars={'var': throws, 'via': via})
+			return self.view.render(f'statement/{node.classification}', vars={'throws': throws, 'via': via})
 
 	def on_pass(self, node: defs.Pass) -> str:
 		# XXX statementsのスタック数が合わなくなるため出力

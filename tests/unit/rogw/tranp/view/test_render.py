@@ -1499,9 +1499,9 @@ class TestRenderer(TestCase):
 		self.assertRender('reference/this_ref', vars, expected)
 
 	@data_provider([
-		({'var': 'e', 'via': '', 'formatters': []}, 'throw e;'),
-		({'exception': 'std::exception', 'via': '', 'arguments': [], 'format': '', 'formatters': []}, 'throw std::exception();'),
-		({'exception': 'std::exception', 'via': '', 'arguments': ['this->n'], 'format': '"n: {n}"', 'formatters': [{'label': 'n', 'tag': '%d', 'var_type': 'int', 'is_literal': True}]}, 'throw std::exception(std::format("n: %d", this->n));'),
+		({'throws': 'e', 'via': '', 'formatters': []}, 'throw e;'),
+		({'calls': 'std::exception', 'via': '', 'arguments': [], 'format': '', 'formatters': []}, 'throw std::exception();'),
+		({'calls': 'std::exception', 'via': '', 'arguments': ['this->n'], 'format': '"n: {n}"', 'formatters': [{'label': 'n', 'tag': '%d', 'var_type': 'int', 'is_literal': True}]}, 'throw std::exception(std::format("n: %d", this->n));'),
 	])
 	def test_render_throw(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('statement/throw', vars, expected)

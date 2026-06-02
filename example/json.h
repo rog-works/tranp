@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"621ae721096cde7c50927436d83c2b85","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"87d7125d25fba614619c89f5ef7a1318","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include <functional>
 // #include "enum.h"
@@ -196,7 +196,7 @@ class JsonParser {
 	static JsonEntryTypes analyze_type(const std::string& json_str, int begin) {
 		JsonEntryTypes entry_type = std::get<0>(JsonParser::_analyze_type(json_str, begin));
 		if (entry_type == JsonEntryTypes::Unknown) {
-			throw new std::runtime_error(std::format("Invalid JSON schema. json_str: %s, begin: %d", (json_str).c_str(), begin));
+			throw std::runtime_error(std::format("%s, %s, %d", "Invalid JSON schema", (json_str).c_str(), begin));
 		}
 		return entry_type;
 	}
@@ -568,7 +568,7 @@ class Json {
 				return entry_json;
 			}
 		}
-		throw new std::runtime_error(std::format("Entry not found. jsonpath: %s", (jsonpath).c_str()));
+		throw std::runtime_error(std::format("%s, %s", "Entry not found", (jsonpath).c_str()));
 	}
 	public:
 	/**
@@ -631,7 +631,7 @@ class Json {
 	 */
 	bool as_bool() {
 		if (!this->scalar_with(JsonEntryTypes::Boolean)) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		return this->root()->_entries[this->_entry_id].entity.as_bool;
 	}
@@ -643,7 +643,7 @@ class Json {
 	 */
 	float as_number() {
 		if (!this->scalar_with(JsonEntryTypes::Number)) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		return this->root()->_entries[this->_entry_id].entity.as_number;
 	}
@@ -655,7 +655,7 @@ class Json {
 	 */
 	std::string as_string() {
 		if (!this->scalar_with(JsonEntryTypes::String)) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		return this->root()->_entries[this->_entry_id].entity.as_string;
 	}
@@ -706,7 +706,7 @@ class Json {
 	 */
 	void set_array(Json* value) {
 		if (value->entry_type() != JsonEntryTypes::Array) {
-			throw new std::runtime_error(std::format("Type not match. type_name: %s", (value->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Type not match", (value->type_name()).c_str()));
 		}
 		this->_swap_entry(value->isolate());
 	}
@@ -718,7 +718,7 @@ class Json {
 	 */
 	void set_object(Json* value) {
 		if (value->entry_type() != JsonEntryTypes::Object) {
-			throw new std::runtime_error(std::format("Type not match. type_name: %s", (value->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Type not match", (value->type_name()).c_str()));
 		}
 		this->_swap_entry(value->isolate());
 	}
@@ -791,7 +791,7 @@ class Json {
 	 */
 	void apply_array_to(const std::string& key, Json* value) {
 		if (value->entry_type() != JsonEntryTypes::Array) {
-			throw new std::runtime_error(std::format("Type not match. type_name: %s", (value->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Type not match", (value->type_name()).c_str()));
 		}
 		std::string jsonpath = JsonParser::join_path(this->path(), key);
 		if (this->exists(jsonpath)) {
@@ -809,7 +809,7 @@ class Json {
 	 */
 	void apply_object_to(const std::string& key, Json* value) {
 		if (value->entry_type() != JsonEntryTypes::Object) {
-			throw new std::runtime_error(std::format("Type not match. type_name: %s", (value->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Type not match", (value->type_name()).c_str()));
 		}
 		std::string jsonpath = JsonParser::join_path(this->path(), key);
 		if (this->exists(jsonpath)) {
@@ -846,7 +846,7 @@ class Json {
 	 */
 	void apply_bool_at(int index, bool value) {
 		if (this->entry_type() != JsonEntryTypes::Array) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		this->apply_bool_to(std::to_string(index), value);
 	}
@@ -859,7 +859,7 @@ class Json {
 	 */
 	void apply_number_at(int index, float value) {
 		if (this->entry_type() != JsonEntryTypes::Array) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		this->apply_number_to(std::to_string(index), value);
 	}
@@ -872,7 +872,7 @@ class Json {
 	 */
 	void apply_string_at(int index, const std::string& value) {
 		if (this->entry_type() != JsonEntryTypes::Array) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		this->apply_string_to(std::to_string(index), value);
 	}
@@ -885,7 +885,7 @@ class Json {
 	 */
 	void apply_array_at(int index, Json* value) {
 		if (this->entry_type() != JsonEntryTypes::Array) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		this->apply_array_to(std::to_string(index), value);
 	}
@@ -898,7 +898,7 @@ class Json {
 	 */
 	void apply_object_at(int index, Json* value) {
 		if (this->entry_type() != JsonEntryTypes::Array) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		this->apply_object_to(std::to_string(index), value);
 	}
@@ -920,7 +920,7 @@ class Json {
 	 */
 	void remove_at(int index) {
 		if (this->entry_type() != JsonEntryTypes::Array) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		this->remove_by(std::to_string(index));
 	}
@@ -933,11 +933,11 @@ class Json {
 	 */
 	void remove_by(const std::string& key) {
 		if (this->scalar_with()) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		std::string jsonpath = JsonParser::join_path(this->path(), key);
 		if (!this->exists(jsonpath)) {
-			throw new std::runtime_error(std::format("Entry not found. jsonpath: %s", (jsonpath).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Entry not found", (jsonpath).c_str()));
 		}
 		this->_remove_entry(this->fetch(jsonpath)->_entry_id);
 	}
@@ -951,7 +951,7 @@ class Json {
 	 */
 	void _add_entry(const std::string& key, std::shared_ptr<Json> entry_json) {
 		if (this->scalar_with()) {
-			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
+			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
 		this->_insert_entry(this->root()->_entries.size(), JsonParser::join_path(this->path(), key), entry_json);
 	}

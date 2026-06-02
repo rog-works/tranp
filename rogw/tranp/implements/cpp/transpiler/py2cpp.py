@@ -444,7 +444,7 @@ class Py2Cpp(ITranspiler):
 		"""Args: func_call: 関数コールノード Returns: 書式変換リスト"""
 		formatters: list[StringFormatDict] = []
 		for argument in func_call.arguments:
-			arg_symbol = self.reflections.type_of(argument)
+			arg_symbol = self.reflections.type_of(argument).impl(refs.Object).actualize()
 			formatters.append({
 				'label': argument.label.tokens,
 				'tag': self.string_formats.get(arg_symbol.types.domain_name, self.string_formats['default']),

@@ -333,7 +333,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			decl: メソッド・変数宣言ノード
 		Returns:
-			埋め込み関数コールノード | None
+			関数コールノード(Embed.alias) | None
 		"""
 		declare: defs.AnnoAssign | None = None
 		if isinstance(decl.declare, defs.AnnoAssign):
@@ -358,7 +358,7 @@ class Py2Cpp(ITranspiler):
 		return self.i18n.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
 
 	def __prop_name_via_embedder(self, decl: defs.DeclAll, embedder: defs.FuncCall) -> str:
-		"""Args: decl: メソッド・変数宣言ノード embedder: 埋め込み関数コールノード Returns: プロパティー名(埋め込み)"""
+		"""Args: decl: メソッド・変数宣言ノード embedder: 関数コールノード(Embed.alias) Returns: プロパティー名(埋め込み)"""
 		alias_name = self.transpile(embedder.arguments[0])[1:-1]
 		if len(embedder.arguments) == 1:
 			return alias_name
@@ -441,7 +441,7 @@ class Py2Cpp(ITranspiler):
 		return depends
 
 	def make_string_formatters(self, func_call: defs.FuncCall) -> list[StringFormatDict]:
-		"""Args: func_call: 関数コール Returns: 書式変換リスト"""
+		"""Args: func_call: 関数コールノード Returns: 書式変換リスト"""
 		formatters: list[StringFormatDict] = []
 		for argument in func_call.arguments:
 			arg_symbol = self.reflections.type_of(argument)

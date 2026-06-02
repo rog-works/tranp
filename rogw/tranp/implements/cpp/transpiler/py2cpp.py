@@ -444,11 +444,13 @@ class Py2Cpp(ITranspiler):
 		"""Args: func_call: 関数コールノード Returns: 書式変換リスト"""
 		formatters: list[StringFormatDict] = []
 		for argument in func_call.arguments:
-			arg_symbol = self.reflections.type_of(argument).impl(refs.Object).actualize()
+			arg_raw = self.reflections.type_of(argument).impl(refs.Object).actualize()
+			arg_tag = self.string_formats.get(arg_raw.types.domain_name, self.string_formats['default'])
 			formatters.append({
 				'label': argument.label.tokens,
-				'tag': self.string_formats.get(arg_symbol.types.domain_name, self.string_formats['default']),
-				'var_type': arg_symbol.types.domain_name,
+				# XXX Enumは数値として扱う
+				'tag': '%d' if arg_raw.types.is_a(defs.Enum) else arg_tag,
+				'var_type': arg_raw.types.domain_name,
 				'is_literal': argument.value.is_a(defs.Literal),
 			})
 

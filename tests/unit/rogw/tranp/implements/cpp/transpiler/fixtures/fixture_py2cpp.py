@@ -938,7 +938,7 @@ class ForFuncCall:
 			s.endswith('')
 
 		def format(self, s: str) -> None:
-			'{n}, {f}, {b}, {s}, {sp}, {p}'.format(n=1, f=2.0, b=True, s='3', sp=s, p=CP(self))
+			'{n}, {f}, {b}, {s}, {sp}, {p}, {e}'.format(n=1, f=2.0, b=True, s='3', sp=s, p=CP(self), e=Values.A)
 			s.format(1, 2, 3)
 
 		def encode(self, s: str, b: bytes) -> None:

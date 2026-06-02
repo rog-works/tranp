@@ -542,7 +542,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.String.find_methods', 'function_def_raw.block.funccall[7]', defs.FuncCall, 's.count(".");'),
 		('ForFuncCall.String.find_methods', 'function_def_raw.block.funccall[8]', defs.FuncCall, 's.starts_with("");'),
 		('ForFuncCall.String.find_methods', 'function_def_raw.block.funccall[9]', defs.FuncCall, 's.ends_with("");'),
-		('ForFuncCall.String.format', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%d, %f, %d, %s, %s, %p", 1, 2.0, true, "3", (s).c_str(), this);'),
+		('ForFuncCall.String.format', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%d, %f, %d, %s, %s, %p, %d", 1, 2.0, true, "3", (s).c_str(), this, Values::A);'),
 		('ForFuncCall.String.format', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format(s, 1, 2, 3);'),
 		('ForFuncCall.String.encode', 'function_def_raw.block.funccall[0]', defs.FuncCall, '(s).c_str();'),
 		('ForFuncCall.String.encode', 'function_def_raw.block.funccall[1]', defs.FuncCall, '("");'),

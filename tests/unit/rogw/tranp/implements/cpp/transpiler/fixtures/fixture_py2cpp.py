@@ -670,7 +670,7 @@ class ForFlows:
 	def try_catch_throw(self) -> None:
 		try: ...
 		except RuntimeError as e:
-			raise Exception() from e
+			raise Exception(1) from e
 		except Exception as e:
 			raise e
 

@@ -737,7 +737,8 @@ class Py2Cpp(ITranspiler):
 		if isinstance(node.throws, defs.FuncCall):
 			formatters = self.make_string_formatters(node.throws)
 			exception = throws[:throws.find('(')]
-			format = ', '.join([formatter['tag'] for formatter in formatters])
+			join_format = ', '.join([formatter['tag'] for formatter in formatters])
+			format = f'"{join_format}"' if join_format else ''
 			arguments = BlockParser.break_separator(throws[throws.find('(') + 1:-1], ',')
 			return self.view.render(f'statement/{node.classification}', vars={'exception': exception, 'via': via, 'format': format, 'formatters': formatters, 'arguments': arguments})
 		else:

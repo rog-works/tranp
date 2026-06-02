@@ -190,7 +190,7 @@ class DeclProps : public DeclPropsBase {
 	}
 };"""
 
-	ForClassAliasInner = """public:
+	ForClass_AliasInner = """public:
 /** Inner2 */
 class Inner2 {
 	public: inline static int V2 = 0;
@@ -205,6 +205,14 @@ class Inner2 {
 	/** func */
 	void func() {}
 };"""
+
+	ForFlows_try_catch_throw = """try {
+
+} catch (std::runtime_error e) {
+	throw std::exception(std::format("%d", 1));
+} catch (std::exception e) {
+	throw e;
+}"""
 
 	ForTemplateClass_Delegate = """public:
 /** Delegate */

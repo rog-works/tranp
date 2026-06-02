@@ -276,7 +276,7 @@ class TestPy2Cpp(TestCase):
 		('ForClass.Proto', '', defs.Class, '// class Proto'),
 		('ForClass.DeclProps', '', defs.Class, BlockExpects.DeclProps),
 
-		('ForClass.Alias.Inner', '', defs.Class, BlockExpects.ForClassAliasInner),
+		('ForClass.Alias.Inner', '', defs.Class, BlockExpects.ForClass_AliasInner),
 		('ForClass.Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b{} {}'),
 		('ForClass.Alias.in_param_return', '', defs.Method, BlockExpects.method(access='public', name='in_param_return', return_type='ForClass::Alias2', params=['ForClass::Alias2 a'])),
 		('ForClass.Alias.in_param_return2', '', defs.Method, BlockExpects.method(access='public', name='in_param_return2', return_type='ForClass::Alias2::Inner2', params=['ForClass::Alias2::Inner2 i'])),
@@ -389,7 +389,7 @@ class TestPy2Cpp(TestCase):
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (auto& [e1, e2, e3] : ts) {\n\n}'),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[3]', defs.For, 'for (const auto cp : cps) {\n\n}'),
 
-		('ForFlows.try_catch_throw', 'function_def_raw.block.try_stmt', defs.Try, 'try {\n\n} catch (std::runtime_error e) {\n\tthrow std::exception();\n} catch (std::exception e) {\n\tthrow e;\n}'),
+		('ForFlows.try_catch_throw', 'function_def_raw.block.try_stmt', defs.Try, BlockExpects.ForFlows_try_catch_throw),
 
 		('ForFlows.if_type_expr', 'function_def_raw.block.if_stmt', defs.If, 'if constexpr (std::is_same_v<T, int>) {\n\treturn v;\n} else if constexpr (std::is_same_v<T, std::string>) {\n\treturn v;\n}'),
 

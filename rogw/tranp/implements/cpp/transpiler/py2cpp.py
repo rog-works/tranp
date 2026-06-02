@@ -1,7 +1,7 @@
 import re
 from collections.abc import Callable
 from enum import Enum
-from typing import Any, ClassVar, Self, TypeVarTuple, cast, override
+from typing import ClassVar, Self, TypedDict, TypeVarTuple, cast, override
 
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
@@ -34,6 +34,8 @@ from rogw.tranp.transpiler.types import Evaluator, ITranspiler, TranspilerOption
 from rogw.tranp.view.helper.block import BlockParser
 from rogw.tranp.view.render import Renderer, RendererEmitter
 
+StringFormatDict = TypedDict('StringFormatDict', {'label': str, 'tag': str, 'var_type': str, 'is_literal': bool})
+
 
 class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
@@ -56,19 +58,16 @@ class Py2Cpp(ITranspiler):
 		self.i18n = i18n
 		self.evaluator = evaluator
 		self.module_meta_factory = module_meta_factory
-		self.include_dirs = self.__make_include_dirs(options)
+		self.include_dirs = self.__build_include_dirs(options)
+		self.string_formats = self.__build_string_formats(options)
 		self.cvars = CVars(options.env.get('cvars', {}))
-		self.__procedure = self.__make_procedure(options)
+		self.__procedure = self.__build_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
 		emitter.on('depends', self.__on_view_depends)
 
-	def __make_include_dirs(self, options: TranspilerOptions) -> dict[str, str]:
-		"""インクルードディレクトリー一覧
-
-		Args:
-			dict[str, str]: インクルードディレクトリー一覧
-		"""
+	def __build_include_dirs(self, options: TranspilerOptions) -> dict[str, str]:
+		"""Args: options: 実行オプション Returns: インクルードディレクトリー一覧"""
 		include_dirs: dict[str, str] = {}
 		for include_dir in cast(list[str], options.env.get('include_dirs', [])):
 			elems = include_dir.split(':') if include_dir.count(':') == 1 else [include_dir]
@@ -76,14 +75,21 @@ class Py2Cpp(ITranspiler):
 
 		return include_dirs
 
-	def __make_procedure(self, options: TranspilerOptions) -> Procedure[str]:
-		"""プロシージャーを生成
+	def __build_string_formats(self, options: TranspilerOptions) -> dict[str, str]:
+		"""Args: options: 実行オプション Returns: 書式変換タグ一覧"""
+		return {
+			bool.__name__: '%d',
+			int.__name__: '%d',
+			float.__name__: '%f',
+			str.__name__: '%s',
+			CP.__name__: '%p',
+			CWP.__name__: '%p',
+			'default': '%s',
+			**options.env.get('string_formats', {})
+		}
 
-		Args:
-			options: 実行オプション
-		Returns:
-			プロシージャー
-		"""
+	def __build_procedure(self, options: TranspilerOptions) -> Procedure[str]:
+		"""Args: options: 実行オプション Returns: プロシージャー"""
 		handlers = {key: getattr(self, key) for key in Py2Cpp.__dict__.keys() if key.startswith('on_')}
 		procedure = Procedure[str](verbose=options.verbose)
 		for key, handler in handlers.items():
@@ -327,7 +333,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			decl: メソッド・変数宣言ノード
 		Returns:
-			埋め込み関数コールノード
+			関数コールノード(Embed.alias) | None
 		"""
 		declare: defs.AnnoAssign | None = None
 		if isinstance(decl.declare, defs.AnnoAssign):
@@ -352,7 +358,7 @@ class Py2Cpp(ITranspiler):
 		return self.i18n.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
 
 	def __prop_name_via_embedder(self, decl: defs.DeclAll, embedder: defs.FuncCall) -> str:
-		"""Args: decl: メソッド・変数宣言ノード embedder: 埋め込み関数コールノード Returns: プロパティー名(埋め込み)"""
+		"""Args: decl: メソッド・変数宣言ノード embedder: 関数コールノード(Embed.alias) Returns: プロパティー名(埋め込み)"""
 		alias_name = self.transpile(embedder.arguments[0])[1:-1]
 		if len(embedder.arguments) == 1:
 			return alias_name
@@ -361,13 +367,7 @@ class Py2Cpp(ITranspiler):
 		return f'{alias_name}{origin_name}'
 
 	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
-		"""ファンクションのテンプレート型名を取得
-
-		Args:
-			node: ファンクションノード
-		Returns:
-			テンプレート型名リスト
-		"""
+		"""Args: node: ファンクションノード Returns: ファンクションのテンプレート型名リスト"""
 		return [types.domain_name for types in self.reflections.type_of(node).impl(refs.Function).function_templates()]
 
 	def allow_override_from_method(self, method: defs.ClassMethod | defs.Constructor | defs.Method) -> bool:
@@ -407,23 +407,11 @@ class Py2Cpp(ITranspiler):
 		return self.cvars.contains(cvar_type, CVars.Types.AddrMask) and null_type_raw.impl(refs.Object).type_is(None)
 
 	def to_accessor(self, accessor: str) -> str:
-		"""アクセス修飾子を翻訳
-
-		Args:
-			accessor: アクセス修飾子
-		Returns:
-			翻訳後のアクセス修飾子
-		"""
+		"""Args: accessor: アクセス修飾子 Returns: 翻訳後のアクセス修飾子"""
 		return self.i18n.t(ModuleDSN.full_joined(self.i18n.t(alias_dsn('lang')), 'accessor', accessor))
 
 	def make_lambda_binds(self, node: defs.Closure | defs.Lambda) -> list[str]:
-		"""ラムダ用のキャプチャー変数名リストを生成
-
-		Args:
-			node: ノード(Closure/Lambda)
-		Returns:
-			キャプチャー変数名リスト
-		"""
+		"""Args: node: ノード(Closure/Lambda) Returns: ラムダ用のキャプチャー変数名リスト"""
 		vars: list[defs.Var] = []
 		for var in node.ref_vars():
 			var_raw = self.reflections.type_of(var).impl(refs.Object)
@@ -435,13 +423,7 @@ class Py2Cpp(ITranspiler):
 		return list({var.domain_name if not isinstance(var, defs.ThisRef) else self.view.render('reference/this_ref'): True for var in vars}.keys())
 
 	def make_depends(self, statements: list[str]) -> list[str]:
-		"""依存パスリストを生成
-
-		Args:
-			statements: ステートメントリスト
-		Returns:
-			依存パスリスト
-		"""
+		"""Args: statements: ステートメントリスト Returns: 依存パスリスト"""
 		depends = self.__stack_on_depends[-1].copy()
 		in_include = False
 		for statement in statements:
@@ -457,6 +439,20 @@ class Py2Cpp(ITranspiler):
 				depends.remove(include_path)
 
 		return depends
+
+	def make_string_formatters(self, func_call: defs.FuncCall) -> list[StringFormatDict]:
+		"""Args: func_call: 関数コールノード Returns: 書式変換リスト"""
+		formatters: list[StringFormatDict] = []
+		for argument in func_call.arguments:
+			arg_symbol = self.reflections.type_of(argument)
+			formatters.append({
+				'label': argument.label.tokens,
+				'tag': self.string_formats.get(arg_symbol.types.domain_name, self.string_formats['default']),
+				'var_type': arg_symbol.types.domain_name,
+				'is_literal': argument.value.is_a(defs.Literal),
+			})
+
+		return formatters
 
 	# General
 
@@ -738,7 +734,14 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'statement/{node.classification}', vars={'condition': condition, 'assert_body': assert_body})
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
-		return self.view.render(f'statement/{node.classification}', vars={'throws': throws, 'via': via, 'is_new': node.throws.is_a(defs.FuncCall)})
+		if isinstance(node.throws, defs.FuncCall):
+			formatters = self.make_string_formatters(node.throws)
+			exception = throws[:throws.find('(')]
+			format = ', '.join([formatter['tag'] for formatter in formatters])
+			arguments = BlockParser.break_separator(throws[throws.find('(') + 1:-1], ',')
+			return self.view.render(f'statement/{node.classification}', vars={'exception': exception, 'via': via, 'format': format, 'formatters': formatters, 'arguments': arguments})
+		else:
+			return self.view.render(f'statement/{node.classification}', vars={'var': throws, 'via': via})
 
 	def on_pass(self, node: defs.Pass) -> str:
 		# XXX statementsのスタック数が合わなくなるため出力
@@ -1080,14 +1083,9 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.str and context_name == str.format.__name__:
 			is_literal = node.calls.as_a(defs.Relay).receiver.is_a(defs.String)
-			receiver, operator = PatternParser.break_relay(calls)
-			to_tags = {int.__name__: '%d', float.__name__: '%f', bool.__name__: '%d', str.__name__: '%s', CP.__name__: '%p', CWP.__name__: '%p'}
-			formatters: list[dict[str, Any]] = []
-			for argument in node.arguments:
-				arg_symbol = self.reflections.type_of(argument)
-				formatters.append({'label': argument.label.tokens, 'tag': to_tags.get(arg_symbol.types.domain_name, '%s'), 'var_type': arg_symbol.types.domain_name, 'is_literal': argument.value.is_a(defs.Literal)})
-
-			return self.view.render(f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
+			format, operator = PatternParser.break_relay(calls)
+			formatters = self.make_string_formatters(node)
+			return self.view.render(f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'format': format, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
 		elif spec == FuncCallSpec.Tags.str:
 			receiver, operator = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})

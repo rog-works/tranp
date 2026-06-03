@@ -6,7 +6,7 @@ from typing import ClassVar, Self, TypedDict, TypeVarTuple, cast, override
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.cpp.classes import byte, char, double, int64, uint32, uint64
-from rogw.tranp.compatible.cpp.cvar import CP, CWP
+from rogw.tranp.compatible.cpp.cvar import CP, CSP, CUP, CWP
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
@@ -80,10 +80,15 @@ class Py2Cpp(ITranspiler):
 		return {
 			bool.__name__: '%d',
 			int.__name__: '%d',
+			uint32.__name__: '%lu',
+			int64.__name__: '%lu',
+			uint64.__name__: '%llu',
 			float.__name__: '%f',
 			str.__name__: '%s',
 			CP.__name__: '%p',
 			CWP.__name__: '%p',
+			CSP.__name__: '%p',
+			CUP.__name__: '%p',
 			'default': '%s',
 			**options.env.get('string_formats', {})
 		}
@@ -443,11 +448,12 @@ class Py2Cpp(ITranspiler):
 	def make_string_formatters(self, func_call: defs.FuncCall) -> list[StringFormatDict]:
 		"""Args: func_call: 関数コールノード Returns: 書式変換リスト"""
 		formatters: list[StringFormatDict] = []
-		for argument in func_call.arguments:
+		for index, argument in enumerate(func_call.arguments):
 			arg_raw = self.reflections.type_of(argument).impl(refs.Object).actualize()
+			arg_label = argument.label.tokens
 			arg_tag = self.string_formats.get(arg_raw.types.domain_name, self.string_formats['default'])
 			formatters.append({
-				'label': argument.label.tokens,
+				'label': arg_label if arg_label else str(index),
 				# XXX Enumは数値として扱う
 				'tag': '%d' if arg_raw.types.is_a(defs.Enum) else arg_tag,
 				'var_type': arg_raw.types.domain_name,
@@ -740,7 +746,7 @@ class Py2Cpp(ITranspiler):
 			formatters = self.make_string_formatters(node.throws)
 			end_calls = throws.find('(')
 			calls = throws[:end_calls]
-			join_format = ', '.join([formatter['tag'] for formatter in formatters])
+			join_format = ', '.join(['{' + formatter['label'] + '}' for formatter in formatters])
 			format = f'"{join_format}"' if join_format else ''
 			arguments = BlockParser.break_separator(throws[end_calls + 1:-1], ',')
 			return self.view.render(f'statement/{node.classification}', vars={'calls': calls, 'via': via, 'format': format, 'formatters': formatters, 'arguments': arguments})

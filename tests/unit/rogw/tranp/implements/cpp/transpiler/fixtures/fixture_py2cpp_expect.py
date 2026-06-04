@@ -214,6 +214,18 @@ class Inner2 {
 	throw e;
 }"""
 
+	ForFlows_if_isinstance = """if constexpr (std::is_same_v<T, int>) {
+	return v;
+} else if constexpr (std::is_same_v<T, std::string>) {
+	return v;
+}"""
+
+	ForFlows_if_issubclass = """if constexpr (std::is_same_v<T, int>) {
+	return (*(static_cast<T*>(p)));
+} else if constexpr (std::is_same_v<T, std::string>) {
+	return (*(static_cast<T*>(p)));
+}"""
+
 	ForTemplateClass_Delegate = """public:
 /** Delegate */
 template<typename ...T_Args>

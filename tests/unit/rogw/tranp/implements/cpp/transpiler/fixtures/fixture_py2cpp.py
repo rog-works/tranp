@@ -674,11 +674,20 @@ class ForFlows:
 		except Exception as e:
 			raise e
 
-	def if_type_expr(self, v: T) -> T:
+	def if_isinstance(self, v: T) -> T:
 		if isinstance(v, int):
 			return v
 		elif isinstance(v, str):
 			return v
+		else:
+			assert False
+			return 0
+
+	def if_issubclass[T](self, t: type[T], p: CP[void]) -> T:
+		if issubclass(t, int):
+			return p.down(t).raw
+		elif issubclass(t, str):
+			return p.down(t).raw
 		else:
 			assert False
 			return 0

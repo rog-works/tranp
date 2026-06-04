@@ -391,7 +391,8 @@ class TestPy2Cpp(TestCase):
 
 		('ForFlows.try_catch_throw', 'function_def_raw.block.try_stmt', defs.Try, BlockExpects.ForFlows_try_catch_throw),
 
-		('ForFlows.if_type_expr', 'function_def_raw.block.if_stmt', defs.If, 'if constexpr (std::is_same_v<T, int>) {\n\treturn v;\n} else if constexpr (std::is_same_v<T, std::string>) {\n\treturn v;\n}'),
+		('ForFlows.if_isinstance', 'function_def_raw.block.if_stmt', defs.If, BlockExpects.ForFlows_if_isinstance),
+		('ForFlows.if_issubclass', 'function_def_raw.block.if_stmt', defs.If, BlockExpects.ForFlows_if_issubclass),
 
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'int n = 1;'),
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'std::vector<int> ns = {};'),

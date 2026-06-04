@@ -1228,8 +1228,8 @@ class Py2Cpp(ITranspiler):
 				return FuncCallSpec.Tags.c_func_invoke, '', None
 			elif calls == c_func_ref.__name__:
 				return FuncCallSpec.Tags.c_func_ref, '', None
-			if calls == isinstance.__name__:
-				return FuncCallSpec.Tags.c_type_expr, '', self.reflections.type_of(node.arguments[0])
+			if calls == isinstance.__name__ or calls == issubclass.__name__:
+				return FuncCallSpec.Tags.c_type_expr, '', self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize()
 			elif calls == len.__name__:
 				return FuncCallSpec.Tags.len, '', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:

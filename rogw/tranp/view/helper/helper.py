@@ -30,7 +30,7 @@ def break_separator(setting: RendererSetting) -> Callable[[str, str], list[str]]
 
 def is_quoted_literal(setting: RendererSetting) -> Callable[[str, str], bool]:
 	"""Note: @see rogw.tranp.lang.string.is_quoted_literal"""
-	return _is_quoted_literal
+	return lambda string, quoted='"': _is_quoted_literal(string, quoted)
 
 
 def parse_decorators(setting: RendererSetting) -> Callable[[list[str]], DecoratorQuery]:

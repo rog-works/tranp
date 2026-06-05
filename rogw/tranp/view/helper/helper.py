@@ -6,6 +6,7 @@ from typing import Any
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.lang.dict import dict_pluck
+from rogw.tranp.lang.string import is_quoted_literal as _is_quoted_literal
 from rogw.tranp.view.helper.block import BlockParser
 from rogw.tranp.view.helper.decorator import DecoratorQuery
 from rogw.tranp.view.helper.parameter import ParameterHelper
@@ -19,17 +20,22 @@ def emit_depends(setting: RendererSetting) -> Callable[[str], str]:
 
 def break_last_block(setting: RendererSetting) -> Callable[[str, str], tuple[str, str]]:
 	"""Note: @see rogw.tranp.view.helper.block.BlockParser"""
-	return lambda string, brackets: BlockParser.break_last_block(string, brackets)
+	return BlockParser.break_last_block
 
 
 def break_separator(setting: RendererSetting) -> Callable[[str, str], list[str]]:
 	"""Note: @see rogw.tranp.view.helper.block.BlockParser"""
-	return lambda string, delimiter: BlockParser.break_separator(string, delimiter)
+	return BlockParser.break_separator
+
+
+def is_quoted_literal(setting: RendererSetting) -> Callable[[str, str], bool]:
+	"""Note: @see rogw.tranp.lang.string.is_quoted_literal"""
+	return _is_quoted_literal
 
 
 def parse_decorators(setting: RendererSetting) -> Callable[[list[str]], DecoratorQuery]:
 	"""Note: @see rogw.tranp.view.helper.decorator.DecoratorQuery"""
-	return lambda decorators: DecoratorQuery.parse(decorators)
+	return DecoratorQuery.parse
 
 
 def env_get(setting: RendererSetting) -> Callable[[str, Any], Any]:
@@ -49,17 +55,17 @@ def md5(setting: RendererSetting) -> Callable[[str], str]:
 
 def reg_fullmatch(setting: RendererSetting) -> Callable[[str, str], re.Match | None]:
 	"""Note: @see re.fullmatch"""
-	return lambda pattern, string: re.fullmatch(pattern, string)
+	return re.fullmatch
 
 
 def reg_match(setting: RendererSetting) -> Callable[[str, str], re.Match | None]:
 	"""Note: @see re.search"""
-	return lambda pattern, string: re.search(pattern, string)
+	return re.search
 
 
 def reg_replace(setting: RendererSetting) -> Callable[[str, str, str], str]:
 	"""Note: @see re.sub"""
-	return lambda pattern, replace, string: re.sub(pattern, replace, string)
+	return re.sub
 
 
 def filter_find(setting: RendererSetting) -> Callable[[str, str], list[str]]:
@@ -89,6 +95,7 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 			emit_depends,
 			break_last_block,
 			break_separator,
+			is_quoted_literal,
 			parse_decorators,
 			env_get,
 			i18n,

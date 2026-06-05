@@ -35,11 +35,15 @@ def is_quoted_literal(string: str, quote: str) -> bool:
 	if not (string.startswith(quote) and string.endswith(quote)):
 		return False
 
-	size = len(string)
-	for i, c in enumerate(string):
-		if i == 0 or i == size - 1:
-			continue
-		elif c == quote and string[i - 1] != '\\':
+	index = 1
+	length = len(string)
+	while index < length - 1:
+		found = string.find(quote, index, length - 1)
+		if found == -1:
+			break
+		elif string[found - 1] != '\\':
 			return False
+
+		index = found + 1
 
 	return True

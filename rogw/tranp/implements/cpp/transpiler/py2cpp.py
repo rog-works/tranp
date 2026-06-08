@@ -495,9 +495,19 @@ class Py2Cpp(ITranspiler):
 			return self.proc_for_each(node, symbols, for_in, statements)
 
 	def proc_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
-		# 期待値: 'range(arguments...)'
-		last_index = PatternParser.pluck_func_call_arguments(for_in)
-		return self.view.render(f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'last_index': last_index, 'statements': statements})
+		# 期待値1: 'range(size)'
+		# 期待値2: 'range(begin, size)'
+		# 期待値3: 'range(begin, size, step)'
+		args_num = len(node.iterates.as_a(defs.FuncCall).arguments)
+		join_args = PatternParser.pluck_func_call_arguments(for_in)
+		if args_num == 1:
+			return self.view.render(f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'begin': 0, 'size': join_args, 'step': 1, 'statements': statements})
+		elif args_num == 2:
+			begin, size = BlockParser.break_separator(join_args, ',')
+			return self.view.render(f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'begin': begin, 'size': size, 'step': 1, 'statements': statements})
+		else:
+			begin, size, step = BlockParser.break_separator(join_args, ',')
+			return self.view.render(f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'begin': begin, 'size': size, 'step': step, 'statements': statements})
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'enumerate(arguments...)'

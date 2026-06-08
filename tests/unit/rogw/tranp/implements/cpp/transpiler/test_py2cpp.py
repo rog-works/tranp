@@ -365,8 +365,9 @@ class TestPy2Cpp(TestCase):
 
 		('ForFlows.while_only', 'function_def_raw.block.while_stmt', defs.While, 'while (true) {\n\n}'),
 
-		('ForFlows.for_range', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto i = 0; i < 2; i++) {\n\n}'),
-		('ForFlows.for_range', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto i = 0; i < strs.size(); i++) {\n\n}'),
+		('ForFlows.for_range', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto i = 0; i < 2; i += 1) {\n\n}'),
+		('ForFlows.for_range', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto i = 0; i < strs.size(); i += 1) {\n\n}'),
+		('ForFlows.for_range', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (auto i = 1; i < strs.size(); i += 2) {\n\n}'),
 
 		('ForFlows.for_enumerate', 'function_def_raw.block.for_stmt[0]', defs.For, BlockExpects.for_enumerate(index='index', value='value', iterates='{1}', statements=[])),
 		('ForFlows.for_enumerate', 'function_def_raw.block.for_stmt[1]', defs.For, BlockExpects.for_enumerate(index='index', value='value', iterates='strs', statements=[])),

@@ -1,4 +1,4 @@
-for (auto {{ symbol }} = 0; {{ symbol }} < {{ last_index }}; {{ symbol }}++) {
+for (auto {{ symbol }} = {{ begin }}; {{ symbol }} < {{ size }}; {{ symbol }} += {{ step }}) {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

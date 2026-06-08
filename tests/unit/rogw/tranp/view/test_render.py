@@ -760,7 +760,8 @@ class TestRenderer(TestCase):
 		self.assertRender('flow/for/enumerate', vars, expected)
 
 	@data_provider([
-		({'symbol': 'index', 'last_index': 'limit', 'statements': ['pass;']}, 'for (auto index = 0; index < limit; index++) {\n\tpass;\n}'),
+		({'symbol': 'index', 'begin': '0', 'size': 'limit', 'step': '1', 'statements': ['pass;']}, 'for (auto index = 0; index < limit; index += 1) {\n\tpass;\n}'),
+		({'symbol': 'index', 'begin': 'begin', 'size': 'limit', 'step': 'step', 'statements': ['pass;']}, 'for (auto index = begin; index < limit; index += step) {\n\tpass;\n}'),
 	])
 	def test_render_for_range(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('flow/for/range', vars, expected)

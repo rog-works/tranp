@@ -1,5 +1,4 @@
 from rogw.tranp.implements.syntax.tranp.rule import Rules
-from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDefinition, Tokenizer
 
 
 def python_rules() -> Rules:
@@ -265,6 +264,7 @@ def python_rules() -> Rules:
 					('symbol', 'string'),
 					('symbol', 'digit'),
 					('symbol', 'decimal'),
+					('symbol', 'list'),
 					('symbol', 'dict'),
 					('terms', [
 						('string', '"("'),
@@ -307,6 +307,20 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
+				('symbol', 'values'),
+				('unwrap', '*'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '","')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
 				('symbol', 'key_values'),
 				('unwrap', '*'),
 				('terms', [
@@ -327,6 +341,17 @@ def python_rules() -> Rules:
 					('symbol', 'string'),
 					('string', '":"'),
 					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'list'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"["'),
+					('expr_opt', [
+						('symbol', 'values')
+					]),
+					('string', '"]"')
 				])
 			]),
 			('rule', [

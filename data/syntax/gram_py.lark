@@ -86,8 +86,3 @@ name := /[a-zA-Z_]\w*/
 string := /'([^\'\\]*(\\')?)*\'|"([^"\\]*(\\")?)*"/
 digit := /0|[1-9]\d*/
 decimal := /(0|[1-9]\d*)[.]\d+/
-
-// FIXME 以下のatom関連は一旦非対応
-// atom[1] := ... | list ...
-// list := "[" [list_exps] "]"
-// list_exps := expr ("," expr)*

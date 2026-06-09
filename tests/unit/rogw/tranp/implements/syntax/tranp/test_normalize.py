@@ -43,22 +43,67 @@ class TestNormalize(TestCase):
 				(10, 'entry', [9]),
 			],
 		),
+		(
+			'if a:\n\tb == c',
+			('entry', [
+				('if', [
+					('var', [
+						('name', 'a'),
+					]),
+					('block', [
+						('comp', [
+							('var', [
+								('name', 'b'),
+							]),
+							('op_comp', [
+								('op_comp_s', '=='),
+							]),
+							('var', [
+								('name', 'c'),
+							]),
+						]),
+					]),
+				]),
+			]),
+			[
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, 'if', 11),
+				(3, 'name', 'b'),
+				(4, 'var', [3]),
+				(5, 'op_comp_s', '=='),
+				(6, 'op_comp', [5]),
+				(7, 'name', 'c'),
+				(8, 'var', [7]),
+				(9, 'comp', [4, 6, 8]),
+				(10, 'block', [9]),
+				(11, 'entry', [10]),
+			],
+		),
 	])
 	def test_normalize(self, code: str, ast: AST, expected: list[tuple]) -> None:
 		serializer = ASTSerializer()
+		serializer.on('if', self.on_if)
 		serializer.on('ternary', self.on_ternary)
 		actual = serializer.normalize(ast)
 		self.assertEqual(expected, actual)
 
+	def on_if(self, serializer: 'ASTSerializer', entry: Node, seq: int) -> list[tuple]:
+		cond = serializer.normalize(entry[1][0], seq)
+		if_0 = (cond[-1][0] + 1, entry[0], -1)
+		block = serializer.normalize(entry[1][1], if_0[0] + 1)
+		if_1 = (if_0[0], if_0[1], block[-1][0] + 1)
+		return [*cond, if_1, *block]
+
 	def on_ternary(self, serializer: 'ASTSerializer', entry: Node, seq: int) -> list[tuple]:
 		cond = serializer.normalize(entry[1][1], seq)
-		ternary = (cond[-1][0] + 1, entry[0], -1)
-		left = serializer.normalize(entry[1][0], ternary[0] + 1)
-		jump = (left[-1][0] + 1, 'jump', -1)
-		right = serializer.normalize(entry[1][2], jump[0] + 1)
-		ternary = (ternary[0], ternary[1], right[0][0])
-		jump = (jump[0], jump[1], right[-1][0] + 1)
-		entries = [*cond, ternary, *left, jump, *right]
+		ternary_0 = (cond[-1][0] + 1, entry[0], -1)
+		left = serializer.normalize(entry[1][0], ternary_0[0] + 1)
+		jump_0 = (left[-1][0] + 1, 'jump', -1)
+		right = serializer.normalize(entry[1][2], jump_0[0] + 1)
+		ternary_1 = (ternary_0[0], ternary_0[1], right[0][0])
+		jump_1 = (jump_0[0], jump_0[1], right[-1][0] + 1)
+		entries = [*cond, ternary_1, *left, jump_1, *right]
 		return entries
 
 

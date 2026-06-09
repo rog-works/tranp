@@ -174,13 +174,14 @@ class TestSyntaxParser(TestCase):
 	])
 	def test_parse_edge(self, source: str, gram_filepath: str, expected: tuple) -> None:
 		"""Note: 解析結果の検証用"""
-		with open(gram_filepath, mode='rb') as f:
-			grammar = f.read().decode('utf-8')
+		def load_grammar(filepath) -> str:
+			with open(filepath, mode='rb') as f:
+				return f.read().decode('utf-8')
 
 		gram_parser = SyntaxParser(grammar_rules(), grammar_tokenizer())
-		gram_ast = gram_parser.parse(grammar, 'entry')
-		rules = Rules.from_ast(gram_ast.simplify())
-		actual = SyntaxParser(rules, Tokenizer()).parse(source, 'entry')
+		py_ast = gram_parser.parse(load_grammar(gram_filepath), 'entry')
+		py_rules = Rules.from_ast(py_ast.simplify())
+		actual = SyntaxParser(py_rules).parse(source, 'entry')
 		try:
 			self.assertEqual(expected, actual.simplify())
 		except AssertionError:

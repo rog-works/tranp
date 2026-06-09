@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from data.syntax.rules_gram import grammar_rules, grammar_tokenizer
 from data.syntax.rules_py import python_rules
+from rogw.tranp.implements.syntax.tranp.rule import Rules
 from rogw.tranp.implements.syntax.tranp.syntax import ErrorCollector, SyntaxParser
 from rogw.tranp.implements.syntax.tranp.tokenizer import Tokenizer
 from rogw.tranp.test.helper import data_provider
@@ -154,7 +155,32 @@ class TestSyntaxParser(TestCase):
 		rules = rule_provider[lang]()
 		tokenizer = tokenizer_provider[lang]()
 		actual = SyntaxParser(rules, tokenizer).parse(source, 'entry')
+		try:
+			self.assertEqual(expected, actual.simplify())
+		except AssertionError:
+			print(f'AST unmatch. actual: {actual.pretty()}')
+			raise
 
+	@data_provider([
+		(
+			'a',
+			'data/syntax/gram_py.lark',
+			('entry', [
+				('var', [
+					('name', 'a'),
+				]),
+			]),
+		),
+	])
+	def test_parse_edge(self, source: str, gram_filepath: str, expected: tuple) -> None:
+		"""Note: 解析結果の検証用"""
+		with open(gram_filepath, mode='rb') as f:
+			grammar = f.read().decode('utf-8')
+
+		gram_parser = SyntaxParser(grammar_rules(), grammar_tokenizer())
+		gram_ast = gram_parser.parse(grammar, 'entry')
+		rules = Rules.from_ast(gram_ast.simplify())
+		actual = SyntaxParser(rules, Tokenizer()).parse(source, 'entry')
 		try:
 			self.assertEqual(expected, actual.simplify())
 		except AssertionError:

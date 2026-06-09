@@ -54,8 +54,8 @@ class TestNormalize(TestCase):
 			'\n'.join([
 				'if a:',
 				'  b == c',
-				'elif d:',
-				'  e',
+				'else:',
+				'  d',
 			]),
 			('entry', [
 				('if', [
@@ -77,10 +77,17 @@ class TestNormalize(TestCase):
 							]),
 						]),
 					]),
-					('__empty__', ''),
+					('else', [
+						('block', [
+							('var', [
+								('name', 'd'),
+							]),
+						]),
+					]),
 				]),
 			]),
 			[
+				# --- if a:
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
 				(2, 'then', 11),
@@ -91,8 +98,14 @@ class TestNormalize(TestCase):
 				(7, 'name', 'c'),
 				(8, 'var', [7]),
 				(9, 'comp', [4, 6, 8]),
-				(10, 'block', [9]),
-				(11, 'entry', [10]),
+				(10, 'jump', 15),
+				# --- else:
+				(11, 'else', 15),
+				(12, 'name', 'd'),
+				(13, 'var', [12]),
+				(14, 'jump', 15),
+				# ---
+				(15, 'entry', [14]),
 			],
 		),
 	])
@@ -104,26 +117,37 @@ class TestNormalize(TestCase):
 		self.assertEqual(expected, actual)
 
 	def on_if(self, serializer: 'ASTSerializer', entry: Node, seq: int) -> list[tuple]:
+		thens: list[list[tuple]] = []
+		then_seq = seq
+		for child in cast(list[Node], entry[Children]):
+			if child[Name] != 'else':
+				cond = serializer.normalize(child[Children][0], then_seq)
+				block = serializer.normalize(child[Children][1], cond[-1][Id] + 2)
+				then = (cond[-1][Id] + 1, child[Name], block[-1][Id] + 1)
+				thens.append([*cond, then, *block])
+				then_seq = then[Ctx]
+			else:
+				block = serializer.normalize(child[Children][0], then_seq + 1)
+				a_else = (then_seq, child[Name], block[-1][Id] + 1)
+				thens.append([a_else, *block])
+				then_seq = a_else[Ctx]
+
+		if_end = then_seq
 		entries: list[tuple] = []
-		for i in range(len(entry[Children]) - 1):
-			then = cast(Node, entry[Children][i])
-			cond = serializer.normalize(then[Children][0], seq)
-			then_0 = (cond[-1][Id] + 1, then[Name], -1)
-			block = serializer.normalize(then[Children][1], then_0[Id] + 1)
-			then_1 = (then_0[Id], then_0[Comm], block[-1][Id] + 1)
-			entries.extend([*cond, then_1, *block])
+		for then in thens:
+			block = then[-1]
+			then[-1] = (block[Id], 'jump', if_end)
+			entries.extend(then)
 
 		return entries
 
 	def on_ternary(self, serializer: 'ASTSerializer', entry: Node, seq: int) -> list[tuple]:
 		cond = serializer.normalize(entry[Children][1], seq)
-		ternary_0 = (cond[-1][Id] + 1, entry[Name], -1)
-		left = serializer.normalize(entry[Children][0], ternary_0[Id] + 1)
-		jump_0 = (left[-1][Id] + 1, 'jump', -1)
-		right = serializer.normalize(entry[Children][2], jump_0[Id] + 1)
-		ternary_1 = (ternary_0[Id], ternary_0[Comm], right[0][Id])
-		jump_1 = (jump_0[Id], jump_0[Comm], right[-1][Id] + 1)
-		entries = [*cond, ternary_1, *left, jump_1, *right]
+		left = serializer.normalize(entry[Children][0], cond[-1][Id] + 2)
+		right = serializer.normalize(entry[Children][2], left[-1][Id] + 2)
+		ternary = (cond[-1][Id] + 1, entry[Name], right[0][Id])
+		jump = (left[-1][Id] + 1, 'jump', right[-1][Id] + 1)
+		entries = [*cond, ternary, *left, jump, *right]
 		return entries
 
 

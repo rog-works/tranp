@@ -2,12 +2,12 @@
 entry := (statement)+
 
 // statement
-statement[1] := if
+statement[1] := if | expr "\n"
 
 if := "if" expr ":" "\n" block
 
 // block
-block := "\INDENT" expr "\n" "\DEDENT"
+block := "\INDENT" (statement)+ "\DEDENT"
 
 // expression
 expr[1] := ternary

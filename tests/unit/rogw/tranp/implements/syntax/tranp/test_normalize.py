@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, TypeAlias, cast
+from typing import Any, Literal, TypeAlias, cast
 from unittest import TestCase
 
 from rogw.tranp.lang.middleware import Middleware
@@ -8,6 +8,13 @@ from rogw.tranp.test.helper import data_provider
 Token: TypeAlias = tuple[str, str]
 Node: TypeAlias = tuple[str, 'list[Token | Node]']
 AST: TypeAlias = Token | Node
+
+Name: Literal[0] = 0
+Children: Literal[1] = 1
+
+Id: Literal[0] = 0
+Comm: Literal[1] = 1
+Ctx: Literal[2] = 2
 
 class TestNormalize(TestCase):
 	@data_provider([
@@ -22,7 +29,7 @@ class TestNormalize(TestCase):
 						('var', [
 							('name', 'cond'),
 						]),
-						('empty', ''),
+						('__empty__', ''),
 					]),
 					('var', [
 						('name', 'b'),
@@ -32,7 +39,7 @@ class TestNormalize(TestCase):
 			[
 				(0, 'name', 'cond'),
 				(1, 'var', [0]),
-				(2, 'empty', ''),
+				(2, '__empty__', ''),
 				(3, 'invoke', [1, 2]),
 				(4, 'ternary', 8),
 				(5, 'name', 'a'),
@@ -44,31 +51,39 @@ class TestNormalize(TestCase):
 			],
 		),
 		(
-			'if a:\n\tb == c',
+			'\n'.join([
+				'if a:',
+				'  b == c',
+				'elif d:',
+				'  e',
+			]),
 			('entry', [
 				('if', [
-					('var', [
-						('name', 'a'),
-					]),
-					('block', [
-						('comp', [
-							('var', [
-								('name', 'b'),
-							]),
-							('op_comp', [
-								('op_comp_s', '=='),
-							]),
-							('var', [
-								('name', 'c'),
+					('then', [
+						('var', [
+							('name', 'a'),
+						]),
+						('block', [
+							('comp', [
+								('var', [
+									('name', 'b'),
+								]),
+								('op_comp', [
+									('op_comp_s', '=='),
+								]),
+								('var', [
+									('name', 'c'),
+								]),
 							]),
 						]),
 					]),
+					('__empty__', ''),
 				]),
 			]),
 			[
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
-				(2, 'if', 11),
+				(2, 'then', 11),
 				(3, 'name', 'b'),
 				(4, 'var', [3]),
 				(5, 'op_comp_s', '=='),
@@ -89,20 +104,25 @@ class TestNormalize(TestCase):
 		self.assertEqual(expected, actual)
 
 	def on_if(self, serializer: 'ASTSerializer', entry: Node, seq: int) -> list[tuple]:
-		cond = serializer.normalize(entry[1][0], seq)
-		if_0 = (cond[-1][0] + 1, entry[0], -1)
-		block = serializer.normalize(entry[1][1], if_0[0] + 1)
-		if_1 = (if_0[0], if_0[1], block[-1][0] + 1)
-		return [*cond, if_1, *block]
+		entries: list[tuple] = []
+		for i in range(len(entry[Children]) - 1):
+			then = cast(Node, entry[Children][i])
+			cond = serializer.normalize(then[Children][0], seq)
+			then_0 = (cond[-1][Id] + 1, then[Name], -1)
+			block = serializer.normalize(then[Children][1], then_0[Id] + 1)
+			then_1 = (then_0[Id], then_0[Comm], block[-1][Id] + 1)
+			entries.extend([*cond, then_1, *block])
+
+		return entries
 
 	def on_ternary(self, serializer: 'ASTSerializer', entry: Node, seq: int) -> list[tuple]:
-		cond = serializer.normalize(entry[1][1], seq)
-		ternary_0 = (cond[-1][0] + 1, entry[0], -1)
-		left = serializer.normalize(entry[1][0], ternary_0[0] + 1)
-		jump_0 = (left[-1][0] + 1, 'jump', -1)
-		right = serializer.normalize(entry[1][2], jump_0[0] + 1)
-		ternary_1 = (ternary_0[0], ternary_0[1], right[0][0])
-		jump_1 = (jump_0[0], jump_0[1], right[-1][0] + 1)
+		cond = serializer.normalize(entry[Children][1], seq)
+		ternary_0 = (cond[-1][Id] + 1, entry[Name], -1)
+		left = serializer.normalize(entry[Children][0], ternary_0[Id] + 1)
+		jump_0 = (left[-1][Id] + 1, 'jump', -1)
+		right = serializer.normalize(entry[Children][2], jump_0[Id] + 1)
+		ternary_1 = (ternary_0[Id], ternary_0[Comm], right[0][Id])
+		jump_1 = (jump_0[Id], jump_0[Comm], right[-1][Id] + 1)
 		entries = [*cond, ternary_1, *left, jump_1, *right]
 		return entries
 

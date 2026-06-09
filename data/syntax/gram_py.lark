@@ -4,7 +4,7 @@ entry := (statement)+
 // statement
 statement[1] := if | expr "\n"
 
-// statement/flow
+// block/flow
 if := then (elif)* [else]
 then := "if" expr ":" "\n" block
 elif := "elif" expr ":" "\n" block

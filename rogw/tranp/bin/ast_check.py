@@ -1,15 +1,15 @@
-from collections.abc import Callable
 import os
 import sys
+from collections.abc import Callable
 from typing import TypeAlias, TypedDict
 
 from lark import Lark
 from lark.indenter import PythonIndenter
 
+from data.syntax.rules_gram import grammar_rules, grammar_tokenizer
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import tty
 from rogw.tranp.implements.syntax.tranp.rule import Rules
-from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.lang.error import stacktrace
 

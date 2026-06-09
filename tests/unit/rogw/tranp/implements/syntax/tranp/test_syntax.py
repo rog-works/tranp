@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer, python_rules
+from data.syntax.rules_gram import grammar_rules, grammar_tokenizer
+from data.syntax.rules_py import python_rules
 from rogw.tranp.implements.syntax.tranp.syntax import ErrorCollector, SyntaxParser
 from rogw.tranp.implements.syntax.tranp.tokenizer import Tokenizer
 from rogw.tranp.test.helper import data_provider

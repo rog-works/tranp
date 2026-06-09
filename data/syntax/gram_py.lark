@@ -39,16 +39,18 @@ primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
 invoke := primary "(" [args] ")"
 indexer := primary "[" slice "]"
-atom[1] := boolean | none | var | string | digit | decimal | dict | "(" expr ")"
+atom[1] := boolean | none | var | string | digit | decimal | list | dict | "(" expr ")"
 var := name
 
 // element
 args[*] := (expr ",")* expr
 slice[*] := (expr ":")* expr
+values[*] := (expr ",")* expr
 key_values[*] :=  (key_value ",")* key_value
 key_value := string ":" expr
 
 // literal
+list := "[" [values] "]"
 dict := "{" [key_values] "}"
 
 // terminal

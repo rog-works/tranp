@@ -2,8 +2,8 @@ import os
 import sys
 from typing import TypedDict
 
+from data.syntax.rules_gram import grammar_rules, grammar_tokenizer
 from rogw.tranp.bin.io import tty
-from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.lang.error import stacktrace
 

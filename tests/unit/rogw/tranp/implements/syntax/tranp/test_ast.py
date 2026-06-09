@@ -1,7 +1,7 @@
 from unittest import TestCase
 
+from data.syntax.rules_py import python_rules
 from rogw.tranp.implements.syntax.tranp.ast import ASTNormal
-from rogw.tranp.implements.syntax.tranp.rules import python_rules
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.test.helper import data_provider
 

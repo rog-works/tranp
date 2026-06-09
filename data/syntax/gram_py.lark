@@ -2,7 +2,11 @@
 entry := (statement)+
 
 // statement
-statement[1] := if | expr "\n"
+statement[1] := if | line "\n"
+
+// statement/line
+line[1] := move
+move[1] := (expr "=")? expr
 
 // block/flow
 if := then (elif)* [else]

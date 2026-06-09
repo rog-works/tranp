@@ -5,7 +5,10 @@ entry := (statement)+
 statement[1] := if | expr "\n"
 
 // statement/flow
-if := "if" expr ":" "\n" block
+if := then (elif)* [else]
+then := "if" expr ":" "\n" block
+elif := "elif" expr ":" "\n" block
+else := "else" ":" "\n" block
 
 // block
 block := "\INDENT" (statement)+ "\DEDENT"

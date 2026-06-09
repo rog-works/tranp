@@ -4,6 +4,7 @@ entry := (statement)+
 // statement
 statement[1] := if | expr "\n"
 
+// statement/flow
 if := "if" expr ":" "\n" block
 
 // block
@@ -23,7 +24,7 @@ comp_and[1] := (comp_not op_and)* comp_not
 comp_not[1] := (op_not)? comp
 comp[1] := (calc_sum op_comp)* calc_sum
 
-// operation/bin/arithmetical
+// operation/bin/arithmetic
 calc_sum[1] := (calc_mul op_add)* calc_mul
 calc_mul[1] := (unary op_mul)* unary
 

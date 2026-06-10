@@ -17,26 +17,29 @@ class TestNormalize(TestCase):
 			[
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
-				(2, 'name', 'b'),
-				(3, 'var', [2]),
-				(4, 'block', [3]),
-				(5, 'while', [1, 4]),
+				(2, 'while', 6),
+				(3, 'name', 'b'),
+				(4, 'var', [3]),
+				(5, 'jump', 0),
 				(6, 'entry', [5]),
 			],
 		),
 		(
 			'(a and b and c) and d',
 			[
+				# a and b
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
 				(2, 'op_and', 'and'),
 				(3, 'name', 'b'),
 				(4, 'var', [3]),
 				(5, 'comp_and', 10),
+				# $ and c
 				(6, 'op_and', 'and'),
 				(7, 'name', 'c'),
 				(8, 'var', [7]),
 				(9, 'comp_and', 10),
+				# $ and d
 				(10, 'op_and', 'and'),
 				(11, 'name', 'd'),
 				(12, 'var', [11]),

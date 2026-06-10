@@ -18,10 +18,11 @@ class PythonASTSerializer:
 			正規化したAST
 		"""
 		serializer = ASTSerializer()
-		serializer.on('if', cls.on_if)
-		serializer.on('ternary', cls.on_ternary)
 		serializer.on('comp_or', cls.on_comp_logic)
 		serializer.on('comp_and', cls.on_comp_logic)
+		serializer.on('if', cls.on_if)
+		serializer.on('while', cls.on_while)
+		serializer.on('ternary', cls.on_ternary)
 		return serializer.normalize(entry)
 
 	@classmethod
@@ -83,13 +84,24 @@ class PythonASTSerializer:
 		return entries
 
 	@classmethod
+	def on_while(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		"""ハンドラー(while)"""
+		tree = as_a(ASTTree, entry)
+		when = serializer.normalize(tree.children[0], seq)
+		block = serializer.normalize(tree.children[1], when[-1].index + 2)
+		a_while = ASTNormal(when[-1].index + 1, entry.name, block[-1].index + 1)
+		block[-1] = ASTNormal(block[-1].index, 'jump', seq)
+		entries = [*when, a_while, *block]
+		return entries
+
+	@classmethod
 	def on_ternary(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
 		"""ハンドラー(ternary)"""
 		tree = as_a(ASTTree, entry)
-		cond = serializer.normalize(tree.children[1], seq)
-		left = serializer.normalize(tree.children[0], cond[-1].index + 2)
+		when = serializer.normalize(tree.children[1], seq)
+		left = serializer.normalize(tree.children[0], when[-1].index + 2)
 		right = serializer.normalize(tree.children[2], left[-1].index + 2)
-		ternary = ASTNormal(cond[-1].index + 1, entry.name, right[0].index)
+		ternary = ASTNormal(when[-1].index + 1, entry.name, right[0].index)
 		jump = ASTNormal(left[-1].index + 1, 'jump', right[-1].index + 1)
-		entries = [*cond, ternary, *left, jump, *right]
+		entries = [*when, ternary, *left, jump, *right]
 		return entries

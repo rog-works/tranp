@@ -1,5 +1,26 @@
 // entry
-entry := (expr "\n")+
+entry := (statement)+
+
+// statement
+statement[1] := function | if | line "\n"
+
+// statement/line
+line[1] := move
+move[1] := (expr "=")? expr
+
+// block/declaration
+function := "def" name "(" [params] ")" "->" [type] ":" "\n" block
+params := (param ",")* param
+param := name ":" type ["=" expr]
+
+// block/flow
+if := then (elif)* [else]
+then := "if" expr ":" "\n" block
+elif := "elif" expr ":" "\n" block
+else := "else" ":" "\n" block
+
+// block
+block := "\INDENT" (statement)+ "\DEDENT"
 
 // expression
 expr[1] := ternary
@@ -15,7 +36,7 @@ comp_and[1] := (comp_not op_and)* comp_not
 comp_not[1] := (op_not)? comp
 comp[1] := (calc_sum op_comp)* calc_sum
 
-// operation/bin/arithmetical
+// operation/bin/arithmetic
 calc_sum[1] := (calc_mul op_add)* calc_mul
 calc_mul[1] := (unary op_mul)* unary
 
@@ -39,27 +60,29 @@ primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
 invoke := primary "(" [args] ")"
 indexer := primary "[" slice "]"
-atom[1] := boolean | none | var | string | digit | decimal | dict | "(" expr ")"
+atom[1] := boolean | none | var | string | digit | decimal | list | dict | "(" expr ")"
 var := name
+
+// type
+type[1] := type_none | type_var
+type_none := none
+type_var := name
 
 // element
 args[*] := (expr ",")* expr
 slice[*] := (expr ":")* expr
+values[*] := (expr ",")* expr
 key_values[*] :=  (key_value ",")* key_value
 key_value := string ":" expr
 
 // literal
+list := "[" [values] "]"
 dict := "{" [key_values] "}"
 
 // terminal
 boolean := /False|True/
 none := "None"
 name := /[a-zA-Z_]\w*/
-string := /'([^'\\]*(\\')?)*'|"([^"\\]*(\\")?)*"/
+string := /\'([^\'\\]*(\\\')?)*\'|"([^"\\]*(\\")?)*"/
 digit := /0|[1-9]\d*/
 decimal := /(0|[1-9]\d*)[.]\d+/
-
-// FIXME 以下のatom関連は一旦非対応
-// atom[1] := ... | list ...
-// list := "[" [list_exps] "]"
-// list_exps := expr ("," expr)*

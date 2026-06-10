@@ -1,24 +1,153 @@
 from rogw.tranp.implements.syntax.tranp.rule import Rules
-from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDefinition, Tokenizer
 
 
-def python_rules() -> Rules:
-	"""ルールを生成(Python用)
-
-	Returns:
-		ルール一覧
-	"""
+def py_rules() -> Rules:
 	return Rules.from_ast(
 		('entry', [
 			('rule', [
 				('symbol', 'entry'),
 				('__empty__', ''),
 				('expr_rep', [
-					('terms', [
-						('symbol', 'expr'),
-						('string', '"\\n"')
-					]),
+					('symbol', 'statement'),
 					('repeat', '+')
+				])
+			]),
+			('rule', [
+				('symbol', 'statement'),
+				('unwrap', '1'),
+				('terms_or', [
+					('symbol', 'function'),
+					('symbol', 'if'),
+					('terms', [
+						('symbol', 'line'),
+						('string', '"\\n"')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'line'),
+				('unwrap', '1'),
+				('symbol', 'move')
+			]),
+			('rule', [
+				('symbol', 'move'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '"="')
+						]),
+						('repeat', '?')
+					]),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'function'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"def"'),
+					('symbol', 'name'),
+					('string', '"("'),
+					('expr_opt', [
+						('symbol', 'params')
+					]),
+					('string', '")"'),
+					('string', '"->"'),
+					('expr_opt', [
+						('symbol', 'type')
+					]),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'params'),
+				('__empty__', ''),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'param'),
+							('string', '","')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'param')
+				])
+			]),
+			('rule', [
+				('symbol', 'param'),
+				('__empty__', ''),
+				('terms', [
+					('symbol', 'name'),
+					('string', '":"'),
+					('symbol', 'type'),
+					('expr_opt', [
+						('terms', [
+							('string', '"="'),
+							('symbol', 'expr')
+						])
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'if'),
+				('__empty__', ''),
+				('terms', [
+					('symbol', 'then'),
+					('expr_rep', [
+						('symbol', 'elif'),
+						('repeat', '*')
+					]),
+					('expr_opt', [
+						('symbol', 'else')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'then'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"if"'),
+					('symbol', 'expr'),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'elif'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"elif"'),
+					('symbol', 'expr'),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'else'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"else"'),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'block'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"\\INDENT"'),
+					('expr_rep', [
+						('symbol', 'statement'),
+						('repeat', '+')
+					]),
+					('string', '"\\DEDENT"')
 				])
 			]),
 			('rule', [
@@ -265,6 +394,7 @@ def python_rules() -> Rules:
 					('symbol', 'string'),
 					('symbol', 'digit'),
 					('symbol', 'decimal'),
+					('symbol', 'list'),
 					('symbol', 'dict'),
 					('terms', [
 						('string', '"("'),
@@ -275,6 +405,24 @@ def python_rules() -> Rules:
 			]),
 			('rule', [
 				('symbol', 'var'),
+				('__empty__', ''),
+				('symbol', 'name')
+			]),
+			('rule', [
+				('symbol', 'type'),
+				('unwrap', '1'),
+				('terms_or', [
+					('symbol', 'type_none'),
+					('symbol', 'type_var')
+				])
+			]),
+			('rule', [
+				('symbol', 'type_none'),
+				('__empty__', ''),
+				('symbol', 'none')
+			]),
+			('rule', [
+				('symbol', 'type_var'),
 				('__empty__', ''),
 				('symbol', 'name')
 			]),
@@ -307,6 +455,20 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
+				('symbol', 'values'),
+				('unwrap', '*'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '","')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
 				('symbol', 'key_values'),
 				('unwrap', '*'),
 				('terms', [
@@ -327,6 +489,17 @@ def python_rules() -> Rules:
 					('symbol', 'string'),
 					('string', '":"'),
 					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'list'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"["'),
+					('expr_opt', [
+						('symbol', 'values')
+					]),
+					('string', '"]"')
 				])
 			]),
 			('rule', [
@@ -372,137 +545,3 @@ def python_rules() -> Rules:
 			])
 		])
 	)
-
-
-def grammar_rules() -> Rules:
-	"""ルールを生成(Grammar用)
-
-	Returns:
-		ルール一覧
-	"""
-	return Rules.from_ast(
-		('entry', [
-			('rule', [
-				('symbol', 'entry'),
-				('__empty__', ''),
-				('expr_rep', [
-					('symbol', 'rule'),
-					('repeat', '+')
-				])
-			]),
-			('rule', [
-				('symbol', 'rule'),
-				('__empty__', ''),
-				('terms', [
-					('symbol', 'symbol'),
-					('expr_opt', [
-						('terms', [
-							('string', '"["'),
-							('symbol', 'unwrap'),
-							('string', '"]"')
-						])
-					]),
-					('string', '":="'),
-					('symbol', 'expr'),
-					('string', '"\\n"')
-				])
-			]),
-			('rule', [
-				('symbol', 'expr'),
-				('unwrap', '1'),
-				('symbol', 'terms_or')
-			]),
-			('rule', [
-				('symbol', 'terms_or'),
-				('unwrap', '1'),
-				('terms', [
-					('symbol', 'terms'),
-					('expr_rep', [
-						('terms', [
-							('string', '"|"'),
-							('symbol', 'terms')
-						]),
-						('repeat', '*')
-					])
-				])
-			]),
-			('rule', [
-				('symbol', 'terms'),
-				('unwrap', '1'),
-				('expr_rep', [
-					('symbol', 'term'),
-					('repeat', '+')
-				])
-			]),
-			('rule', [
-				('symbol', 'term'),
-				('unwrap', '1'),
-				('terms_or', [
-					('symbol', 'symbol'),
-					('symbol', 'string'),
-					('symbol', 'regexp'),
-					('symbol', 'expr_opt'),
-					('symbol', 'expr_rep')
-				])
-			]),
-			('rule', [
-				('symbol', 'expr_opt'),
-				('__empty__', ''),
-				('terms', [
-					('string', '"["'),
-					('symbol', 'expr'),
-					('string', '"]"')
-				])
-			]),
-			('rule', [
-				('symbol', 'expr_rep'),
-				('__empty__', ''),
-				('terms', [
-					('string', '"("'),
-					('symbol', 'expr'),
-					('string', '")"'),
-					('expr_opt', [
-						('symbol', 'repeat')
-					])
-				])
-			]),
-			('rule', [
-				('symbol', 'symbol'),
-				('__empty__', ''),
-				('regexp', '/[a-zA-Z_]\\w*/')
-			]),
-			('rule', [
-				('symbol', 'string'),
-				('__empty__', ''),
-				('regexp', '/"[^"]+"/')
-			]),
-			('rule', [
-				('symbol', 'regexp'),
-				('__empty__', ''),
-				('regexp', '/[\\/].+[\\/]/')
-			]),
-			('rule', [
-				('symbol', 'repeat'),
-				('__empty__', ''),
-				('regexp', '/[*+?]/')
-			]),
-			('rule', [
-				('symbol', 'unwrap'),
-				('__empty__', ''),
-				('regexp', '/[1*]/')
-			])
-		])
-	)
-
-
-def grammar_tokenizer() -> Tokenizer:
-	"""トークンパーサーを生成(Grammar用)
-
-	Returns:
-		トークンパーサー
-	"""
-	definition = TokenDefinition()
-	definition.comment = [TokenDefinition.build_quote_pair('//', '\n')]
-	definition.quote = [TokenDefinition.build_quote_pair(c, c) for c in ['/', '"']]
-	definition.symbol = ''.join(definition.symbol.split('/'))
-	return Tokenizer(definition=definition)

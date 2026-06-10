@@ -1,15 +1,16 @@
-from collections.abc import Callable
 import os
 import sys
+from collections.abc import Callable
 from typing import TypeAlias, TypedDict
 
 from lark import Lark
 from lark.indenter import PythonIndenter
 
+from data.syntax.gram_rules import gram_rules
+from data.syntax.gram_tokenizer import gram_tokenizer
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import tty
 from rogw.tranp.implements.syntax.tranp.rule import Rules
-from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.lang.error import stacktrace
 
@@ -165,7 +166,7 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 			parser = Lark(grammar, start='file_input', postlex=PythonIndenter(), parser='lalr')
 			return lambda source: parser.parse(source).pretty()
 		else:
-			gram_parser = SyntaxParser(grammar_rules(), grammar_tokenizer())
+			gram_parser = SyntaxParser(gram_rules(), gram_tokenizer())
 			gram_ast = gram_parser.parse(grammar, 'entry')
 			rules = Rules.from_ast(gram_ast.simplify())
 			parser = SyntaxParser(rules)

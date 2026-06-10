@@ -1,14 +1,15 @@
-
-from typing import Any, Callable, Literal, TypeAlias
+from typing import Callable, NamedTuple
 
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
 from rogw.tranp.lang.middleware import Middleware
 
-ASTNormal: TypeAlias = tuple[int, str, int | str | list[int]]
 
-IdIndex: Literal[0] = 0
-IdCommand: Literal[1] = 1
-IdContext: Literal[2] = 2
+class ASTNormal(NamedTuple):
+	"""AST正規化エントリー"""
+
+	index: int
+	name: str
+	context: int | str | list[int]
 
 
 class ASTSerializer:
@@ -18,7 +19,7 @@ class ASTSerializer:
 		"""インスタンスを生成"""
 		self._middleware = Middleware[list[ASTNormal]]()
 
-	def on(self, name: str, callback: Callable[['ASTSerializer', ASTTree, int], list[ASTNormal]]) -> None:
+	def on(self, name: str, callback: Callable[['ASTSerializer', ASTEntry, int], list[ASTNormal]]) -> None:
 		"""コールバックを登録
 
 		Args:
@@ -52,7 +53,7 @@ class ASTSerializer:
 		Returns:
 			正規化したAST
 		"""
-		return [(seq, token.name, token.value.string)]
+		return [ASTNormal(seq, token.name, token.value.string)]
 
 	def normalize_node(self, tree: ASTTree, seq: int) -> list[ASTNormal]:
 		"""ASTツリーを正規化
@@ -63,15 +64,15 @@ class ASTSerializer:
 		Returns:
 			正規化したAST
 		"""
-		entries: list[tuple[int, str, Any]] = []
+		entries: list[ASTNormal] = []
 		child_ids: list[int] = []
 		offset = 0
 		for child in tree.children:
 			normalized = self.normalize(child, seq + offset)
-			child_ids.append(normalized[-1][IdIndex])
+			child_ids.append(normalized[-1].index)
 			entries.extend(normalized)
 			offset += len(normalized)
 
 		tree_id = seq + offset
-		entries.append((tree_id, tree.name, child_ids))
+		entries.append(ASTNormal(tree_id, tree.name, child_ids))
 		return entries

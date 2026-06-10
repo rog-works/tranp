@@ -2,9 +2,10 @@ from typing import cast
 from unittest import TestCase
 
 from data.syntax.py_rules import py_rules
-from rogw.tranp.implements.syntax.tranp.ast import ASTTree
-from rogw.tranp.implements.syntax.tranp.serializer import ASTSerializer, IdContext, IdIndex
+from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTTree
+from rogw.tranp.implements.syntax.tranp.serializer import ASTNormal, ASTSerializer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
+from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.test.helper import data_provider
 
 
@@ -82,7 +83,7 @@ class TestNormalize(TestCase):
 			],
 		),
 	])
-	def test_normalize(self, code: str, expected: list[tuple]) -> None:
+	def test_normalize(self, code: str, expected: list[ASTNormal]) -> None:
 		serializer = ASTSerializer()
 		serializer.on('if', self.on_if)
 		serializer.on('ternary', self.on_ternary)
@@ -98,38 +99,40 @@ class TestNormalize(TestCase):
 
 			raise
 
-	def on_if(self, serializer: ASTSerializer, entry: ASTTree, seq: int) -> list[tuple]:
-		thens: list[list[tuple]] = []
+	def on_if(self, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		tree = as_a(ASTTree, entry)
+		thens: list[list[ASTNormal]] = []
 		then_seq = seq
-		for child in cast(list[ASTTree], entry.children):
+		for child in cast(list[ASTTree], tree.children):
 			if child.name == '__empty__':
 				...
 			elif child.name != 'else':
 				cond = serializer.normalize(child.children[0], then_seq)
-				block = serializer.normalize(child.children[1], cond[-1][IdIndex] + 2)
-				then = (cond[-1][IdIndex] + 1, child.name, block[-1][IdIndex] + 1)
+				block = serializer.normalize(child.children[1], cond[-1].index + 2)
+				then = ASTNormal(cond[-1].index + 1, child.name, block[-1].index + 1)
 				thens.append([*cond, then, *block])
-				then_seq = then[IdContext]
+				then_seq = then.context
 			else:
 				block = serializer.normalize(child.children[0], then_seq + 1)
-				a_else = (then_seq, child.name, block[-1][IdIndex] + 1)
+				a_else = ASTNormal(then_seq, child.name, block[-1].index + 1)
 				thens.append([a_else, *block])
-				then_seq = a_else[IdContext]
+				then_seq = a_else.context
 
 		if_end = then_seq
-		entries: list[tuple] = []
+		entries: list[ASTNormal] = []
 		for then in thens:
 			block = then[-1]
-			then[-1] = (block[IdIndex], 'jump', if_end)
+			then[-1] = ASTNormal(block.index, 'jump', if_end)
 			entries.extend(then)
 
 		return entries
 
-	def on_ternary(self, serializer: ASTSerializer, entry: ASTTree, seq: int) -> list[tuple]:
-		cond = serializer.normalize(entry.children[1], seq)
-		left = serializer.normalize(entry.children[0], cond[-1][IdIndex] + 2)
-		right = serializer.normalize(entry.children[2], left[-1][IdIndex] + 2)
-		ternary = (cond[-1][IdIndex] + 1, entry.name, right[0][IdIndex])
-		jump = (left[-1][IdIndex] + 1, 'jump', right[-1][IdIndex] + 1)
+	def on_ternary(self, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		tree = as_a(ASTTree, entry)
+		cond = serializer.normalize(tree.children[1], seq)
+		left = serializer.normalize(tree.children[0], cond[-1].index + 2)
+		right = serializer.normalize(tree.children[2], left[-1].index + 2)
+		ternary = ASTNormal(cond[-1].index + 1, entry.name, right[0].index)
+		jump = ASTNormal(left[-1].index + 1, 'jump', right[-1].index + 1)
 		entries = [*cond, ternary, *left, jump, *right]
 		return entries

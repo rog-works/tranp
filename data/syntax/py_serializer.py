@@ -20,7 +20,37 @@ class PythonASTSerializer:
 		serializer = ASTSerializer()
 		serializer.on('if', cls.on_if)
 		serializer.on('ternary', cls.on_ternary)
+		serializer.on('comp_or', cls.on_comp_logic)
+		serializer.on('comp_and', cls.on_comp_logic)
 		return serializer.normalize(entry)
+
+	@classmethod
+	def on_comp_logic(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		"""ハンドラー(comp_or/comp_and)"""
+		tree = as_a(ASTTree, entry)
+		ops_count = int((len(tree.children) - 1) / 2)
+		ops = [serializer.normalize(tree.children[0], seq)]
+		ops_seq = ops[0][-1].index + 1
+		for i in range(ops_count):
+			index = i * 2 + 1
+			op = serializer.normalize(tree.children[index + 0], ops_seq)
+			right = serializer.normalize(tree.children[index + 1], op[-1].index + 1)
+			comp = ASTNormal(right[-1].index + 1, entry.name, -1)
+			ops.append([*op, *right, comp])
+			ops_seq = comp.index + 1
+
+		ops_end = ops_seq
+		entries: list[ASTNormal] = []
+		for i, op in enumerate(ops):
+			if i == 0:
+				entries.extend(op)
+				continue
+
+			comp = op[-1]
+			op[-1] = ASTNormal(comp.index, comp.name, ops_end)
+			entries.extend(op)
+
+		return entries
 
 	@classmethod
 	def on_if(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:

@@ -10,6 +10,21 @@ from rogw.tranp.test.helper import data_provider
 class TestNormalize(TestCase):
 	@data_provider([
 		(
+			'a and b and c',
+			[
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, 'op_and', 'and'),
+				(3, 'name', 'b'),
+				(4, 'var', [3]),
+				(5, 'op_and', 'and'),
+				(6, 'name', 'c'),
+				(7, 'var', [6]),
+				(8, 'comp_and', [1, 2, 4, 5, 7]),
+				(9, 'entry', [8]),
+			],
+		),
+		(
 			'a if cond() else b',
 			[
 				(0, 'name', 'cond'),
@@ -89,6 +104,6 @@ class TestNormalize(TestCase):
 			self.assertEqual(expected, actual)
 		except AssertionError:
 			for entry in actual:
-				print(entry)
+				print(*entry, sep=', ')
 
 			raise

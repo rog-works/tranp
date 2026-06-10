@@ -1,7 +1,7 @@
 from rogw.tranp.implements.syntax.tranp.rule import Rules
 
 
-def python_rules() -> Rules:
+def py_rules() -> Rules:
 	"""ルールを生成(Python用)
 
 	Returns:

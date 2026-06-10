@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from data.syntax.rules_py import python_rules
+from data.syntax.py_rules import py_rules
 from rogw.tranp.implements.syntax.tranp.ast import ASTNormal
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.test.helper import data_provider
@@ -19,7 +19,7 @@ class TestASTTree(TestCase):
 		]),
 	])
 	def test_normalize(self, source: str, expected: list[ASTNormal]) -> None:
-		parser = SyntaxParser(python_rules())
+		parser = SyntaxParser(py_rules())
 		ast = parser.parse(source, 'entry')
 		actual = ast.normalize()
 		self.assertEqual(expected, actual)

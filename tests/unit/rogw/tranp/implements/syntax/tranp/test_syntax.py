@@ -1,7 +1,8 @@
 from unittest import TestCase
 
-from data.syntax.rules_gram import grammar_rules, grammar_tokenizer
-from data.syntax.rules_py import python_rules
+from data.syntax.gram_rules import gram_rules
+from data.syntax.gram_tokenizer import gram_tokenizer
+from data.syntax.py_rules import py_rules
 from rogw.tranp.implements.syntax.tranp.rule import Rules
 from rogw.tranp.implements.syntax.tranp.syntax import ErrorCollector, SyntaxParser
 from rogw.tranp.implements.syntax.tranp.tokenizer import Tokenizer
@@ -145,12 +146,12 @@ class TestSyntaxParser(TestCase):
 	])
 	def test_parse(self, source: str, lang: str, expected: tuple) -> None:
 		rule_provider = {
-			'python': python_rules,
-			'grammar': grammar_rules,
+			'python': py_rules,
+			'grammar': gram_rules,
 		}
 		tokenizer_provider = {
 			'python': Tokenizer,
-			'grammar': grammar_tokenizer,
+			'grammar': gram_tokenizer,
 		}
 		rules = rule_provider[lang]()
 		tokenizer = tokenizer_provider[lang]()
@@ -164,7 +165,7 @@ class TestSyntaxParser(TestCase):
 	@data_provider([
 		(
 			'a',
-			'data/syntax/gram_py.lark',
+			'data/syntax/py_gram.lark',
 			('entry', [
 				('var', [
 					('name', 'a'),
@@ -178,7 +179,7 @@ class TestSyntaxParser(TestCase):
 			with open(filepath, mode='rb') as f:
 				return f.read().decode('utf-8')
 
-		gram_parser = SyntaxParser(grammar_rules(), grammar_tokenizer())
+		gram_parser = SyntaxParser(gram_rules(), gram_tokenizer())
 		py_ast = gram_parser.parse(load_grammar(gram_filepath), 'entry')
 		py_rules = Rules.from_ast(py_ast.simplify())
 		actual = SyntaxParser(py_rules).parse(source, 'entry')

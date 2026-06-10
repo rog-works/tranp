@@ -1,8 +1,7 @@
 from rogw.tranp.implements.syntax.tranp.rule import Rules
-from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDefinition, Tokenizer
 
 
-def grammar_rules() -> Rules:
+def gram_rules() -> Rules:
 	"""ルールを生成(Grammar用)
 
 	Returns:
@@ -122,15 +121,3 @@ def grammar_rules() -> Rules:
 		])
 	)
 
-
-def grammar_tokenizer() -> Tokenizer:
-	"""トークンパーサーを生成(Grammar用)
-
-	Returns:
-		トークンパーサー
-	"""
-	definition = TokenDefinition()
-	definition.comment = [TokenDefinition.build_quote_pair('//', '\n')]
-	definition.quote = [TokenDefinition.build_quote_pair(c, c) for c in ['/', '"']]
-	definition.symbol = ''.join(definition.symbol.split('/'))
-	return Tokenizer(definition=definition)

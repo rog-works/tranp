@@ -2,7 +2,8 @@ import os
 import sys
 from typing import TypedDict
 
-from data.syntax.rules_gram import grammar_rules, grammar_tokenizer
+from data.syntax.gram_rules import gram_rules
+from data.syntax.gram_tokenizer import gram_tokenizer
 from rogw.tranp.bin.io import tty
 from rogw.tranp.implements.syntax.tranp.ast import ASTTree
 from rogw.tranp.implements.syntax.tranp.rule import Rules
@@ -61,7 +62,7 @@ class App:
 			args: 引数
 		"""
 		self.args = args
-		self.parser = SyntaxParser(grammar_rules(), grammar_tokenizer())
+		self.parser = SyntaxParser(gram_rules(), gram_tokenizer())
 
 	@property
 	def quiet(self) -> bool:
@@ -117,13 +118,13 @@ $ bin/gram.sh -i path/to/grammar.lark -o path/to/output_rules.py
 		Returns:
 			結果
 		"""
-		ast = '\n\t'.join(tree.pretty('\t').split('\n'))
-		ast = '\\\\'.join(ast.split('\\'))
+		rendered = '\n\t'.join(tree.pretty('\t').split('\n'))
+		rendered = '\\\\'.join(rendered.split('\\'))
 		filename, _ = os.path.splitext(os.path.basename(self.args.output))
 		return f"""from {Rules.__module__} import {Rules.__name__}
 
 def {filename}() -> {Rules.__name__}:
-	return {Rules.__name__}.{Rules.from_ast.__name__}({ast})
+	return {Rules.__name__}.{Rules.from_ast.__name__}({rendered})
 """
 
 	def run_interactive(self) -> None:

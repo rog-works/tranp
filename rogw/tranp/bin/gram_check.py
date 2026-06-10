@@ -107,7 +107,7 @@ $ bin/gram.sh -i path/to/grammar.lark -o path/to/output_rules.py
 		"""実行処理(ルールリストをファイル出力)"""
 		source = self.load_source(self.args.input)
 		tree = self.parser.parse(source, 'entry')
-		with open(self.args.output, mode='w') as f:
+		with open(self.args.output, mode='w', encoding='utf-8', newline='') as f:
 			f.write(self.render_rules(tree))
 
 	def render_rules(self, tree: ASTTree) -> str:
@@ -118,13 +118,13 @@ $ bin/gram.sh -i path/to/grammar.lark -o path/to/output_rules.py
 		Returns:
 			結果
 		"""
-		rendered = '\n\t'.join(tree.pretty('\t').split('\n'))
+		rendered = '\n\t\t'.join(tree.pretty('\t').split('\n'))
 		rendered = '\\\\'.join(rendered.split('\\'))
 		filename, _ = os.path.splitext(os.path.basename(self.args.output))
 		return f"""from {Rules.__module__} import {Rules.__name__}
 
 def {filename}() -> {Rules.__name__}:
-	return {Rules.__name__}.{Rules.from_ast.__name__}({rendered})
+	return {Rules.__name__}.{Rules.from_ast.__name__}(\n\t\t{rendered}\n\t)
 """
 
 	def run_interactive(self) -> None:

@@ -1,16 +1,12 @@
-from collections.abc import Callable
-from typing import Any, Literal, cast
+from typing import cast
 from unittest import TestCase
 
 from data.syntax.py_rules import py_rules
-from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
+from rogw.tranp.implements.syntax.tranp.ast import ASTTree
+from rogw.tranp.implements.syntax.tranp.serializer import ASTSerializer, Ctx, Id
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
-from rogw.tranp.lang.middleware import Middleware
 from rogw.tranp.test.helper import data_provider
 
-Id: Literal[0] = 0
-Comm: Literal[1] = 1
-Ctx: Literal[2] = 2
 
 class TestNormalize(TestCase):
 	@data_provider([
@@ -76,7 +72,7 @@ class TestNormalize(TestCase):
 
 			raise
 
-	def on_if(self, serializer: 'ASTSerializer', entry: ASTTree, seq: int) -> list[tuple]:
+	def on_if(self, serializer: ASTSerializer, entry: ASTTree, seq: int) -> list[tuple]:
 		thens: list[list[tuple]] = []
 		then_seq = seq
 		for child in cast(list[ASTTree], entry.children):
@@ -101,44 +97,11 @@ class TestNormalize(TestCase):
 
 		return entries
 
-	def on_ternary(self, serializer: 'ASTSerializer', entry: ASTTree, seq: int) -> list[tuple]:
+	def on_ternary(self, serializer: ASTSerializer, entry: ASTTree, seq: int) -> list[tuple]:
 		cond = serializer.normalize(entry.children[1], seq)
 		left = serializer.normalize(entry.children[0], cond[-1][Id] + 2)
 		right = serializer.normalize(entry.children[2], left[-1][Id] + 2)
 		ternary = (cond[-1][Id] + 1, entry.name, right[0][Id])
 		jump = (left[-1][Id] + 1, 'jump', right[-1][Id] + 1)
 		entries = [*cond, ternary, *left, jump, *right]
-		return entries
-
-
-class ASTSerializer:
-	def __init__(self) -> None:
-		self._middleware = Middleware[list[tuple]]()
-
-	def on(self, action: str, callback: Callable[['ASTSerializer', ASTTree, int], list[tuple]]) -> None:
-		self._middleware.on(action, callback)
-
-	def normalize(self, entry: ASTEntry, seq: int = 0) -> list[tuple]:
-		if self._middleware.usable(entry.name):
-			return self._middleware.emit(entry.name, serializer=self, entry=entry, seq=seq)
-		elif isinstance(entry, ASTToken):
-			return self.normalize_token(entry, seq)
-		else:
-			return self.normalize_node(entry, seq)
-
-	def normalize_token(self, entry: ASTToken, seq: int) -> list[tuple]:
-		return [(seq, entry.name, entry.value.string)]
-
-	def normalize_node(self, entry: ASTTree, seq: int) -> list[tuple]:
-		entries: list[tuple[int, str, Any]] = []
-		child_ids: list[int] = []
-		offset = 0
-		for child in entry.children:
-			normalized = self.normalize(child, seq + offset)
-			child_ids.append(normalized[-1][Id])
-			entries.extend(normalized)
-			offset += len(normalized)
-
-		tree_id = seq + offset
-		entries.append((tree_id, entry.name, child_ids))
 		return entries

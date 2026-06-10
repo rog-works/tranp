@@ -100,8 +100,7 @@ $ bin/gram.sh -i path/to/grammar.lark -o path/to/output_rules.py
 		"""実行処理(解析結果を標準出力)"""
 		source = self.load_source(self.args.input)
 		tree = self.parser.parse(source, 'entry')
-		# XXX 制御コードにエスケープを付与
-		print('\\\\'.join(tree.pretty('\t').split('\\')))
+		print(tree.pretty('\t'))
 
 	def run_output(self) -> None:
 		"""実行処理(ルールリストをファイル出力)"""
@@ -119,6 +118,9 @@ $ bin/gram.sh -i path/to/grammar.lark -o path/to/output_rules.py
 			結果
 		"""
 		rendered = '\n\t\t'.join(tree.pretty('\t').split('\n'))
+		# XXX 文字列のエスケープを修正
+		rendered = '\\\\'.join(rendered.split('\\'))
+		rendered = "\\'".join(rendered.split("\\\\'"))
 		filename, _ = os.path.splitext(os.path.basename(self.args.output))
 		return f"""from {Rules.__module__} import {Rules.__name__}
 

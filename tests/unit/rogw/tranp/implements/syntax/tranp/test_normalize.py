@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from data.syntax.py_rules import py_rules
 from rogw.tranp.implements.syntax.tranp.ast import ASTTree
-from rogw.tranp.implements.syntax.tranp.serializer import ASTSerializer, Ctx, Id
+from rogw.tranp.implements.syntax.tranp.serializer import ASTSerializer, IdContext, IdIndex
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.test.helper import data_provider
 
@@ -106,30 +106,30 @@ class TestNormalize(TestCase):
 				...
 			elif child.name != 'else':
 				cond = serializer.normalize(child.children[0], then_seq)
-				block = serializer.normalize(child.children[1], cond[-1][Id] + 2)
-				then = (cond[-1][Id] + 1, child.name, block[-1][Id] + 1)
+				block = serializer.normalize(child.children[1], cond[-1][IdIndex] + 2)
+				then = (cond[-1][IdIndex] + 1, child.name, block[-1][IdIndex] + 1)
 				thens.append([*cond, then, *block])
-				then_seq = then[Ctx]
+				then_seq = then[IdContext]
 			else:
 				block = serializer.normalize(child.children[0], then_seq + 1)
-				a_else = (then_seq, child.name, block[-1][Id] + 1)
+				a_else = (then_seq, child.name, block[-1][IdIndex] + 1)
 				thens.append([a_else, *block])
-				then_seq = a_else[Ctx]
+				then_seq = a_else[IdContext]
 
 		if_end = then_seq
 		entries: list[tuple] = []
 		for then in thens:
 			block = then[-1]
-			then[-1] = (block[Id], 'jump', if_end)
+			then[-1] = (block[IdIndex], 'jump', if_end)
 			entries.extend(then)
 
 		return entries
 
 	def on_ternary(self, serializer: ASTSerializer, entry: ASTTree, seq: int) -> list[tuple]:
 		cond = serializer.normalize(entry.children[1], seq)
-		left = serializer.normalize(entry.children[0], cond[-1][Id] + 2)
-		right = serializer.normalize(entry.children[2], left[-1][Id] + 2)
-		ternary = (cond[-1][Id] + 1, entry.name, right[0][Id])
-		jump = (left[-1][Id] + 1, 'jump', right[-1][Id] + 1)
+		left = serializer.normalize(entry.children[0], cond[-1][IdIndex] + 2)
+		right = serializer.normalize(entry.children[2], left[-1][IdIndex] + 2)
+		ternary = (cond[-1][IdIndex] + 1, entry.name, right[0][IdIndex])
+		jump = (left[-1][IdIndex] + 1, 'jump', right[-1][IdIndex] + 1)
 		entries = [*cond, ternary, *left, jump, *right]
 		return entries

@@ -6,9 +6,9 @@ from rogw.tranp.lang.middleware import Middleware
 
 ASTNormal: TypeAlias = tuple[int, str, int | str | list[int]]
 
-Id: Literal[0] = 0
-Comm: Literal[1] = 1
-Ctx: Literal[2] = 2
+IdIndex: Literal[0] = 0
+IdCommand: Literal[1] = 1
+IdContext: Literal[2] = 2
 
 
 class ASTSerializer:
@@ -47,7 +47,7 @@ class ASTSerializer:
 		"""ASTトークンを正規化
 
 		Args:
-			entry: ASTエントリー
+			token: ASTトークン
 			seq: 出力インデックス
 		Returns:
 			正規化したAST
@@ -58,7 +58,7 @@ class ASTSerializer:
 		"""ASTツリーを正規化
 
 		Args:
-			entry: ASTツリー
+			tree: ASTツリー
 			seq: 出力インデックス
 		Returns:
 			正規化したAST
@@ -68,7 +68,7 @@ class ASTSerializer:
 		offset = 0
 		for child in tree.children:
 			normalized = self.normalize(child, seq + offset)
-			child_ids.append(normalized[-1][Id])
+			child_ids.append(normalized[-1][IdIndex])
 			entries.extend(normalized)
 			offset += len(normalized)
 

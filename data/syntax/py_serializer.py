@@ -31,14 +31,13 @@ class PythonASTSerializer:
 		ops_count = int((len(tree.children) - 1) / 2)
 		ops = [serializer.normalize(tree.children[0], seq)]
 		ops_seq = ops[0][-1].index + 1
-		jump_name = entry.name.replace('comp_', 'jump_')
 		for i in range(ops_count):
 			index = i * 2 + 1
 			op = serializer.normalize(tree.children[index + 0], ops_seq)
 			right = serializer.normalize(tree.children[index + 1], op[-1].index + 1)
-			jump = ASTNormal(right[-1].index + 1, jump_name, -1)
-			ops.append([*op, *right, jump])
-			ops_seq = jump.index + 1
+			comp = ASTNormal(right[-1].index + 1, entry.name, -1)
+			ops.append([*op, *right, comp])
+			ops_seq = comp.index + 1
 
 		ops_end = ops_seq
 		entries: list[ASTNormal] = []
@@ -47,8 +46,8 @@ class PythonASTSerializer:
 				entries.extend(op)
 				continue
 
-			jump = op[-1]
-			op[-1] = ASTNormal(jump.index, jump.name, ops_end)
+			comp = op[-1]
+			op[-1] = ASTNormal(comp.index, comp.name, ops_end)
 			entries.extend(op)
 
 		return entries

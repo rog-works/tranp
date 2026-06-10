@@ -55,6 +55,32 @@ class TestNormalize(TestCase):
 				(15, 'entry', [14]),
 			],
 		),
+		(
+			'\n'.join([
+				'if a:',
+				'  b',
+				'elif c:',
+				'  d',
+			]),
+			[
+				# --- if a:
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, 'then', 6),
+				(3, 'name', 'b'),
+				(4, 'var', [3]),
+				(5, 'jump', 12),
+				# --- elif b:
+				(6, 'name', 'c'),
+				(7, 'var', [6]),
+				(8, 'elif', 12),
+				(9, 'name', 'd'),
+				(10, 'var', [9]),
+				(11, 'jump', 12),
+				# ---
+				(12, 'entry', [11]),
+			],
+		),
 	])
 	def test_normalize(self, code: str, expected: list[tuple]) -> None:
 		serializer = ASTSerializer()
@@ -76,7 +102,9 @@ class TestNormalize(TestCase):
 		thens: list[list[tuple]] = []
 		then_seq = seq
 		for child in cast(list[ASTTree], entry.children):
-			if child.name != 'else':
+			if child.name == '__empty__':
+				...
+			elif child.name != 'else':
 				cond = serializer.normalize(child.children[0], then_seq)
 				block = serializer.normalize(child.children[1], cond[-1][Id] + 2)
 				then = (cond[-1][Id] + 1, child.name, block[-1][Id] + 1)

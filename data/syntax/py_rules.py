@@ -8,11 +8,146 @@ def py_rules() -> Rules:
 				('symbol', 'entry'),
 				('__empty__', ''),
 				('expr_rep', [
-					('terms', [
-						('symbol', 'expr'),
-						('string', '"\\n"')
-					]),
+					('symbol', 'statement'),
 					('repeat', '+')
+				])
+			]),
+			('rule', [
+				('symbol', 'statement'),
+				('unwrap', '1'),
+				('terms_or', [
+					('symbol', 'function'),
+					('symbol', 'if'),
+					('terms', [
+						('symbol', 'line'),
+						('string', '"\\n"')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'line'),
+				('unwrap', '1'),
+				('symbol', 'move')
+			]),
+			('rule', [
+				('symbol', 'move'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '"="')
+						]),
+						('repeat', '?')
+					]),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'function'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"def"'),
+					('symbol', 'name'),
+					('string', '"("'),
+					('expr_opt', [
+						('symbol', 'params')
+					]),
+					('string', '")"'),
+					('string', '"->"'),
+					('expr_opt', [
+						('symbol', 'type')
+					]),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'params'),
+				('__empty__', ''),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'param'),
+							('string', '","')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'param')
+				])
+			]),
+			('rule', [
+				('symbol', 'param'),
+				('__empty__', ''),
+				('terms', [
+					('symbol', 'name'),
+					('string', '":"'),
+					('symbol', 'type'),
+					('expr_opt', [
+						('terms', [
+							('string', '"="'),
+							('symbol', 'expr')
+						])
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'if'),
+				('__empty__', ''),
+				('terms', [
+					('symbol', 'then'),
+					('expr_rep', [
+						('symbol', 'elif'),
+						('repeat', '*')
+					]),
+					('expr_opt', [
+						('symbol', 'else')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'then'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"if"'),
+					('symbol', 'expr'),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'elif'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"elif"'),
+					('symbol', 'expr'),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'else'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"else"'),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'block'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"\\INDENT"'),
+					('expr_rep', [
+						('symbol', 'statement'),
+						('repeat', '+')
+					]),
+					('string', '"\\DEDENT"')
 				])
 			]),
 			('rule', [
@@ -270,6 +405,24 @@ def py_rules() -> Rules:
 			]),
 			('rule', [
 				('symbol', 'var'),
+				('__empty__', ''),
+				('symbol', 'name')
+			]),
+			('rule', [
+				('symbol', 'type'),
+				('unwrap', '1'),
+				('terms_or', [
+					('symbol', 'type_none'),
+					('symbol', 'type_var')
+				])
+			]),
+			('rule', [
+				('symbol', 'type_none'),
+				('__empty__', ''),
+				('symbol', 'none')
+			]),
+			('rule', [
+				('symbol', 'type_var'),
 				('__empty__', ''),
 				('symbol', 'name')
 			]),

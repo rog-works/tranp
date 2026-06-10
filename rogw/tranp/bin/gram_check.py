@@ -119,9 +119,9 @@ $ bin/gram.sh -i path/to/grammar.lark -o path/to/output_rules.py
 			結果
 		"""
 		rendered = '\n\t\t'.join(tree.pretty('\t').split('\n'))
-		rendered = '\\\\'.join(rendered.split('\\'))
 		filename, _ = os.path.splitext(os.path.basename(self.args.output))
 		return f"""from {Rules.__module__} import {Rules.__name__}
+
 
 def {filename}() -> {Rules.__name__}:
 	return {Rules.__name__}.{Rules.from_ast.__name__}(\n\t\t{rendered}\n\t)

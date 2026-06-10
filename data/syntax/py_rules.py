@@ -2,11 +2,6 @@ from rogw.tranp.implements.syntax.tranp.rule import Rules
 
 
 def py_rules() -> Rules:
-	"""ルールを生成(Python用)
-
-	Returns:
-		ルール一覧
-	"""
 	return Rules.from_ast(
 		('entry', [
 			('rule', [

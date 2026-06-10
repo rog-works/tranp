@@ -336,7 +336,7 @@ class Json {
 	static std::shared_ptr<Json> parse(const std::string& json_str) {
 		std::shared_ptr<Json> root = std::make_shared<Json>();
 		std::vector<JsonEntryInfo> info_list = JsonParser::parse(json_str);
-		for (auto entry_id = 0; entry_id < info_list.size(); entry_id++) {
+		for (auto entry_id = 0; entry_id < info_list.size(); entry_id += 1) {
 			auto [path, begin, end] = info_list[entry_id];
 			JsonEntryTypes entry_type = JsonParser::analyze_type(json_str, begin);
 			if (entry_type == JsonEntryTypes::Boolean || entry_type == JsonEntryTypes::Number || entry_type == JsonEntryTypes::String) {
@@ -525,7 +525,7 @@ class Json {
 	std::vector<Json*> unders() {
 		std::vector<Json*> under_values = {};
 		int remain = this->root()->_entries.size() - this->_entry_id;
-		for (auto i = 0; i < remain; i++) {
+		for (auto i = 0; i < remain; i += 1) {
 			int entry_id = i + this->_entry_id;
 			Json* entry_json = this->_at_json(entry_id);
 			if (this->_is_under(entry_json->path())) {
@@ -562,7 +562,7 @@ class Json {
 	 * @throw RuntimeError 存在しないエントリーを指定
 	 */
 	Json* fetch(const std::string& jsonpath) {
-		for (auto entry_id = 0; entry_id < this->root()->_entries.size(); entry_id++) {
+		for (auto entry_id = 0; entry_id < this->root()->_entries.size(); entry_id += 1) {
 			Json* entry_json = this->_at_json(entry_id);
 			if (jsonpath == entry_json->path()) {
 				return entry_json;
@@ -972,7 +972,7 @@ class Json {
 	 */
 	void _remove_entry(int entry_id) {
 		std::vector<int> relayed_ids = this->_relayed_entry_ids(entry_id);
-		for (auto i = 0; i < relayed_ids.size(); i++) {
+		for (auto i = 0; i < relayed_ids.size(); i += 1) {
 			int index = relayed_ids.size() - 1 - i;
 			int relayed_id = entry_id + index;
 			this->root()->_jsons.erase(this->root()->_jsons.begin() + relayed_id);
@@ -992,7 +992,7 @@ class Json {
 			entry_json = entry_json->isolate();
 		}
 		// JSONエントリーを挿入
-		for (auto i = 0; i < entry_json->root()->_entries.size(); i++) {
+		for (auto i = 0; i < entry_json->root()->_entries.size(); i += 1) {
 			JsonEntry org_entry = entry_json->root()->_entries[i];
 			std::string new_path = i > 0 ? JsonParser::join_path(begin_path, org_entry.path) : begin_path;
 			int new_entry_id = begin_id + i;
@@ -1002,7 +1002,7 @@ class Json {
 		// 挿入位置の末尾から先の既存要素のエントリーIDを修正
 		int post_id = begin_id + entry_json->root()->_entries.size();
 		int remain = this->root()->_entries.size() - post_id;
-		for (auto i = 0; i < remain; i++) {
+		for (auto i = 0; i < remain; i += 1) {
 			int new_entry_id = post_id + i;
 			Json* in_entry_json = this->_at_json(new_entry_id);
 			in_entry_json->_entry_id = new_entry_id;
@@ -1054,7 +1054,7 @@ class Json {
 	std::vector<int> _relayed_entry_ids(int entry_id) {
 		std::vector<int> ids = {};
 		int remain = this->root()->_entries.size() - entry_id;
-		for (auto i = 0; i < remain; i++) {
+		for (auto i = 0; i < remain; i += 1) {
 			int in_entry_id = i + this->_entry_id;
 			std::string path = this->root()->_entries[in_entry_id].path;
 			if (this->_starts_with(path, this->path())) {

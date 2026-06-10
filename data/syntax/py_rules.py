@@ -17,6 +17,7 @@ def py_rules() -> Rules:
 				('unwrap', '1'),
 				('terms_or', [
 					('symbol', 'function'),
+					('symbol', 'while'),
 					('symbol', 'if'),
 					('terms', [
 						('symbol', 'line'),
@@ -133,6 +134,17 @@ def py_rules() -> Rules:
 				('__empty__', ''),
 				('terms', [
 					('string', '"else"'),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'while'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"while"'),
+					('symbol', 'expr'),
 					('string', '":"'),
 					('string', '"\\n"'),
 					('symbol', 'block')

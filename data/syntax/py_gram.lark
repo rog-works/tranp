@@ -2,7 +2,7 @@
 entry := (statement)+
 
 // statement
-statement[1] := function | if | line "\n"
+statement[1] := function | while | if | line "\n"
 
 // statement/line
 line[1] := move
@@ -18,6 +18,8 @@ if := then (elif)* [else]
 then := "if" expr ":" "\n" block
 elif := "elif" expr ":" "\n" block
 else := "else" ":" "\n" block
+
+while := "while" expr ":" "\n" block
 
 // block
 block := "\INDENT" (statement)+ "\DEDENT"

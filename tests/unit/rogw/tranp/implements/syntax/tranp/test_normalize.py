@@ -10,6 +10,21 @@ from rogw.tranp.test.helper import data_provider
 class TestNormalize(TestCase):
 	@data_provider([
 		(
+			'\n'.join([
+				'while a:',
+				'  b',
+			]),
+			[
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, 'name', 'b'),
+				(3, 'var', [2]),
+				(4, 'block', [3]),
+				(5, 'while', [1, 4]),
+				(6, 'entry', [5]),
+			],
+		),
+		(
 			'(a and b and c) and d',
 			[
 				(0, 'name', 'a'),

@@ -2,7 +2,7 @@
 entry := (statement)+
 
 // statement
-statement[1] := function | while | if | line "\n"
+statement[1] := line "\n" | if | while | function
 
 // statement/line
 line[1] := move

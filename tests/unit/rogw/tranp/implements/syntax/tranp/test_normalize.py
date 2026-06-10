@@ -10,7 +10,7 @@ from rogw.tranp.test.helper import data_provider
 class TestNormalize(TestCase):
 	@data_provider([
 		(
-			'a and b and c',
+			'(a and b and c) and d',
 			[
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
@@ -22,7 +22,11 @@ class TestNormalize(TestCase):
 				(7, 'name', 'c'),
 				(8, 'var', [7]),
 				(9, 'comp_and', 10),
-				(10, 'entry', [9]),
+				(10, 'op_and', 'and'),
+				(11, 'name', 'd'),
+				(12, 'var', [11]),
+				(13, 'comp_and', 14),
+				(14, 'entry', [13]),
 			],
 		),
 		(

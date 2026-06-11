@@ -11,6 +11,20 @@ class TestNormalize(TestCase):
 	@data_provider([
 		(
 			'\n'.join([
+				'a.b = c',
+			]),
+			[
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, 'name', 'b'),
+				(3, 'name', 'c'),
+				(4, 'var', [3]),
+				(5, 'move', [1, 2, 4]),
+				(6, 'entry', [5]),
+			],
+		),
+		(
+			'\n'.join([
 				'for a in b:',
 				'  for c in d:',
 				'    break',
@@ -59,16 +73,15 @@ class TestNormalize(TestCase):
 				(3, 'type_none', [2]),
 				# block
 				(4, 'name', 'a'),
-				(5, 'var', [4]),
-				(6, 'digit', '0'),
-				(7, 'move', [5, 6]),
-				(8, 'name', 'a'),
-				(9, 'var', [8]),
-				(10, 'jump', 11),
-				(11, 'block', [7, 10]),
+				(5, 'digit', '0'),
+				(6, 'move', [4, 5]),
+				(7, 'name', 'a'),
+				(8, 'var', [7]),
+				(9, 'jump', 10),
+				(10, 'block', [6, 9]),
 				# / block
-				(12, 'function', [0, 1, 3, 11]),
-				(13, 'entry', [12]),
+				(11, 'function', [0, 1, 3, 10]),
+				(12, 'entry', [11]),
 			],
 		),
 		(

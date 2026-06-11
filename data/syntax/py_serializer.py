@@ -18,6 +18,7 @@ class PythonASTSerializer:
 			正規化したAST
 		"""
 		serializer = ASTSerializer()
+		serializer.on('move', cls.on_move)
 		serializer.on('function', cls.on_function)
 		serializer.on('if', cls.on_if)
 		serializer.on('for', cls.on_for)
@@ -26,6 +27,16 @@ class PythonASTSerializer:
 		serializer.on('comp_or', cls.on_comp_logic)
 		serializer.on('comp_and', cls.on_comp_logic)
 		return serializer.normalize(entry)
+
+	@classmethod
+	def on_move(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		"""ハンドラー(move)"""
+		tree = as_a(ASTTree, entry)
+		receiver = serializer.normalize(tree.children[0], seq)
+		value = serializer.normalize(tree.children[1], receiver[-1].index)
+		move = ASTNormal(value[-1].index + 1, entry.name, [*receiver[-1].child_ids, value[-1].index])
+		normalized = [*receiver[:-1], *value, move]
+		return normalized
 
 	@classmethod
 	def on_function(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:

@@ -20,6 +20,7 @@ class PythonASTSerializer:
 		serializer = ASTSerializer()
 		serializer.on('function', cls.on_function)
 		serializer.on('if', cls.on_if)
+		serializer.on('for', cls.on_for)
 		serializer.on('while', cls.on_while)
 		serializer.on('ternary', cls.on_ternary)
 		serializer.on('comp_or', cls.on_comp_logic)
@@ -64,6 +65,30 @@ class PythonASTSerializer:
 			block = then[-1]
 			then[-1] = ASTNormal(block.index, 'jump', if_end)
 			normalized.extend(then)
+
+		return normalized
+
+	@classmethod
+	def on_for(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		"""ハンドラー(for)"""
+		tree = as_a(ASTTree, entry)
+		iter = serializer.normalize(tree.children[1], seq + 1)
+		name = serializer.normalize(tree.children[0], iter[-1].index + 2)
+		block = serializer.normalize(tree.children[2], name[-1].index + 4)
+		for_begin = name[-1].index
+		for_end = block[-1].index + 1
+		iter_name = ASTNormal(seq, 'name', f'#{seq}')
+		iter_move = ASTNormal(iter[-1].index + 1, 'move', [seq, iter[-1].index])
+		iter_next = [
+			ASTNormal(for_begin + 1, 'name', iter_name.string),
+			ASTNormal(for_begin + 2, 'var', [for_begin + 1]),
+			ASTNormal(for_begin + 3, 'next', for_end),
+		]
+		block[-1] = ASTNormal(block[-1].index, 'jump', for_begin)
+		normalized = [iter_name, *iter, iter_move, *name, *iter_next, *block]
+		for i, normal in enumerate(normalized):
+			if normal.name == 'break':
+				normalized[i] = ASTNormal(normal.index, 'jump', for_end)
 
 		return normalized
 

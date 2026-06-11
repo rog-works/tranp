@@ -15,13 +15,19 @@ class TestNormalize(TestCase):
 				'  break',
 			]),
 			[
-				(0, 'name', 'a'),
+				(0, 'name', '#0'),
 				(1, 'name', 'b'),
 				(2, 'var', [1]),
-				(3, 'break', 'break'),
-				(4, 'block', [3]),
-				(5, 'for', [0, 2, 4]),
-				(6, 'entry', [5]),
+				(3, 'move', [0, 2]),
+				# block
+				(4, 'name', 'a'),
+				(5, 'name', '#0'),
+				(6, 'var', [5]),
+				(7, 'next', 10),
+				(8, 'jump', 10),
+				(9, 'jump', 4),
+				# / block
+				(10, 'entry', [9]),
 			],
 		),
 		(

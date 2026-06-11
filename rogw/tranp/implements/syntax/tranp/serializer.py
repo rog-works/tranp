@@ -11,6 +11,24 @@ class ASTNormal(NamedTuple):
 	name: str
 	context: int | str | list[int]
 
+	@property
+	def string(self) -> str:
+		"""Returns: トークン文字列 Raises: AssetionError: トークン型以外で使用"""
+		assert isinstance(self.context, str)
+		return self.context
+
+	@property
+	def child_ids(self) -> list[int]:
+		"""Returns: 配下要素のIDリスト Raises: AssetionError: ツリー型以外で使用"""
+		assert isinstance(self.context, list)
+		return self.context
+
+	@property
+	def jump_at(self) -> int:
+		"""Returns: ジャンプ先のインデックス Raises: AssetionError: ジャンプ型以外で使用"""
+		assert isinstance(self.context, int)
+		return self.context
+
 
 class ASTSerializer:
 	"""ASTシリアライザー"""
@@ -42,7 +60,7 @@ class ASTSerializer:
 		elif isinstance(entry, ASTToken):
 			return self.normalize_token(entry, seq)
 		else:
-			return self.normalize_node(entry, seq)
+			return self.normalize_tree(entry, seq)
 
 	def normalize_token(self, token: ASTToken, seq: int) -> list[ASTNormal]:
 		"""ASTトークンを正規化
@@ -55,7 +73,7 @@ class ASTSerializer:
 		"""
 		return [ASTNormal(seq, token.name, token.value.string)]
 
-	def normalize_node(self, tree: ASTTree, seq: int) -> list[ASTNormal]:
+	def normalize_tree(self, tree: ASTTree, seq: int) -> list[ASTNormal]:
 		"""ASTツリーを正規化
 
 		Args:

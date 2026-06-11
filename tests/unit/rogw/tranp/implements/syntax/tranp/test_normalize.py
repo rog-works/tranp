@@ -10,22 +10,114 @@ from rogw.tranp.test.helper import data_provider
 class TestNormalize(TestCase):
 	@data_provider([
 		(
+			'\n'.join([
+				'for a in b:',
+				'  for c in d:',
+				'    break',
+				'  break',
+			]),
+			[
+				# for a in b:
+				(0, 'name', '#0'),
+				(1, 'name', 'b'),
+				(2, 'var', [1]),
+				(3, 'move', [0, 2]),
+				# block #0
+				(4, 'name', 'a'),
+				(5, 'name', '#0'),
+				(6, 'var', [5]),
+				(7, 'next', 20),
+				# for c in d:
+				(8, 'name', '#8'),
+				(9, 'name', 'd'),
+				(10, 'var', [9]),
+				(11, 'move', [8, 10]),
+				# block #1
+				(12, 'name', 'c'),
+				(13, 'name', '#8'),
+				(14, 'var', [13]),
+				(15, 'next', 18),
+				(16, 'jump', 18),
+				(17, 'jump', 12),
+				# / block #1
+				(18, 'jump', 20),
+				(19, 'jump', 4),
+				# / block #0
+				(20, 'entry', [19]),
+			],
+		),
+		(
+			'\n'.join([
+				'def f() -> None:',
+				'  a = 0',
+				'  return a',
+			]),
+			[
+				(0, 'name', 'f'),
+				(1, '__empty__', ''),
+				(2, 'none', 'None'),
+				(3, 'type_none', [2]),
+				# block
+				(4, 'name', 'a'),
+				(5, 'var', [4]),
+				(6, 'digit', '0'),
+				(7, 'move', [5, 6]),
+				(8, 'name', 'a'),
+				(9, 'var', [8]),
+				(10, 'jump', 11),
+				(11, 'block', [7, 10]),
+				# / block
+				(12, 'function', [0, 1, 3, 11]),
+				(13, 'entry', [12]),
+			],
+		),
+		(
+			'\n'.join([
+				'while a:',
+				'  while b:',
+				'    break',
+				'  break',
+			]),
+			[
+				# while a:
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, 'while', 10),
+				# while b:
+				(3, 'name', 'b'),
+				(4, 'var', [3]),
+				(5, 'while', 8),
+				(6, 'jump', 8),
+				(7, 'jump', 3),
+				# / while b:
+				(8, 'jump', 10),
+				(9, 'jump', 0),
+				# / while a:
+				(10, 'entry', [9]),
+			],
+		),
+		(
 			'(a and b and c) and d',
 			[
+				# a and b
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
 				(2, 'op_and', 'and'),
 				(3, 'name', 'b'),
 				(4, 'var', [3]),
 				(5, 'comp_and', 10),
+				# $ and c
 				(6, 'op_and', 'and'),
 				(7, 'name', 'c'),
 				(8, 'var', [7]),
 				(9, 'comp_and', 10),
+				# / a and c
+				# $ and d
 				(10, 'op_and', 'and'),
 				(11, 'name', 'd'),
 				(12, 'var', [11]),
 				(13, 'comp_and', 14),
+				# / $ and d
 				(14, 'entry', [13]),
 			],
 		),
@@ -42,6 +134,7 @@ class TestNormalize(TestCase):
 				(7, 'jump', 10),
 				(8, 'name', 'b'),
 				(9, 'var', [8]),
+				# / ternary
 				(10, 'entry', [9]),
 			],
 		),
@@ -53,7 +146,7 @@ class TestNormalize(TestCase):
 				'  d',
 			]),
 			[
-				# --- if a:
+				# if a:
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
 				(2, 'then', 11),
@@ -65,12 +158,13 @@ class TestNormalize(TestCase):
 				(8, 'var', [7]),
 				(9, 'comp', [4, 6, 8]),
 				(10, 'jump', 15),
-				# --- else:
+				# else:
 				(11, 'else', 15),
 				(12, 'name', 'd'),
 				(13, 'var', [12]),
 				(14, 'jump', 15),
-				# ---
+				# / else:
+				# / if a:
 				(15, 'entry', [14]),
 			],
 		),
@@ -82,21 +176,22 @@ class TestNormalize(TestCase):
 				'  d',
 			]),
 			[
-				# --- if a:
+				# if a:
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
 				(2, 'then', 6),
 				(3, 'name', 'b'),
 				(4, 'var', [3]),
 				(5, 'jump', 12),
-				# --- elif b:
+				# elif b:
 				(6, 'name', 'c'),
 				(7, 'var', [6]),
 				(8, 'elif', 12),
 				(9, 'name', 'd'),
 				(10, 'var', [9]),
 				(11, 'jump', 12),
-				# ---
+				# / if b:
+				# / if a:
 				(12, 'entry', [11]),
 			],
 		),

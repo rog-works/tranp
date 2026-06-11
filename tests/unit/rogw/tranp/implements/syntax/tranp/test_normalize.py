@@ -11,6 +11,29 @@ class TestNormalize(TestCase):
 	@data_provider([
 		(
 			'\n'.join([
+				'def f() -> None:',
+				'  a = 0',
+				'  return a',
+			]),
+			[
+				(0, 'name', 'f'),
+				(1, '__empty__', ''),
+				(2, 'none', 'None'),
+				(3, 'type_none', [2]),
+				(4, 'name', 'a'),
+				(5, 'var', [4]),
+				(6, 'digit', '0'),
+				(7, 'move', [5, 6]),
+				(8, 'name', 'a'),
+				(9, 'var', [8]),
+				(10, 'return', [9]),
+				(11, 'block', [7, 10]),
+				(12, 'function', [0, 1, 3, 11]),
+				(13, 'entry', [12]),
+			],
+		),
+		(
+			'\n'.join([
 				'while a:',
 				'  while b:',
 				'    break',
@@ -27,10 +50,10 @@ class TestNormalize(TestCase):
 				(5, 'while', 8),
 				(6, 'jump', 8),
 				(7, 'jump', 3),
-				# end while b:
+				# / while b:
 				(8, 'jump', 10),
 				(9, 'jump', 0),
-				# end while a:
+				# / while a:
 				(10, 'entry', [9]),
 			],
 		),
@@ -49,11 +72,13 @@ class TestNormalize(TestCase):
 				(7, 'name', 'c'),
 				(8, 'var', [7]),
 				(9, 'comp_and', 10),
+				# / a and c
 				# $ and d
 				(10, 'op_and', 'and'),
 				(11, 'name', 'd'),
 				(12, 'var', [11]),
 				(13, 'comp_and', 14),
+				# / $ and d
 				(14, 'entry', [13]),
 			],
 		),
@@ -70,7 +95,7 @@ class TestNormalize(TestCase):
 				(7, 'jump', 10),
 				(8, 'name', 'b'),
 				(9, 'var', [8]),
-				# end ternary
+				# / ternary
 				(10, 'entry', [9]),
 			],
 		),
@@ -99,8 +124,8 @@ class TestNormalize(TestCase):
 				(12, 'name', 'd'),
 				(13, 'var', [12]),
 				(14, 'jump', 15),
-				# end else:
-				# end if a:
+				# / else:
+				# / if a:
 				(15, 'entry', [14]),
 			],
 		),
@@ -126,8 +151,8 @@ class TestNormalize(TestCase):
 				(9, 'name', 'd'),
 				(10, 'var', [9]),
 				(11, 'jump', 12),
-				# end if b:
-				# end if a:
+				# / if b:
+				# / if a:
 				(12, 'entry', [11]),
 			],
 		),

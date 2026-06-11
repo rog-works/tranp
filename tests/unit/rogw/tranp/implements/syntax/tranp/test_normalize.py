@@ -12,15 +12,26 @@ class TestNormalize(TestCase):
 		(
 			'\n'.join([
 				'while a:',
+				'  while b:',
+				'    break',
 				'  break',
 			]),
 			[
+				# while a:
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
-				(2, 'while', 5),
-				(3, 'jump', 5),
-				(4, 'jump', 0),
-				(5, 'entry', [4]),
+				(2, 'while', 10),
+				# while b:
+				(3, 'name', 'b'),
+				(4, 'var', [3]),
+				(5, 'while', 8),
+				(6, 'jump', 8),
+				(7, 'jump', 3),
+				# end while b:
+				(8, 'jump', 10),
+				(9, 'jump', 0),
+				# end while a:
+				(10, 'entry', [9]),
 			],
 		),
 		(
@@ -59,6 +70,7 @@ class TestNormalize(TestCase):
 				(7, 'jump', 10),
 				(8, 'name', 'b'),
 				(9, 'var', [8]),
+				# end ternary
 				(10, 'entry', [9]),
 			],
 		),
@@ -70,7 +82,7 @@ class TestNormalize(TestCase):
 				'  d',
 			]),
 			[
-				# --- if a:
+				# if a:
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
 				(2, 'then', 11),
@@ -82,12 +94,13 @@ class TestNormalize(TestCase):
 				(8, 'var', [7]),
 				(9, 'comp', [4, 6, 8]),
 				(10, 'jump', 15),
-				# --- else:
+				# else:
 				(11, 'else', 15),
 				(12, 'name', 'd'),
 				(13, 'var', [12]),
 				(14, 'jump', 15),
-				# ---
+				# end else:
+				# end if a:
 				(15, 'entry', [14]),
 			],
 		),
@@ -99,21 +112,22 @@ class TestNormalize(TestCase):
 				'  d',
 			]),
 			[
-				# --- if a:
+				# if a:
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
 				(2, 'then', 6),
 				(3, 'name', 'b'),
 				(4, 'var', [3]),
 				(5, 'jump', 12),
-				# --- elif b:
+				# elif b:
 				(6, 'name', 'c'),
 				(7, 'var', [6]),
 				(8, 'elif', 12),
 				(9, 'name', 'd'),
 				(10, 'var', [9]),
 				(11, 'jump', 12),
-				# ---
+				# end if b:
+				# end if a:
 				(12, 'entry', [11]),
 			],
 		),

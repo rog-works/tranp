@@ -12,22 +12,38 @@ class TestNormalize(TestCase):
 		(
 			'\n'.join([
 				'for a in b:',
+				'  for c in d:',
+				'    break',
 				'  break',
 			]),
 			[
+				# for a in b:
 				(0, 'name', '#0'),
 				(1, 'name', 'b'),
 				(2, 'var', [1]),
 				(3, 'move', [0, 2]),
-				# block
+				# block #0
 				(4, 'name', 'a'),
 				(5, 'name', '#0'),
 				(6, 'var', [5]),
-				(7, 'next', 10),
-				(8, 'jump', 10),
-				(9, 'jump', 4),
-				# / block
-				(10, 'entry', [9]),
+				(7, 'next', 20),
+				# for c in d:
+				(8, 'name', '#8'),
+				(9, 'name', 'd'),
+				(10, 'var', [9]),
+				(11, 'move', [8, 10]),
+				# block #1
+				(12, 'name', 'c'),
+				(13, 'name', '#8'),
+				(14, 'var', [13]),
+				(15, 'next', 18),
+				(16, 'jump', 18),
+				(17, 'jump', 12),
+				# / block #1
+				(18, 'jump', 20),
+				(19, 'jump', 4),
+				# / block #0
+				(20, 'entry', [19]),
 			],
 		),
 		(

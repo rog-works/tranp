@@ -41,17 +41,17 @@ class PythonASTSerializer:
 			ops_seq = comp.index + 1
 
 		ops_end = ops_seq
-		entries: list[ASTNormal] = []
+		normalized: list[ASTNormal] = []
 		for i, op in enumerate(ops):
 			if i == 0:
-				entries.extend(op)
+				normalized.extend(op)
 				continue
 
 			comp = op[-1]
 			op[-1] = ASTNormal(comp.index, comp.name, ops_end)
-			entries.extend(op)
+			normalized.extend(op)
 
-		return entries
+		return normalized
 
 	@classmethod
 	def on_if(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
@@ -75,13 +75,13 @@ class PythonASTSerializer:
 				then_seq = a_else.context
 
 		if_end = then_seq
-		entries: list[ASTNormal] = []
+		normalized: list[ASTNormal] = []
 		for then in thens:
 			block = then[-1]
 			then[-1] = ASTNormal(block.index, 'jump', if_end)
-			entries.extend(then)
+			normalized.extend(then)
 
-		return entries
+		return normalized
 
 	@classmethod
 	def on_while(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
@@ -89,10 +89,15 @@ class PythonASTSerializer:
 		tree = as_a(ASTTree, entry)
 		when = serializer.normalize(tree.children[0], seq)
 		block = serializer.normalize(tree.children[1], when[-1].index + 2)
-		a_while = ASTNormal(when[-1].index + 1, entry.name, block[-1].index + 1)
+		while_end = block[-1].index + 1
+		a_while = ASTNormal(when[-1].index + 1, entry.name, while_end)
 		block[-1] = ASTNormal(block[-1].index, 'jump', seq)
-		entries = [*when, a_while, *block]
-		return entries
+		normalized = [*when, a_while, *block]
+		for i, normal in enumerate(normalized):
+			if normal.name == 'break':
+				normalized[i] = ASTNormal(normal.index, 'jump', while_end)
+
+		return normalized
 
 	@classmethod
 	def on_ternary(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
@@ -103,5 +108,5 @@ class PythonASTSerializer:
 		right = serializer.normalize(tree.children[2], left[-1].index + 2)
 		ternary = ASTNormal(when[-1].index + 1, entry.name, right[0].index)
 		jump = ASTNormal(left[-1].index + 1, 'jump', right[-1].index + 1)
-		entries = [*when, ternary, *left, jump, *right]
-		return entries
+		normalized = [*when, ternary, *left, jump, *right]
+		return normalized

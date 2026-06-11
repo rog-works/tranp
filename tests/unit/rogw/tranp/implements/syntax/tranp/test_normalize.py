@@ -12,16 +12,15 @@ class TestNormalize(TestCase):
 		(
 			'\n'.join([
 				'while a:',
-				'  b',
+				'  break',
 			]),
 			[
 				(0, 'name', 'a'),
 				(1, 'var', [0]),
-				(2, 'while', 6),
-				(3, 'name', 'b'),
-				(4, 'var', [3]),
-				(5, 'jump', 0),
-				(6, 'entry', [5]),
+				(2, 'while', 5),
+				(3, 'jump', 5),
+				(4, 'jump', 0),
+				(5, 'entry', [4]),
 			],
 		),
 		(

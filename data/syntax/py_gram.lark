@@ -6,10 +6,10 @@ statement[1] := line "\n" | if | for | while | function
 
 // statement/line
 line[1] := break | pass | return | move
-move[1] := (expr "=")? expr
 break := "break"
 pass := "..."
 return := "return" expr
+move[1] := (expr "=")? expr
 
 // block/declaration
 function := "def" name "(" [params] ")" "->" [type] ":" "\n" block

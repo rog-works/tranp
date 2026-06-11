@@ -37,20 +37,6 @@ def py_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('symbol', 'move'),
-				('unwrap', '1'),
-				('terms', [
-					('expr_rep', [
-						('terms', [
-							('symbol', 'expr'),
-							('string', '"="')
-						]),
-						('repeat', '?')
-					]),
-					('symbol', 'expr')
-				])
-			]),
-			('rule', [
 				('symbol', 'break'),
 				('__empty__', ''),
 				('string', '"break"')
@@ -65,6 +51,20 @@ def py_rules() -> Rules:
 				('__empty__', ''),
 				('terms', [
 					('string', '"return"'),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'move'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '"="')
+						]),
+						('repeat', '?')
+					]),
 					('symbol', 'expr')
 				])
 			]),

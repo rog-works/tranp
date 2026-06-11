@@ -16,19 +16,25 @@ def py_rules() -> Rules:
 				('symbol', 'statement'),
 				('unwrap', '1'),
 				('terms_or', [
-					('symbol', 'function'),
-					('symbol', 'while'),
-					('symbol', 'if'),
 					('terms', [
 						('symbol', 'line'),
 						('string', '"\\n"')
-					])
+					]),
+					('symbol', 'if'),
+					('symbol', 'for'),
+					('symbol', 'while'),
+					('symbol', 'function')
 				])
 			]),
 			('rule', [
 				('symbol', 'line'),
 				('unwrap', '1'),
-				('symbol', 'move')
+				('terms_or', [
+					('symbol', 'break'),
+					('symbol', 'pass'),
+					('symbol', 'return'),
+					('symbol', 'move')
+				])
 			]),
 			('rule', [
 				('symbol', 'move'),
@@ -41,6 +47,24 @@ def py_rules() -> Rules:
 						]),
 						('repeat', '?')
 					]),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'break'),
+				('__empty__', ''),
+				('string', '"break"')
+			]),
+			('rule', [
+				('symbol', 'pass'),
+				('__empty__', ''),
+				('string', '"..."')
+			]),
+			('rule', [
+				('symbol', 'return'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"return"'),
 					('symbol', 'expr')
 				])
 			]),
@@ -134,6 +158,19 @@ def py_rules() -> Rules:
 				('__empty__', ''),
 				('terms', [
 					('string', '"else"'),
+					('string', '":"'),
+					('string', '"\\n"'),
+					('symbol', 'block')
+				])
+			]),
+			('rule', [
+				('symbol', 'for'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"for"'),
+					('symbol', 'name'),
+					('string', '"in"'),
+					('symbol', 'primary'),
 					('string', '":"'),
 					('string', '"\\n"'),
 					('symbol', 'block')

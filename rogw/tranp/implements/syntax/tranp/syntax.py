@@ -95,6 +95,7 @@ class SyntaxParser:
 		"""
 		self.rules = rules
 		self.tokenizer = tokenizer if tokenizer else Tokenizer()
+		self.monitor = ProgreessMonitor()
 
 	def parse(self, source: str, entrypoint: str) -> ASTTree:
 		"""ソースコードを解析し、ASTを生成
@@ -111,7 +112,7 @@ class SyntaxParser:
 		length = len(tokens)
 		step, entry = self._match_symbol(tokens, Context.start(), entrypoint)
 		if step.steps != length:
-			message = ErrorCollector(source, tokens, length - 1 - step.steps).summary()
+			message = ErrorCollector(source, tokens, length - 1 - self.monitor.peek).summary()
 			raise Errors.Syntax(message)
 
 		return as_a(ASTTree, entry)
@@ -171,6 +172,7 @@ class SyntaxParser:
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		"""
+		self.monitor.peek = max(context.cursor, self.monitor.peek)
 		if isinstance(pattern, Patterns):
 			if pattern.rep != Repeators.NoRepeat and allow_repeat:
 				return self._match_repeat(tokens, context, pattern, route)
@@ -281,7 +283,10 @@ class SyntaxParser:
 
 		token = tokens[len(tokens) - 1 - context.cursor]
 		ok = self._compare_token(token, pattern)
-		return (Step.ok(1), token) if ok else (Step.ng(), Token.empty())
+		if ok:
+			return Step.ok(1), token
+		else:
+			return Step.ng(), Token.empty()
 	
 	def _compare_token(self, token: Token, pattern: Pattern) -> bool:
 		"""終端/非終端記号のトークンが一致するか判定
@@ -302,6 +307,14 @@ class SyntaxParser:
 			return False
 
 		return re.fullmatch(pattern.expression, token.string) is not None
+
+
+class ProgreessMonitor:
+	"""進捗モニター"""
+
+	def __init__(self) -> None:
+		"""インスタンスを生成"""
+		self.peek = 0
 
 
 class ErrorCollector:

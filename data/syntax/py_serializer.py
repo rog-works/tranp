@@ -18,12 +18,24 @@ class PythonASTSerializer:
 			正規化したAST
 		"""
 		serializer = ASTSerializer()
+		serializer.on('function', cls.on_function)
 		serializer.on('if', cls.on_if)
 		serializer.on('while', cls.on_while)
 		serializer.on('ternary', cls.on_ternary)
 		serializer.on('comp_or', cls.on_comp_logic)
 		serializer.on('comp_and', cls.on_comp_logic)
 		return serializer.normalize(entry)
+
+	@classmethod
+	def on_function(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		"""ハンドラー(function)"""
+		normalized = serializer.normalize_tree(as_a(ASTTree, entry), seq)
+		block_end = normalized[-1].child_ids[-1]
+		for i, normal in enumerate(normalized):
+			if normal.name == 'return':
+				normalized[i] = ASTNormal(normal.index, 'jump', block_end)
+
+		return normalized
 
 	@classmethod
 	def on_if(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:

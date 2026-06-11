@@ -26,7 +26,7 @@ class TestNormalize(TestCase):
 				(7, 'move', [5, 6]),
 				(8, 'name', 'a'),
 				(9, 'var', [8]),
-				(10, 'return', [9]),
+				(10, 'jump', 11),
 				(11, 'block', [7, 10]),
 				(12, 'function', [0, 1, 3, 11]),
 				(13, 'entry', [12]),

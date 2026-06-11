@@ -2,7 +2,7 @@
 entry := (statement)+
 
 // statement
-statement[1] := line "\n" | if | while | function
+statement[1] := line "\n" | if | for | while | function
 
 // statement/line
 line[1] := move
@@ -19,6 +19,8 @@ then := "if" expr ":" "\n" block
 elif := "elif" expr ":" "\n" block
 else := "else" ":" "\n" block
 
+// FIXME forの`name in primary`を`name in expr`にするとcompと条件が競合してしまい、パースエラーになる
+for := "for" name "in" primary ":" "\n" block
 while := "while" expr ":" "\n" block
 
 // block

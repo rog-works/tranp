@@ -38,7 +38,7 @@ class RenderMiddleware:
 		Returns:
 			True = 登録済み
 		"""
-		return template in self.__handlers
+		return template in self.__handlers or '*' in self.__handlers
 
 	@duck_typed(Observable.on)
 	def on(self, template: str, handler: RenderHandler) -> None:
@@ -66,4 +66,9 @@ class RenderMiddleware:
 		Returns:
 			レンダリング結果
 		"""
-		return self.__handlers[template](node, vars, original)
+		if '*' in self.__handlers and template in self.__handlers:
+			return self.__handlers[template](node, vars, lambda: self.__handlers['*'](node, vars, original))
+		elif '*' in self.__handlers:
+			return self.__handlers['*'](node, vars, original)
+		else:
+			return self.__handlers[template](node, vars, original)

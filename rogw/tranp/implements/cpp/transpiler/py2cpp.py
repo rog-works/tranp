@@ -149,7 +149,7 @@ class Py2Cpp(ITranspiler):
 		self.__stack_on_depends.pop()
 		return result
 
-	def render(self, template: str, node: Node, vars: dict[str, Any] = {}) -> str:
+	def render(self, node: Node, template: str, vars: dict[str, Any] = {}) -> str:
 		"""レンダリング
 
 		Args:
@@ -160,7 +160,7 @@ class Py2Cpp(ITranspiler):
 			レンダリング結果
 		"""
 		if self.middleware.usable(template):
-			return self.middleware.emit(template, node, vars, lambda: self.view.render(template, vars=vars))
+			return self.middleware.emit(node, template, vars, lambda: self.view.render(template, vars=vars))
 		else:
 			return self.view.render(template, vars=vars)
 
@@ -463,21 +463,21 @@ class Py2Cpp(ITranspiler):
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
 		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
-		return self.render(f'block/{node.classification}', node, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.make_depends(statements)})
+		return self.render(node, f'block/{node.classification}', vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.make_depends(statements)})
 
 	# Statement - compound
 
 	def on_else_if(self, node: defs.ElseIf, condition: str, statements: list[str]) -> str:
-		return self.render(f'flow/if/{node.classification}', node, vars={'condition': condition, 'statements': statements})
+		return self.render(node, f'flow/if/{node.classification}', vars={'condition': condition, 'statements': statements})
 
 	def on_else(self, node: defs.Else, statements: list[str]) -> str:
-		return self.render(f'flow/if/{node.classification}', node, vars={'statements': statements})
+		return self.render(node, f'flow/if/{node.classification}', vars={'statements': statements})
 
 	def on_if(self, node: defs.If, condition: str, statements: list[str], else_ifs: list[str], else_clause: str) -> str:
-		return self.render(f'flow/if/{node.classification}', node, vars={'condition': condition, 'statements': statements, 'else_ifs': else_ifs, 'else_clause': else_clause})
+		return self.render(node, f'flow/if/{node.classification}', vars={'condition': condition, 'statements': statements, 'else_ifs': else_ifs, 'else_clause': else_clause})
 
 	def on_while(self, node: defs.While, condition: str, statements: list[str]) -> str:
-		return self.render(f'flow/{node.classification}', node, vars={'condition': condition, 'statements': statements})
+		return self.render(node, f'flow/{node.classification}', vars={'condition': condition, 'statements': statements})
 
 	def on_for(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == range.__name__:
@@ -498,19 +498,19 @@ class Py2Cpp(ITranspiler):
 		args_num = len(node.iterates.as_a(defs.FuncCall).arguments)
 		join_args = PatternParser.pluck_func_call_arguments(for_in)
 		if args_num == 1:
-			return self.render(f'flow/{node.classification}/range', node, vars={'symbol': symbols[0], 'begin': 0, 'size': join_args, 'step': 1, 'statements': statements})
+			return self.render(node, f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'begin': 0, 'size': join_args, 'step': 1, 'statements': statements})
 		elif args_num == 2:
 			begin, size = BlockParser.break_separator(join_args, ',')
-			return self.render(f'flow/{node.classification}/range', node, vars={'symbol': symbols[0], 'begin': begin, 'size': size, 'step': 1, 'statements': statements})
+			return self.render(node, f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'begin': begin, 'size': size, 'step': 1, 'statements': statements})
 		else:
 			begin, size, step = BlockParser.break_separator(join_args, ',')
-			return self.render(f'flow/{node.classification}/range', node, vars={'symbol': symbols[0], 'begin': begin, 'size': size, 'step': step, 'statements': statements})
+			return self.render(node, f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'begin': begin, 'size': size, 'step': step, 'statements': statements})
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'enumerate(arguments...)'
 		iterates = PatternParser.pluck_func_call_arguments(for_in)
 		var_type = self.to_accessible_name(self.reflections.type_of(node.for_in).attrs[1])
-		return self.render(f'flow/{node.classification}/enumerate', node, vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
+		return self.render(node, f'flow/{node.classification}/enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
 	def proc_for_dict(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
@@ -522,31 +522,31 @@ class Py2Cpp(ITranspiler):
 		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 		iterates = f'*({receiver})' if operator == '->' else receiver
 		dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-		return self.render(f'flow/{node.classification}/dict', node, vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_raw': False})
+		return self.render(node, f'flow/{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_raw': False})
 
 	def proc_for_each(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
 		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = self.cvars.contains(self.cvars.resolve_type(for_in_symbol), CVars.Types.Const) if len(symbols) == 1 else False
 		is_addr_raw = self.cvars.contains(self.cvars.resolve_type(for_in_symbol), CVars.Types.AddrRawMask) if len(symbols) == 1 else False
-		return self.render(f'flow/{node.classification}/default', node, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
+		return self.render(node, f'flow/{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
-		return self.render(f'flow/{node.classification}', node, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})
+		return self.render(node, f'flow/{node.classification}', vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})
 
 	def on_try(self, node: defs.Try, statements: list[str], catches: list[str]) -> str:
-		return self.render(f'flow/{node.classification}', node, vars={'statements': statements, 'catches': catches})
+		return self.render(node, f'flow/{node.classification}', vars={'statements': statements, 'catches': catches})
 
 	def on_with_entry(self, node: defs.WithEntry, enter: str, symbol: str) -> str:
-		return self.render(f'flow/{node.classification}', node, vars={'enter': enter, 'symbol': symbol})
+		return self.render(node, f'flow/{node.classification}', vars={'enter': enter, 'symbol': symbol})
 
 	def on_with(self, node: defs.With, statements: list[str], entries: list[str]) -> str:
-		return self.render(f'flow/{node.classification}', node, vars={'statements': statements, 'entries': entries})
+		return self.render(node, f'flow/{node.classification}', vars={'statements': statements, 'entries': entries})
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		template_types = {template_name: True for template_name in [*template_params, *self.fetch_function_template_names(node)]}.keys()
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
-		return self.render(f'function/{node.classification}', node, vars=function_vars)
+		return self.render(node, f'function/{node.classification}', vars=function_vars)
 
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
@@ -554,7 +554,7 @@ class Py2Cpp(ITranspiler):
 		return_type_annotations = [self.transpile(annotation) for annotation in node.return_type.annotations]
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'return_type_annotations': return_type_annotations}
-		return self.render(f'function/{node.classification}', node, vars={**function_vars, **method_vars})
+		return self.render(node, f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		this_vars = node.class_types.as_a(defs.Class).this_vars
@@ -594,7 +594,7 @@ class Py2Cpp(ITranspiler):
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'allow_override': self.allow_override_from_method(node)}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
-		return self.render(f'function/{node.classification}', node, vars={**function_vars, **method_vars, **constructor_vars})
+		return self.render(node, f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
@@ -604,11 +604,11 @@ class Py2Cpp(ITranspiler):
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotations': return_type_annotations}
 		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
-		return self.render(f'function/{spec}', node, vars={**function_vars, **method_vars})
+		return self.render(node, f'function/{spec}', vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
-		return self.render(f'function/{node.classification}', node, vars={**function_vars, 'binds': self.make_lambda_binds(node)})
+		return self.render(node, f'function/{node.classification}', vars={**function_vars, 'binds': self.make_lambda_binds(node)})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], inherit_sub_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX クラス配下の変数宣言とそれ以外のステートメントを分離
@@ -629,14 +629,14 @@ class Py2Cpp(ITranspiler):
 		for index, class_var_statement in class_var_statements:
 			class_var_name = PatternParser.pluck_class_var_name(class_var_statement)
 			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': class_var_statement}
-			a_statements[index] = self.render(f'{node.classification}/_decl_class_var', node, vars=class_var_vars)
+			a_statements[index] = self.render(node, f'{node.classification}/_decl_class_var', vars=class_var_vars)
 
 		for var_index, decl_this_var_item in enumerate(node.decl_this_vars.items()):
 			index, this_var_statement = this_var_statements[var_index]
 			this_var_name, decl_this_var = decl_this_var_item
 			this_var_annotations = [self.transpile(annotation) for annotation in decl_this_var.var_type.annotations]
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'decl_this_var': this_var_statement, 'annotations': this_var_annotations}
-			a_statements[index] = self.render(f'{node.classification}/_decl_this_var', node, vars=this_var_vars)
+			a_statements[index] = self.render(node, f'{node.classification}/_decl_this_var', vars=this_var_vars)
 
 		# XXX サブタイプからテンプレートタイプを抽出
 		template_types = template_params.copy()
@@ -647,28 +647,28 @@ class Py2Cpp(ITranspiler):
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
 
 		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path}
-		return self.render(f'{node.classification}/class', node, vars=class_vars)
+		return self.render(node, f'{node.classification}/class', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], inherit_sub_types: list[str], comment: str, statements: list[str]) -> str:
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
-		return self.render(f'class/{node.classification}', node, vars={'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, 'module_path': node.module_path})
+		return self.render(node, f'class/{node.classification}', vars={'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, 'module_path': node.module_path})
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
-		return self.render(f'class/{node.classification}', node, vars={'accessor': accessor, 'symbol': symbol, 'actual_type': actual_type})
+		return self.render(node, f'class/{node.classification}', vars={'accessor': accessor, 'symbol': symbol, 'actual_type': actual_type})
 
 	def on_template_class(self, node: defs.TemplateClass, symbol: str) -> str:
 		is_declare = node.parent.is_a(defs.Block, defs.Entrypoint)
-		return self.render(f'class/{node.classification}', node, vars={'symbol': symbol, 'is_declare': is_declare})
+		return self.render(node, f'class/{node.classification}', vars={'symbol': symbol, 'is_declare': is_declare})
 
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
 		annotations = [self.transpile(annotation) for annotation in node.var_type.annotations] if isinstance(node.var_type, defs.Type) else []
-		return self.render(f'element/{node.classification}', node, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotations': annotations})
+		return self.render(node, f'element/{node.classification}', vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotations': annotations})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
-		return self.render(f'element/{node.classification}', node, vars={'path': path, 'arguments': arguments})
+		return self.render(node, f'element/{node.classification}', vars={'path': path, 'arguments': arguments})
 
 	# Statement - simple
 
@@ -681,7 +681,7 @@ class Py2Cpp(ITranspiler):
 	def proc_move_assign_single(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
 		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.type_of(node.receivers[0].receiver).impl(refs.Object).type_is(dict)
 		if receiver_is_dict:
-			return self.render(f'assign/{node.classification}_dict', node, vars={'receiver': receiver, 'value': value})
+			return self.render(node, f'assign/{node.classification}_dict', vars={'receiver': receiver, 'value': value})
 
 		receiver_raw = self.reflections.type_of(node.receivers[0])
 		value_raw = self.reflections.type_of(node.value)
@@ -692,13 +692,13 @@ class Py2Cpp(ITranspiler):
 		var_type = self.to_accessible_name(value_raw)
 		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value}
 		if not declared:
-			return self.render(f'assign/{node.classification}', node, vars=assign_vars)
+			return self.render(node, f'assign/{node.classification}', vars=assign_vars)
 		elif isinstance(node.value, defs.FuncCall) and node.value.calls.tokens.startswith(Embed.static.__qualname__):
-			return self.render(f'assign/{node.classification}_declare', node, vars={**assign_vars, 'is_static': True})
+			return self.render(node, f'assign/{node.classification}_declare', vars={**assign_vars, 'is_static': True})
 		elif isinstance(node.value, defs.FuncCall) and value.startswith(f'{var_type}('):
-			return self.render(f'assign/{node.classification}_declare', node, vars={**assign_vars, 'is_initializer': True})
+			return self.render(node, f'assign/{node.classification}_declare', vars={**assign_vars, 'is_initializer': True})
 		else:
-			return self.render(f'assign/{node.classification}_declare', node, vars=assign_vars)
+			return self.render(node, f'assign/{node.classification}_declare', vars=assign_vars)
 
 	def proc_move_assign_destruction(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""
@@ -706,18 +706,18 @@ class Py2Cpp(ITranspiler):
 		if not value_raw.type_is(tuple):
 			raise Errors.OperationNotAllowed(node, 'Reject assign. Must be a tuple')
 
-		return self.render(f'assign/{node.classification}_destruction', node, vars={'receivers': receivers, 'value': value})
+		return self.render(node, f'assign/{node.classification}_destruction', vars={'receivers': receivers, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
 		annotations = [self.transpile(annotation) for annotation in node.var_type.annotations]
 		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value, 'annotations': annotations}
 		if isinstance(node.value, defs.FuncCall) and value.startswith(f'{var_type}('):
-			return self.render(f'assign/{node.classification}', node, vars={**assign_vars, 'is_initializer': True})
+			return self.render(node, f'assign/{node.classification}', vars={**assign_vars, 'is_initializer': True})
 		else:
-			return self.render(f'assign/{node.classification}', node, vars=assign_vars)
+			return self.render(node, f'assign/{node.classification}', vars=assign_vars)
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, value: str) -> str:
-		return self.render(f'assign/{node.classification}', node, vars={'receiver': receiver, 'operator': node.operator.tokens, 'value': value})
+		return self.render(node, f'assign/{node.classification}', vars={'receiver': receiver, 'operator': node.operator.tokens, 'value': value})
 
 	def on_delete(self, node: defs.Delete, targets: str) -> str:
 		target_types: list[str] = []
@@ -737,16 +737,16 @@ class Py2Cpp(ITranspiler):
 			else:
 				_targets.append({'receiver': target, 'type': target_types[i]})
 
-		return self.render(f'statement/{node.classification}', node, vars={'targets': _targets})
+		return self.render(node, f'statement/{node.classification}', vars={'targets': _targets})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		return self.render(f'statement/{node.classification}', node, vars={'return_value': return_value, 'return_self': node.return_value.is_a(defs.ThisRef)})
+		return self.render(node, f'statement/{node.classification}', vars={'return_value': return_value, 'return_self': node.return_value.is_a(defs.ThisRef)})
 
 	def on_yield(self, node: defs.Yield, yield_value: str) -> str:
-		return self.render(f'statement/{node.classification}', node, vars={'yield_value': yield_value})
+		return self.render(node, f'statement/{node.classification}', vars={'yield_value': yield_value})
 
 	def on_assert(self, node: defs.Assert, condition: str, assert_body: str) -> str:
-		return self.render(f'statement/{node.classification}', node, vars={'condition': condition, 'assert_body': assert_body})
+		return self.render(node, f'statement/{node.classification}', vars={'condition': condition, 'assert_body': assert_body})
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		if isinstance(node.throws, defs.FuncCall):
@@ -756,9 +756,9 @@ class Py2Cpp(ITranspiler):
 			join_format = ', '.join(['{' + formatter['label'] + '}' for formatter in formatters])
 			format = f'"{join_format}"' if join_format else ''
 			arguments = BlockParser.break_separator(throws[end_calls + 1:-1], ',')
-			return self.render(f'statement/{node.classification}', node, vars={'calls': calls, 'via': via, 'format': format, 'formatters': formatters, 'arguments': arguments})
+			return self.render(node, f'statement/{node.classification}', vars={'calls': calls, 'via': via, 'format': format, 'formatters': formatters, 'arguments': arguments})
 		else:
-			return self.render(f'statement/{node.classification}', node, vars={'throws': throws, 'via': via})
+			return self.render(node, f'statement/{node.classification}', vars={'throws': throws, 'via': via})
 
 	def on_pass(self, node: defs.Pass) -> str:
 		# XXX statementsのスタック数が合わなくなるため出力
@@ -771,7 +771,7 @@ class Py2Cpp(ITranspiler):
 		return 'continue;'
 
 	def on_comment(self, node: defs.Comment) -> str:
-		return self.render(f'statement/{node.classification}', node, vars={'text': node.text})
+		return self.render(node, f'statement/{node.classification}', vars={'text': node.text})
 
 	def on_import(self, node: defs.Import, symbols: list[str]) -> str:
 		"""
@@ -785,7 +785,7 @@ class Py2Cpp(ITranspiler):
 		module_path = node.import_path.tokens
 		text = self.i18n.t(import_dsn(module_path), '')
 		if text:
-			return self.render(f'statement/{node.classification}_i18n', node, vars={'import_path': text})
+			return self.render(node, f'statement/{node.classification}_i18n', vars={'import_path': text})
 
 		import_dir = ''
 		replace_dir = ''
@@ -794,12 +794,12 @@ class Py2Cpp(ITranspiler):
 				import_dir = in_import
 				replace_dir = in_replace
 
-		return self.render(f'statement/{node.classification}', node, vars={'module_path': module_path, 'import_dir': import_dir, 'replace_dir': replace_dir, 'symbols': symbols})
+		return self.render(node, f'statement/{node.classification}', vars={'module_path': module_path, 'import_dir': import_dir, 'replace_dir': replace_dir, 'symbols': symbols})
 
 	# Primary
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		return self.render(f'expression/{node.classification}', node, vars={'label': label, 'value': value})
+		return self.render(node, f'expression/{node.classification}', vars={'label': label, 'value': value})
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type
@@ -845,30 +845,30 @@ class Py2Cpp(ITranspiler):
 			org_prop = node.prop.domain_name
 			if org_prop == '__name__':
 				# XXX 'alt'の実体化を除外
-				return self.render(f'{node.classification}/literalize', node, vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': self.to_domain_name_by_class(org_receiver_symbol.actualize('type').types)})
+				return self.render(node, f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': self.to_domain_name_by_class(org_receiver_symbol.actualize('type').types)})
 			elif org_prop == '__module__':
 				# XXX 'alt'の実体化を除外
-				return self.render(f'{node.classification}/literalize', node, vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': org_receiver_symbol.actualize('type').types.module_path})
+				return self.render(node, f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': org_receiver_symbol.actualize('type').types.module_path})
 			elif org_prop == 'name':
-				return self.render(f'{node.classification}/literalize', node, vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
+				return self.render(node, f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
 			elif org_prop == 'value':
 				var_name = DSN.right(node.receiver.domain_name, 1)
 				var_value = receiver_symbol.types.as_a(defs.Enum).var_value(var_name)
 				var_symbol = self.reflections.type_of(var_value).impl(refs.Object)
 				var_type = self.to_domain_name(var_symbol)
 				literal = var_value.tokens if var_value.is_a(defs.Literal) else str(self.evaluator.exec(var_value))
-				return self.render(f'{node.classification}/literalize', node, vars={'prop': org_prop, 'var_type': var_type, 'is_statement': is_statement, 'literal': literal[1:-1] if var_symbol.type_is(str) else literal})
+				return self.render(node, f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': var_type, 'is_statement': is_statement, 'literal': literal[1:-1] if var_symbol.type_is(str) else literal})
 			else:
-				return self.render(f'{node.classification}/literalize', node, vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': receiver})
+				return self.render(node, f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': receiver})
 		elif self.is_relay_this(node):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
-			return self.render(f'{node.classification}/default', node, vars={'receiver': receiver, 'operator': CVars.RelayOperators.Address.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
+			return self.render(node, f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Address.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 		elif self.is_relay_cvar(node, receiver_symbol):
 			# 期待値: receiver.on
 			cvar_type = self.cvars.resolve_type(receiver_symbol)
 			operator = self.cvars.to_operator(cvar_type).name
-			return self.render(f'{node.classification}/default', node, vars={'receiver': receiver, 'operator': operator, 'prop': node.prop.domain_name, 'is_statement': is_statement, 'is_property': True})
+			return self.render(node, f'{node.classification}/default', vars={'receiver': receiver, 'operator': operator, 'prop': node.prop.domain_name, 'is_statement': is_statement, 'is_property': True})
 		elif self.is_relay_cvar_link(node, org_receiver_symbol, receiver_symbol):
 			# 期待値: receiver.on().prop
 			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
@@ -877,22 +877,22 @@ class Py2Cpp(ITranspiler):
 			operator = self.cvars.to_operator(cvar_type).name
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
-			return self.render(f'{node.classification}/default', node, vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
+			return self.render(node, f'{node.classification}/default', vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 		elif self.is_relay_cvar_cast(node, receiver_symbol):
 			# 期待値: receiver.raw()
 			cvar_receiver = PatternParser.sub_cvar_to(receiver)
 			cvar_type = self.cvars.resolve_type(receiver_symbol)
 			operator = self.cvars.to_operator(cvar_type).name
 			move = self.cvars.to_move(cvar_type, node.prop.domain_name)
-			return self.render(f'{node.classification}/cvar_to', node, vars={'receiver': cvar_receiver, 'move': move.name, 'is_statement': is_statement})
+			return self.render(node, f'{node.classification}/cvar_to', vars={'receiver': cvar_receiver, 'move': move.name, 'is_statement': is_statement})
 		elif self.is_relay_type(node, org_receiver_symbol):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
-			return self.render(f'{node.classification}/default', node, vars={'receiver': receiver, 'operator': CVars.RelayOperators.Static.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
+			return self.render(node, f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Static.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 		else:
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
-			return self.render(f'{node.classification}/default', node, vars={'receiver': receiver, 'operator': CVars.RelayOperators.Raw.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
+			return self.render(node, f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Raw.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 
 	def is_relay_literalizer(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
 		prop = node.prop.tokens
@@ -936,19 +936,19 @@ class Py2Cpp(ITranspiler):
 		actual_symbol = Defer.new(lambda: org_symbol.actualize('type'))
 		# クラスの直参照、または引数やローカル変数がクラス参照の場合
 		if org_symbol.type_is(type):
-			return self.render(f'reference/{node.classification}', node, vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
+			return self.render(node, f'reference/{node.classification}', vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
 		# 上記以外のクラス系参照の場合
 		elif isinstance(actual_symbol.decl, defs.ClassDef):
-			return self.render(f'reference/{node.classification}', node, vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
+			return self.render(node, f'reference/{node.classification}', vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
 		else:
-			return self.render(f'reference/{node.classification}', node, vars={'symbol': node.tokens})
+			return self.render(node, f'reference/{node.classification}', vars={'symbol': node.tokens})
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		symbol = self.reflections.type_of(node).impl(refs.Object).actualize('self', 'type')
 		return self.to_domain_name(symbol)
 
 	def on_this_ref(self, node: defs.ThisRef) -> str:
-		return self.render(f'reference/{node.classification}', node)
+		return self.render(node, f'reference/{node.classification}')
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, keys: list[str]) -> str:
 		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
@@ -956,18 +956,18 @@ class Py2Cpp(ITranspiler):
 		vars = {'receiver': receiver, 'keys': keys, 'is_statement': is_statement}
 		if spec == IndexerSpec.Tags.klass:
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/class', node, vars={**vars, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/class', vars={**vars, 'var_type': var_type})
 		elif spec == IndexerSpec.Tags.cvar:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=vars)
 		elif spec == IndexerSpec.Tags.slice_array:
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**vars, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**vars, 'var_type': var_type})
 		elif spec == IndexerSpec.Tags.slice_string:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=vars)
 		elif spec == IndexerSpec.Tags.tuple:
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**vars, 'receiver': receiver, 'key': keys[0]})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 		else:
-			return self.render(f'{node.classification}/default', node, vars={**vars, 'receiver': receiver, 'key': keys[0]})
+			return self.render(node, f'{node.classification}/default', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 
 	def analyze_indexer_spec(self, node: defs.Indexer) -> 'tuple[IndexerSpec.Tags, IReflection | None]':
 		receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object).actualize())
@@ -989,7 +989,7 @@ class Py2Cpp(ITranspiler):
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		prop_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).prop_of(node.prop)
 		type_name = self.to_domain_name_by_class(prop_symbol.types)
-		return self.render(f'type/{node.classification}', node, vars={'receiver': receiver, 'type_name': type_name})
+		return self.render(node, f'type/{node.classification}', vars={'receiver': receiver, 'type_name': type_name})
 
 	def on_var_of_type(self, node: defs.VarOfType) -> str:
 		symbol = self.reflections.type_of(node)
@@ -999,20 +999,20 @@ class Py2Cpp(ITranspiler):
 
 		type_name = self.to_domain_name_by_class(symbol.types)
 		if isinstance(symbol.types, defs.TemplateClass):
-			return self.render(f'type/template', node, vars={'type_name': type_name, 'definition_type': symbol.types.definition_type.tokens})
+			return self.render(node, f'type/template', vars={'type_name': type_name, 'definition_type': symbol.types.definition_type.tokens})
 		else:
-			return self.render(f'type/{node.classification}', node, vars={'type_name': type_name})
+			return self.render(node, f'type/{node.classification}', vars={'type_name': type_name})
 
 	def on_literal_type(self, node: defs.LiteralType) -> str:
 		symbol = self.reflections.type_of(node)
 		type_name = self.to_domain_name_by_class(symbol.types)
-		return self.render(f'type/{node.classification}', node, vars={'type_name': type_name})
+		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
-		return self.render(f'type/{node.classification}', node, vars={'type_name': type_name, 'value_type': value_type})
+		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'value_type': value_type})
 
 	def on_dict_type(self, node: defs.DictType, type_name: str, key_type: str, value_type: str) -> str:
-		return self.render(f'type/{node.classification}', node, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
+		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
 		"""
@@ -1028,14 +1028,14 @@ class Py2Cpp(ITranspiler):
 			if isinstance(second_type.types, defs.TemplateClass) and second_type.types.definition_type.type_name.tokens == TypeVarTuple.__name__:
 				spec = 'pluck_method'
 
-		return self.render(f'type/{spec}', node, vars={'type_name': type_name, 'parameters': parameters, 'return_type': return_type})
+		return self.render(node, f'type/{spec}', vars={'type_name': type_name, 'parameters': parameters, 'return_type': return_type})
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, sub_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name
-		return self.render(f'type/{node.classification}', node, vars={'var_type': f'{type_name}<{", ".join(sub_types)}>'})
+		return self.render(node, f'type/{node.classification}', vars={'var_type': f'{type_name}<{", ".join(sub_types)}>'})
 
 	def on_literal_dict_type(self, node: defs.LiteralDictType, type_name: str, key_type: str, value_type: str) -> str:
-		return self.render(f'type/{node.classification}', node, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
+		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
 		"""Note: XXX C++でUnion型の表現は不可能。期待値を仮定するのであればプライマリー型以外に無いので先頭要素のみ返却"""
@@ -1049,24 +1049,24 @@ class Py2Cpp(ITranspiler):
 		spec, context_name, context = self.analyze_func_call_spec(node)
 		func_call_vars = {'calls': calls, 'arguments': arguments, 'is_statement': is_statement}
 		if spec == FuncCallSpec.Tags.c_include:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.c_macro:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.c_pragma:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.c_func_invoke:
 			receiver_raw = Defer.new(lambda: self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize())
 			operator = '->' if node.arguments[0].value.is_a(defs.ThisRef) or self.cvars.contains(self.cvars.resolve_type(receiver_raw), CVars.Types.AddrMask) else '.'
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'operator': operator})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'operator': operator})
 		elif spec == FuncCallSpec.Tags.c_func_ref:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.c_type_expr:
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == FuncCallSpec.Tags.copy_constructor:
 			# 期待値: 'receiver.__py_copy__'
 			receiver, _ = PatternParser.break_relay(calls)
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'receiver': receiver})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.generic_call:
 			begin_index = 1
 			for i in range(1, len(node.arguments)):
@@ -1075,107 +1075,107 @@ class Py2Cpp(ITranspiler):
 
 				begin_index += 1
 
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'begin_index': begin_index})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'begin_index': begin_index})
 		elif spec == FuncCallSpec.Tags.cast_char:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.cast_enum:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.cast_list:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.cast_bin_to_bin:
 			from_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'from_type': from_type})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'from_type': from_type})
 		elif spec == FuncCallSpec.Tags.cast_bin_to_str:
 			from_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'from_type': from_type})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'from_type': from_type})
 		elif spec == FuncCallSpec.Tags.cast_str_to_bin:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.cast_str_to_str:
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.len:
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == FuncCallSpec.Tags.print:
 			# XXX 愚直に対応すると実引数の型推論のコストが高く、その割に出力メッセージの柔軟性が下がりメリットが薄いため、関数名の置き換えのみを行う簡易的な対応とする
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.str and context_name == str.format.__name__:
 			is_literal = node.calls.as_a(defs.Relay).receiver.is_a(defs.String)
 			format, operator = PatternParser.break_relay(calls)
 			formatters = self.make_string_formatters(node)
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'format': format, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'format': format, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
 		elif spec == FuncCallSpec.Tags.str:
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == FuncCallSpec.Tags.list and context_name == list.copy.__name__:
 			# 期待値: 'receiver.copy'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.list and context_name == list.pop.__name__:
 			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == FuncCallSpec.Tags.list and context_name == list.insert.__name__:
 			# 期待値: 'receiver.insert'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == FuncCallSpec.Tags.list and context_name == list.extend.__name__:
 			# 期待値: 'receiver.extend'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == FuncCallSpec.Tags.list and context_name == list.sort.__name__ and len(arguments) > 0:
 			# 期待値: 'receiver.sort([]({entry_type} entry) -> Any { return entry; })'
 			entry_type, entry_name, entry_value = PatternParser.break_list_sort_key(arguments[0])
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'entry_type': entry_type, 'entry_name': entry_name, 'entry_value': entry_value})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'entry_type': entry_type, 'entry_name': entry_name, 'entry_value': entry_value})
 		elif spec == FuncCallSpec.Tags.dict and context_name == dict.copy.__name__:
 			# 期待値: 'receiver.copy'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.dict and context_name == dict.get.__name__:
 			# 期待値: 'receiver.get'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == FuncCallSpec.Tags.dict and context_name == dict.keys.__name__:
 			# 期待値: 'receiver.keys'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == FuncCallSpec.Tags.dict and context_name == dict.items.__name__:
 			# 期待値: 'receiver.items'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == FuncCallSpec.Tags.dict and context_name == dict.pop.__name__:
 			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == FuncCallSpec.Tags.dict and context_name == dict.values.__name__:
 			# 期待値: 'receiver.values'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}_{context_name}', node, vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == FuncCallSpec.Tags.cvar_as_a:
 			# 期待値: receiver.as_a(A)
 			receiver, _ = PatternParser.break_relay(calls)
 			cvar_key = context_name
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'receiver': receiver, 'cvar_type': cvar_key})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'cvar_type': cvar_key})
 		elif spec == FuncCallSpec.Tags.cvar_move:
 			# 期待値: receiver.move(to)
 			receiver, _ = PatternParser.break_relay(calls)
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'receiver': receiver})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.cvar_copy:
 			# 期待値: cref_to.copy(cref_via)
 			receiver, _ = PatternParser.break_relay(calls)
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'receiver': receiver})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.cvar_down:
 			# 期待値: receiver.down(A)
 			receiver, _ = PatternParser.break_relay(calls)
 			cvar_key = context_name
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'receiver': receiver, 'cvar_type': cvar_key})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'cvar_type': cvar_key})
 		elif spec == FuncCallSpec.Tags.cvar_new_addr:
 			# 期待値: CP.new(A(a, b, c))
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.cvar_new_smart_list:
 			cvar_key = context_name
 			var_type = self.to_accessible_name(cast(IReflection, context))
@@ -1189,36 +1189,36 @@ class Py2Cpp(ITranspiler):
 			elif isinstance(node.arguments[0].value, defs.Term):
 				initializer = BlockParser.parse_bracket(initializer)[0][1:-1]
 
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'cvar_type': cvar_key, 'var_type': var_type, 'initializer': initializer})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'cvar_type': cvar_key, 'var_type': var_type, 'initializer': initializer})
 		elif spec == FuncCallSpec.Tags.cvar_new_smart:
 			# 期待値: CSP.new(A(a, b, c))
 			cvar_key = context_name
 			var_type, initializer = PatternParser.pluck_cvar_new(arguments[0])
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'cvar_type': cvar_key, 'var_type': var_type, 'initializer': initializer})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'cvar_type': cvar_key, 'var_type': var_type, 'initializer': initializer})
 		elif spec == FuncCallSpec.Tags.cvar_smart_empty:
 			# 期待値: CSP[A].empty()
 			cvar_key = context_name
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'cvar_type': cvar_key, 'var_type': var_type})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'cvar_type': cvar_key, 'var_type': var_type})
 		elif spec == FuncCallSpec.Tags.cvar_to:
 			# 期待値: CP(a)
 			cvar_key = context_name
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'cvar_type': cvar_key})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'cvar_type': cvar_key})
 		elif spec == FuncCallSpec.Tags.cvar_to_immutable:
 			# 期待値: CP.to_immutable(self)
-			return self.render(f'{node.classification}/{spec.name}', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.cvar_to_addr_hex:
 			# 期待値: receiver.to_addr_hex()
 			receiver, _ = PatternParser.break_relay(calls)
 			cvar_type = self.cvars.name_to_type(context_name)
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'receiver': receiver, 'is_addr': self.cvars.contains(cvar_type, CVars.Types.AddrMask)})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': self.cvars.contains(cvar_type, CVars.Types.AddrMask)})
 		elif spec == FuncCallSpec.Tags.cvar_to_addr_id:
 			# 期待値: receiver.to_addr_id()
 			receiver, _ = PatternParser.break_relay(calls)
 			cvar_type = self.cvars.name_to_type(context_name)
-			return self.render(f'{node.classification}/{spec.name}', node, vars={**func_call_vars, 'receiver': receiver, 'is_addr': self.cvars.contains(cvar_type, CVars.Types.AddrMask)})
+			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': self.cvars.contains(cvar_type, CVars.Types.AddrMask)})
 		else:
-			return self.render(f'{node.classification}/default', node, vars=func_call_vars)
+			return self.render(node, f'{node.classification}/default', vars=func_call_vars)
 
 	def analyze_func_call_spec(self, node: defs.FuncCall) -> 'tuple[FuncCallSpec.Tags, str, IReflection | None]':
 		"""Note: XXX callsは別名になる可能性があるため、ノードから取得したcallsを使用する"""
@@ -1357,7 +1357,7 @@ class Py2Cpp(ITranspiler):
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
 			spec = node.iterates.calls.tokens
-			return self.render(f'comp/{node.classification}_{spec}', node, vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
+			return self.render(node, f'comp/{node.classification}_{spec}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
 			and node.iterates.calls.prop.tokens in FuncCallSpec.dict_iter_methods \
 			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).actualize().type_is(dict):
@@ -1367,15 +1367,15 @@ class Py2Cpp(ITranspiler):
 			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 			iterates = f'*({receiver})' if operator == '->' else receiver
 			dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-			return self.render(f'comp/{node.classification}', node, vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'is_const': is_const, 'is_addr_raw': False})
+			return self.render(node, f'comp/{node.classification}', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'is_const': is_const, 'is_addr_raw': False})
 		else:
-			return self.render(f'comp/{node.classification}', node, vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
+			return self.render(node, f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.reflections.type_of(node.projection)
 		projection_type = self.to_accessible_name(projection_type_raw)
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type]}
-		return self.render(f'comp/{node.classification}', node, vars=comp_vars)
+		return self.render(node, f'comp/{node.classification}', vars=comp_vars)
 
 	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.reflections.type_of(node.projection)
@@ -1383,15 +1383,15 @@ class Py2Cpp(ITranspiler):
 		projection_type_value = self.to_accessible_name(projection_type_raw.attrs[1])
 		projection_key, projection_value = BlockParser.break_separator(projection[1:-1], ',')
 		comp_vars = {'projection_key': projection_key, 'projection_value': projection_value, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value]}
-		return self.render(f'comp/{node.classification}', node, vars=comp_vars)
+		return self.render(node, f'comp/{node.classification}', vars=comp_vars)
 
 	# Operator
 
 	def on_factor(self, node: defs.Factor, operator: str, value: str) -> str:
-		return self.render('operation/unary_operator', node, vars={'operator': operator, 'value': value})
+		return self.render(node, 'operation/unary_operator', vars={'operator': operator, 'value': value})
 
 	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
-		return self.render('operation/unary_operator', node, vars={'operator': '!', 'value': value})
+		return self.render(node, 'operation/unary_operator', vars={'operator': '!', 'value': value})
 
 	def on_or_compare(self, node: defs.OrCompare, elements: list[str]) -> str:
 		return self.proc_binary_operation(node, elements)
@@ -1448,7 +1448,7 @@ class Py2Cpp(ITranspiler):
 	def proc_binary_operation_fill_list(self, node: defs.BinaryOperator, default_raw: IReflection, size_raw: IReflection, default: str, size: str) -> str:
 		value_type = self.to_accessible_name(default_raw.attrs[0])
 		default_is_list = default_raw.node.is_a(defs.List)
-		return self.render('operation/binary_fill_list', node, vars={'value_type': value_type, 'default': default, 'size': size, 'default_is_list': default_is_list})
+		return self.render(node, 'operation/binary_fill_list', vars={'value_type': value_type, 'default': default, 'size': size, 'default_is_list': default_is_list})
 
 	def proc_binary_operation_expression(self, node: defs.BinaryOperator, left_raw: IReflection, right_raws: list[IReflection], left: str, operators: list[str], rights: list[str]) -> str:
 		primary = left
@@ -1457,42 +1457,42 @@ class Py2Cpp(ITranspiler):
 			operator = operators[index]
 			secondary = rights[index]
 			if operator in ['in', 'not.in']:
-				primary = self.render('operation/binary_in', node, vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).type_is(dict)})
+				primary = self.render(node, 'operation/binary_in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).type_is(dict)})
 			else:
-				primary = self.render('operation/binary_operator', node, vars={'left': primary, 'operator': operator, 'right': secondary, 'left_var_type': self.to_domain_name(primary_raw), 'right_var_type': self.to_domain_name(right_raw)})
+				primary = self.render(node, 'operation/binary_operator', vars={'left': primary, 'operator': operator, 'right': secondary, 'left_var_type': self.to_domain_name(primary_raw), 'right_var_type': self.to_domain_name(right_raw)})
 
 			primary_raw = right_raw
 
 		return primary
 
 	def on_ternary_operator(self, node: defs.TernaryOperator, primary: str, condition: str, secondary: str) -> str:
-		return self.render(f'operation/{node.classification}', node, vars={'primary': primary, 'condition': condition, 'secondary': secondary})
+		return self.render(node, f'operation/{node.classification}', vars={'primary': primary, 'condition': condition, 'secondary': secondary})
 
 	# Literal
 
 	def on_integer(self, node: defs.Integer) -> str:
-		return self.render(f'literal/{node.classification}', node, vars={'value': node.tokens})
+		return self.render(node, f'literal/{node.classification}', vars={'value': node.tokens})
 
 	def on_float(self, node: defs.Float) -> str:
-		return self.render(f'literal/{node.classification}', node, vars={'value': node.tokens})
+		return self.render(node, f'literal/{node.classification}', vars={'value': node.tokens})
 
 	def on_string(self, node: defs.String) -> str:
-		return self.render(f'literal/{node.classification}', node, vars={'value': node.tokens})
+		return self.render(node, f'literal/{node.classification}', vars={'value': node.tokens})
 
 	def on_doc_string(self, node: defs.DocString) -> str:
-		return self.render(f'literal/{node.classification}', node, vars={'data': node.data})
+		return self.render(node, f'literal/{node.classification}', vars={'data': node.data})
 
 	def on_truthy(self, node: defs.Truthy) -> str:
-		return self.render(f'literal/{node.classification}', node)
+		return self.render(node, f'literal/{node.classification}')
 
 	def on_falsy(self, node: defs.Falsy) -> str:
-		return self.render(f'literal/{node.classification}', node)
+		return self.render(node, f'literal/{node.classification}')
 
 	def on_pair(self, node: defs.Pair, first: str, second: str) -> str:
-		return self.render(f'literal/{node.classification}', node, vars={'first': first, 'second': second})
+		return self.render(node, f'literal/{node.classification}', vars={'first': first, 'second': second})
 
 	def on_list(self, node: defs.List, values: list[str]) -> str:
-		return self.render(f'literal/{node.classification}', node, vars={'values': values})
+		return self.render(node, f'literal/{node.classification}', vars={'values': values})
 
 	# XXX あまりにも非効率なため非対応
 	# def proc_list_for_spread(self, node: defs.List, values: list[str], spread_indexs: list[int]) -> str:
@@ -1509,22 +1509,22 @@ class Py2Cpp(ITranspiler):
 
 	# 		before = index + 1
 
-	# 	list_literals = [self.render(f'literal/{node.classification}', node, vars={'values': values[begin:end]}) for begin, end in steps]
-	# 	return self.render(f'literal/{node.classification}_spread', node, vars={'list_literals': list_literals})
+	# 	list_literals = [self.render(node, f'literal/{node.classification}', vars={'values': values[begin:end]}) for begin, end in steps]
+	# 	return self.render(node, f'literal/{node.classification}_spread', vars={'list_literals': list_literals})
 
 	def on_dict(self, node: defs.Dict, items: list[str]) -> str:
-		return self.render(f'literal/{node.classification}', node, vars={'items': items})
+		return self.render(node, f'literal/{node.classification}', vars={'items': items})
 
 	def on_tuple(self, node: defs.Tuple, values: list[str]) -> str:
-		return self.render(f'literal/{node.classification}', node, vars={'values': values})
+		return self.render(node, f'literal/{node.classification}', vars={'values': values})
 
 	def on_null(self, node: defs.Null) -> str:
-		return self.render(f'literal/{node.classification}', node)
+		return self.render(node, f'literal/{node.classification}')
 
 	# Expression
 
 	def on_group(self, node: defs.Group, expression: str) -> str:
-		return self.render(f'expression/{node.classification}', node, vars={'expression': expression})
+		return self.render(node, f'expression/{node.classification}', vars={'expression': expression})
 
 	def on_spread(self, node: defs.Spread, expression: str) -> str:
 		raise Errors.NotSupported(node, 'Denied spread expression')
@@ -1537,7 +1537,7 @@ class Py2Cpp(ITranspiler):
 
 		expression_raw = self.reflections.type_of(node.expression)
 		return_type = self.to_accessible_name(expression_raw)
-		return self.render(f'{node.classification}/default', node, vars={'params': params, 'expression': expression, 'return_type': return_type, 'binds': self.make_lambda_binds(node)})
+		return self.render(node, f'{node.classification}/default', vars={'params': params, 'expression': expression, 'return_type': return_type, 'binds': self.make_lambda_binds(node)})
 
 	# Terminal
 

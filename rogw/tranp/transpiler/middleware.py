@@ -10,11 +10,12 @@ from rogw.tranp.syntax.node.node import Node
 class RenderHandler(Protocol):
 	"""レンダーハンドラープロトコル"""
 
-	def __call__(self, node: Node, vars: dict[str, Any], original: Callable[[], str]) -> str:
+	def __call__(self, node: Node, template: str, vars: dict[str, Any], original: Callable[[], str]) -> str:
 		"""レンダーハンドラー
 
 		Args:
 			node: ノード
+			template: テンプレート名
 			vars: 変数一覧
 			original: オリジナルの結果を生成するファクトリー
 		Returns:
@@ -55,20 +56,20 @@ class RenderMiddleware:
 
 		self.__handlers[template] = handler
 
-	def emit(self, template: str, node: Node, vars: dict[str, Any], original: Callable[[], str]) -> str:
+	def emit(self, node: Node, template: str, vars: dict[str, Any], original: Callable[[], str]) -> str:
 		"""イベントを発火
 
 		Args:
-			template: テンプレート名
 			node: ノード
+			template: テンプレート名
 			vars: 変数一覧
 			original: オリジナルの結果を生成するファクトリー
 		Returns:
 			レンダリング結果
 		"""
 		if '*' in self.__handlers and template in self.__handlers:
-			return self.__handlers[template](node, vars, lambda: self.__handlers['*'](node, vars, original))
+			return self.__handlers[template](node, template, vars, lambda: self.__handlers['*'](node, template, vars, original))
 		elif '*' in self.__handlers:
-			return self.__handlers['*'](node, vars, original)
+			return self.__handlers['*'](node, template, vars, original)
 		else:
-			return self.__handlers[template](node, vars, original)
+			return self.__handlers[template](node, template, vars, original)

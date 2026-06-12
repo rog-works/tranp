@@ -60,12 +60,40 @@ def py_rules() -> Rules:
 				('terms', [
 					('expr_rep', [
 						('terms', [
-							('symbol', 'expr'),
+							('symbol', 'move_target'),
 							('string', '"="')
 						]),
 						('repeat', '?')
 					]),
 					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'move_target'),
+				('unwrap', '*'),
+				('terms_or', [
+					('symbol', 'move_relay'),
+					('symbol', 'move_indexer'),
+					('symbol', 'name')
+				])
+			]),
+			('rule', [
+				('symbol', 'move_relay'),
+				('unwrap', '*'),
+				('terms', [
+					('symbol', 'primary'),
+					('string', '"."'),
+					('symbol', 'name')
+				])
+			]),
+			('rule', [
+				('symbol', 'move_indexer'),
+				('unwrap', '*'),
+				('terms', [
+					('symbol', 'primary'),
+					('string', '"["'),
+					('symbol', 'slice'),
+					('string', '"]"')
 				])
 			]),
 			('rule', [

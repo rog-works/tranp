@@ -9,8 +9,12 @@ line[1] := break | pass | return | move
 break := "break"
 pass := "..."
 return := "return" expr
-// 公式: assignment: single_target "=" annotated_rhs FIXME 左辺がexprなのは誤り
-move[1] := (expr "=")? expr
+
+// statement/line/move
+move[1] := (move_target "=")? expr
+move_target[*] := move_relay | move_indexer | name
+move_relay[*] := primary "." name
+move_indexer[*] := primary "[" slice "]"
 
 // block/declaration
 function := "def" name "(" [params] ")" "->" [type] ":" "\n" block

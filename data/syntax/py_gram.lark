@@ -9,6 +9,7 @@ line[1] := break | pass | return | move
 break := "break"
 pass := "..."
 return := "return" expr
+// 公式: assignment: single_target "=" annotated_rhs FIXME 左辺がexprなのは誤り
 move[1] := (expr "=")? expr
 
 // block/declaration

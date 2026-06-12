@@ -20,9 +20,8 @@ from rogw.tranp.dsn.translation import alias_dsn, import_dsn
 from rogw.tranp.errors import Errors
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
-from rogw.tranp.lang.annotation import duck_typed, injectable
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.defer import Defer
-from rogw.tranp.lang.middleware import Observable
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -30,6 +29,7 @@ from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, Cla
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
+from rogw.tranp.transpiler.middleware import RenderMiddleware
 from rogw.tranp.transpiler.types import Evaluator, ITranspiler, TranspilerOptions
 from rogw.tranp.view.helper.block import BlockParser
 from rogw.tranp.view.render import Renderer, RendererEmitter
@@ -37,41 +37,27 @@ from rogw.tranp.view.render import Renderer, RendererEmitter
 StringFormatDict = TypedDict('StringFormatDict', {'label': str, 'tag': str, 'var_type': str, 'is_literal': bool})
 
 
-class RenderMiddleware(Protocol):
-	"""レンダリングハンドラープロトコル"""
-
-	def __call__(self, node: Node, vars: dict[str, Any], original: Callable[[], str]) -> str:
-		"""レンダリングハンドラー
-
-		Args:
-			node: ノード
-			vars: 変数一覧
-			original: オリジナルの結果を生成するファクトリー
-		Returns:
-			レンダリング結果
-		"""
-		...
-
-
 class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, evaluator: Evaluator, emitter: RendererEmitter, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
+	def __init__(self, reflections: Reflections, i18n: I18n, render: Renderer, emitter: RendererEmitter, middleware: RenderMiddleware, evaluator: Evaluator, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
 			reflections: シンボルリゾルバー @inject
-			render: ソースレンダー @inject
 			i18n: 国際化対応モジュール @inject
-			evaluator: リテラル演算モジュール @inject
+			render: ソースレンダー @inject
 			emitter: レンダー用イベントエミッター @inject
+			middleware: レンダーミドルウェア @inject
+			evaluator: リテラル演算モジュール @inject
 			module_meta_factory: モジュールのメタ情報ファクトリー @inject
 			options: 実行オプション @inject
 		"""
 		self.reflections = reflections
-		self.view = render
 		self.i18n = i18n
+		self.view = render
+		self.middleware = middleware
 		self.evaluator = evaluator
 		self.module_meta_factory = module_meta_factory
 		self.include_dirs = self.__build_include_dirs(options)
@@ -80,7 +66,6 @@ class Py2Cpp(ITranspiler):
 		self.__procedure = self.__build_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
-		self.__render_middleware: dict[str, RenderMiddleware] = {}
 		emitter.on('depends', self.__on_view_depends)
 
 	def __build_include_dirs(self, options: TranspilerOptions) -> dict[str, str]:
@@ -164,21 +149,6 @@ class Py2Cpp(ITranspiler):
 		self.__stack_on_depends.pop()
 		return result
 
-	@duck_typed(Observable)
-	def on(self, template: str, callback: RenderMiddleware) -> None:
-		"""レンダリングハンドラーを登録
-
-		Args:
-			template: テンプレート名
-			callback: ハンドラー
-		Raises:
-			Errors.Logic: ハンドラーが登録済み
-		"""
-		if template in self.__render_middleware:
-			raise Errors.Logic(f'Middleware already defined. "{template}"')
-
-		self.__render_middleware[template] = callback
-
 	def render(self, template: str, node: Node, vars: dict[str, Any] = {}) -> str:
 		"""レンダリング
 
@@ -189,8 +159,8 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			レンダリング結果
 		"""
-		if template in self.__render_middleware:
-			return self.__render_middleware[template](node, vars, lambda: self.view.render(template, vars=vars))
+		if self.middleware.usable(template):
+			return self.middleware.emit(template, node, vars, lambda: self.view.render(template, vars=vars))
 		else:
 			return self.view.render(template, vars=vars)
 

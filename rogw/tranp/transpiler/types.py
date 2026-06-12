@@ -38,18 +38,18 @@ class ITranspiler(metaclass=ABCMeta):
 
 
 class Evaluator(Protocol):
-	"""リテラル演算の結果を出力
-
-	Args:
-		node: 基点のノード
-	Returns:
-		演算結果
-	Raises:
-		Errors.OperationNotAllowed: 許可されない演算内容
-	"""
+	"""リテラル演算モジュールプロトコル"""
 
 	Value: TypeAlias = int | float | str
 
 	def exec(self, node: Node) -> Value:
-		"""@see Evaluator.Note"""
+		"""リテラル演算の結果を出力
+
+		Args:
+			node: 基点のノード
+		Returns:
+			演算結果
+		Raises:
+			Errors.OperationNotAllowed: 許可されない演算内容
+		"""
 		...

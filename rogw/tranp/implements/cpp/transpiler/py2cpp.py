@@ -1,7 +1,7 @@
 import re
 from collections.abc import Callable
 from enum import Enum
-from typing import ClassVar, Self, TypedDict, TypeVarTuple, cast, override
+from typing import Any, ClassVar, Protocol, Self, TypedDict, TypeVarTuple, cast, override
 
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
@@ -37,6 +37,22 @@ from rogw.tranp.view.render import Renderer, RendererEmitter
 StringFormatDict = TypedDict('StringFormatDict', {'label': str, 'tag': str, 'var_type': str, 'is_literal': bool})
 
 
+class RenderMiddleware(Protocol):
+	"""レンダリングハンドラープロトコル"""
+
+	def __call__(self, node: Node, vars: dict[str, Any], original: Callable[[], str]) -> str:
+		"""レンダリングハンドラー
+
+		Args:
+			node: ノード
+			vars: 変数一覧
+			original: オリジナルの結果を生成するファクトリー
+		Returns:
+			レンダリング結果
+		"""
+		...
+
+
 class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
 
@@ -64,6 +80,7 @@ class Py2Cpp(ITranspiler):
 		self.__procedure = self.__build_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
+		self.__render_middleware: dict[str, RenderMiddleware] = {}
 		emitter.on('depends', self.__on_view_depends)
 
 	def __build_include_dirs(self, options: TranspilerOptions) -> dict[str, str]:
@@ -126,26 +143,6 @@ class Py2Cpp(ITranspiler):
 		if path not in self.__stack_on_depends[-1]:
 			self.__stack_on_depends[-1].append(path)
 
-	@duck_typed(Observable)
-	def on(self, action: str, callback: Callable[..., str]) -> None:
-		"""イベントハンドラーを登録
-
-		Args:
-			action: アクション名
-			callback: ハンドラー
-		"""
-		self.__procedure.on(action, callback)
-
-	@duck_typed(Observable)
-	def off(self, action: str, callback: Callable[..., str]) -> None:
-		"""イベントハンドラーを解除
-
-		Args:
-			action: アクション名
-			callback: ハンドラー
-		"""
-		self.__procedure.off(action, callback)
-
 	@property
 	@override
 	def meta(self) -> TranspilerMeta:
@@ -166,6 +163,36 @@ class Py2Cpp(ITranspiler):
 		result = self.__procedure.exec(node)
 		self.__stack_on_depends.pop()
 		return result
+
+	@duck_typed(Observable)
+	def on(self, template: str, callback: RenderMiddleware) -> None:
+		"""レンダリングハンドラーを登録
+
+		Args:
+			template: テンプレート名
+			callback: ハンドラー
+		Raises:
+			Errors.Logic: ハンドラーが登録済み
+		"""
+		if template in self.__render_middleware:
+			raise Errors.Logic(f'Middleware already defined. "{template}"')
+
+		self.__render_middleware[template] = callback
+
+	def render(self, template: str, node: Node, vars: dict[str, Any]) -> str:
+		"""レンダリング
+
+		Args:
+			template: テンプレート名
+			node: ノード
+			vars: 変数一覧
+		Returns:
+			レンダリング結果
+		"""
+		if template in self.__render_middleware:
+			return self.__render_middleware[template](node, vars, lambda: self.view.render(template, vars=vars))
+		else:
+			return self.view.render(template, vars=vars)
 
 	def explicit_class_attrs(self, raw: IReflection) -> list[IReflection]:
 		"""トランスパイル上で明示が必要なクラスのサブタイプを抽出

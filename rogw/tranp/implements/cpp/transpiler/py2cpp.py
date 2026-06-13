@@ -1,7 +1,7 @@
 import re
 from collections.abc import Callable
 from enum import Enum
-from typing import Any, ClassVar, Protocol, Self, TypedDict, TypeVarTuple, cast, override
+from typing import Any, ClassVar, Self, TypedDict, TypeVarTuple, cast, override
 
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
@@ -160,7 +160,7 @@ class Py2Cpp(ITranspiler):
 			レンダリング結果
 		"""
 		if self.middleware.usable(template):
-			return self.middleware.emit(node, template, vars, lambda: self.view.render(template, vars=vars))
+			return self.middleware.emit(self.view, node, template, vars)
 		else:
 			return self.view.render(template, vars=vars)
 

@@ -1,23 +1,23 @@
-from collections.abc import Callable
 from typing import Any, Protocol
 
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.middleware import Observable
 from rogw.tranp.syntax.node.node import Node
+from rogw.tranp.view.render import Renderer
 
 
 class RenderHandler(Protocol):
 	"""レンダーハンドラープロトコル"""
 
-	def __call__(self, node: Node, template: str, vars: dict[str, Any], original: Callable[[], str]) -> str:
+	def __call__(self, view: Renderer, node: Node, action: str, vars: dict[str, Any]) -> str:
 		"""レンダーハンドラー
 
 		Args:
+			view: ソースレンダー
 			node: ノード
-			template: テンプレート名
+			action: アクション名(=テンプレート名)
 			vars: 変数一覧
-			original: オリジナルの結果を生成するファクトリー
 		Returns:
 			レンダリング結果
 		"""
@@ -31,45 +31,43 @@ class RenderMiddleware:
 		"""インスタンスを生成"""
 		self.__handlers: dict[str, RenderHandler] = {}
 
-	def usable(self, template: str) -> bool:
+	def usable(self, action: str) -> bool:
 		"""ハンドラーが登録済みか判定
 
 		Args:
-			template: テンプレート名
+			action: アクション名(=テンプレート名)
 		Returns:
 			True = 登録済み
 		"""
-		return template in self.__handlers or '*' in self.__handlers
+		return action in self.__handlers or '*' in self.__handlers
 
 	@duck_typed(Observable.on)
-	def on(self, template: str, handler: RenderHandler) -> None:
+	def on(self, action: str, callback: RenderHandler) -> None:
 		"""ハンドラーを登録
 
 		Args:
-			template: テンプレート名
+			action: アクション名(=テンプレート名)
 			callback: ハンドラー
 		Raises:
 			Errors.Logic: ハンドラーが登録済み
 		"""
-		if template in self.__handlers:
-			raise Errors.Logic(f'Middleware already defined. "{template}"')
+		if action in self.__handlers:
+			raise Errors.Logic(f'Middleware already exists. "{action}"')
 
-		self.__handlers[template] = handler
+		self.__handlers[action] = callback
 
-	def emit(self, node: Node, template: str, vars: dict[str, Any], original: Callable[[], str]) -> str:
+	def emit(self, view: Renderer, node: Node, action: str, vars: dict[str, Any]) -> str:
 		"""イベントを発火
 
 		Args:
+			view: ソースレンダー
 			node: ノード
-			template: テンプレート名
+			action: アクション名(=テンプレート名)
 			vars: 変数一覧
-			original: オリジナルの結果を生成するファクトリー
 		Returns:
 			レンダリング結果
 		"""
-		if '*' in self.__handlers and template in self.__handlers:
-			return self.__handlers[template](node, template, vars, lambda: self.__handlers['*'](node, template, vars, original))
-		elif '*' in self.__handlers:
-			return self.__handlers['*'](node, template, vars, original)
+		if action in self.__handlers:
+			return self.__handlers[action](view, node, action, vars)
 		else:
-			return self.__handlers[template](node, template, vars, original)
+			return self.__handlers['*'](view, node, action, vars)

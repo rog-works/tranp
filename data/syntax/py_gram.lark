@@ -4,19 +4,19 @@ entry := (statement)+
 // statement
 statement[1] := line "\n" | if | for | while | function
 
-// statement/line
+// line
 line[1] := break | pass | return | move
 break := "break"
 pass := "..."
 return := "return" expr
 
-// statement/line/move
+// line/move
 move[1] := (move_target "=")? expr
 move_target[*] := move_relay | move_indexer | name
 move_relay[*] := primary "." name
 move_indexer[*] := primary "[" slice "]"
 
-// block/declaration
+// block/schema
 function := "def" name "(" [params] ")" "->" [type] ":" "\n" block
 params := (param ",")* param
 param := name ":" type ["=" expr]

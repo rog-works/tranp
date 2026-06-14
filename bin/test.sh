@@ -43,12 +43,16 @@ if [ "$1" == "-l" ]; then
 	fi
 fi
 
-for arg in "$@"; do
-	if [ "${arg}" == "-v" ]; then
+while [ $# -gt 0 ]; do
+	if [ "${1}" == "-v" ]; then
 		export PYVERBOSE=1
-	elif [ "${arg}" == "-p" ]; then
+	elif [ "${1}" == "-p" ]; then
 		export PYPROFILE=1
+	elif [ "${1}" == "--index" ]; then
+		shift
+		export PYTESTINDEX=$1
 	fi
+	shift
 done
 
 source ${cwd}/.env.sh

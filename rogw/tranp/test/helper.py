@@ -1,25 +1,25 @@
 import functools
+import os
 from collections.abc import Callable
-from typing import ParamSpec, TypeVar
 
-P = ParamSpec('P')
-T_Ret = TypeVar('T_Ret')
+__PYTESTINDEX = int(os.environ.get('PYTESTINDEX', -1))
 
 
-def data_provider(args_list: list[tuple], *includes: int) -> Callable:
+def data_provider(args_list: list[tuple]) -> Callable:
 	"""テストメソッドにデータを注入するデコレーター
 
 	Args:
 		args_list: 注入する引数リスト
-		*includes: 実行インデックス
 	Returns:
 		デコレーター
+	Note:
+		環境変数にPYTESTINDEXが指定されている場合は特定のindexのみ実行 @see bin/test.sh
 	"""
 	def decorator(test_func: Callable):
 		@functools.wraps(test_func)
 		def wrapper(self, *_):
 			for index, provide_args in enumerate(args_list):
-				if len(includes) and index not in includes:
+				if __PYTESTINDEX != -1 and __PYTESTINDEX != index:
 					continue
 
 				try:

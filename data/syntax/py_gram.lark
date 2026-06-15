@@ -39,8 +39,8 @@ expr[1] := ternary
 
 // operation
 // XXX 公式: assignment_expression: NAME ":=" expression
-ternary[1] := (expr "if" assign "else")? assign
-assign[1] := (expr ":=")? comp_or
+ternary[1] := (expr "if" expr_move "else")? expr_move
+expr_move[1] := (expr ":=")? comp_or
 
 // operation/bin/comparison
 comp_or[1] := (comp_and op_or)* comp_and

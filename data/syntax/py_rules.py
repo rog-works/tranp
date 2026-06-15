@@ -240,16 +240,16 @@ def py_rules() -> Rules:
 						('terms', [
 							('symbol', 'expr'),
 							('string', '"if"'),
-							('symbol', 'assign'),
+							('symbol', 'expr_move'),
 							('string', '"else"')
 						]),
 						('repeat', '?')
 					]),
-					('symbol', 'assign')
+					('symbol', 'expr_move')
 				])
 			]),
 			('rule', [
-				('symbol', 'assign'),
+				('symbol', 'expr_move'),
 				('unwrap', '1'),
 				('terms', [
 					('expr_rep', [

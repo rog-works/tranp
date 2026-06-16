@@ -128,10 +128,13 @@ class Token:
 		"""Returns: 文字列"""
 		return self._string
 
-	@property
-	def string_of_unescaped(self) -> str:
-		"""Returns: 文字列(エスケープ解除) Note: 実質的にString専用"""
+	def decoded_string(self) -> str:
+		"""制御コードのエスケープを解除し、元の文字列を復元 Returns: 復元後の文字列 Note: 文字列専用"""
 		return self._string.encode().decode('unicode_escape') if self._string.find('\\') != -1 else self._string
+
+	def unescaped_string(self, chara: str) -> str:
+		"""特定の文字のエスケープを解除し、元の文字列を復元 Args: chara: エスケープを解除する文字 Returns: 復元後の文字列 Note: 文字列専用"""
+		return chara.join(self._string.split(f'\\{chara}')) if self._string.find(f'\\{chara}') != -1 else self._string
 
 	@property
 	def domain(self) -> TokenDomains:

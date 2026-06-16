@@ -13,7 +13,7 @@ class TestToken(TestCase):
 		(Token(TokenTypes.LineBreak, '\n'), (TokenTypes.LineBreak, '\n', '\n')),
 	])
 	def test_props(self, token: Token, expected: tuple[TokenTypes, str, str]) -> None:
-		self.assertEqual((token.type, token.string, token.string_of_unescaped), expected)
+		self.assertEqual((token.type, token.string, token.decoded_string()), expected)
 
 	@data_provider([
 		(Token(TokenTypes.WhiteSpace, ''), TokenDomains.WhiteSpace),

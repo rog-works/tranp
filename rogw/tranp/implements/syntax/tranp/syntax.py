@@ -111,9 +111,10 @@ class SyntaxParser:
 		"""
 		tokens = self.tokenizer.parse(source)
 		length = len(tokens)
+		self.monitor.start(tokens)
 		step, entry = self._match_symbol(tokens, Context.start(), entrypoint)
 		if step.steps != length:
-			message = ErrorCollector(source, tokens, length - 1 - self.monitor.peek).summary()
+			message = ErrorCollector(source, tokens, max(0, length - 1 - self.monitor.peek)).summary()
 			raise Errors.Syntax(message)
 
 		return as_a(ASTTree, entry)
@@ -131,6 +132,7 @@ class SyntaxParser:
 		"""
 		symbol = DSN.right(route, 1)
 		pattern = self.rules[symbol]
+		self.monitor.log(len(tokens) - 1 - context.cursor, symbol, pattern)
 		if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
 			step, token = self._match_terminal(tokens, context, pattern, route)
 			entry = ASTToken(symbol, token) if step.steping else ASTToken.empty()
@@ -285,8 +287,8 @@ class SyntaxParser:
 		index = len(tokens) - 1 - context.cursor
 		token = tokens[index]
 		ok = self._compare_token(token, pattern)
+		self.monitor.log(index, ok, token, pattern)
 		if ok:
-			self.monitor.log(index, token, pattern)
 			return Step.ok(1), token
 		else:
 			return Step.ng(), Token.empty()
@@ -320,12 +322,14 @@ class ProgreessMonitor:
 		self.peek = 0
 		self.verbose = 'PYVERBOSE' in os.environ
 
-	def log(self, *args: Any) -> None:
-		"""ログ出力
+	def start(self, tokens: list[Token]) -> None:
+		"""ログ出力(開始) Args: tokens: トークンリスト"""
+		if self.verbose:
+			for i, token in enumerate(tokens):
+				print(i, token)
 
-		Args:
-			*args: 引数リスト
-		"""
+	def log(self, *args: Any) -> None:
+		"""ログ出力 Args: *args: 引数リスト"""
 		if self.verbose:
 			print(*args)
 

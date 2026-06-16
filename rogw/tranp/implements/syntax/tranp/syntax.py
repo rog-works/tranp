@@ -1,5 +1,6 @@
+import os
 import re
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
@@ -281,9 +282,11 @@ class SyntaxParser:
 		if len(tokens) <= context.cursor:
 			return Step.ng(), Token.empty()
 
-		token = tokens[len(tokens) - 1 - context.cursor]
+		index = len(tokens) - 1 - context.cursor
+		token = tokens[index]
 		ok = self._compare_token(token, pattern)
 		if ok:
+			self.monitor.log(index, token, pattern)
 			return Step.ok(1), token
 		else:
 			return Step.ng(), Token.empty()
@@ -315,6 +318,16 @@ class ProgreessMonitor:
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.peek = 0
+		self.verbose = 'PYVERBOSE' in os.environ
+
+	def log(self, *args: Any) -> None:
+		"""ログ出力
+
+		Args:
+			*args: 引数リスト
+		"""
+		if self.verbose:
+			print(*args)
 
 
 class ErrorCollector:

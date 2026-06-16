@@ -129,11 +129,23 @@ class Token:
 		return self._string
 
 	def decoded_string(self) -> str:
-		"""制御コードのエスケープを解除し、元の文字列を復元 Returns: 復元後の文字列 Note: 文字列専用"""
+		"""制御コードのエスケープを解除し、元の文字列を復元
+
+		Returns:
+			復元後の文字列
+		Note:
+			マルチバイトを含む文字列に対して使用すると破壊されるため、英数字に対してのみ使用することを推奨
+		"""
 		return self._string.encode().decode('unicode_escape') if self._string.find('\\') != -1 else self._string
 
 	def unescaped_string(self, chara: str) -> str:
-		"""特定の文字のエスケープを解除し、元の文字列を復元 Args: chara: エスケープを解除する文字 Returns: 復元後の文字列 Note: 文字列専用"""
+		"""特定の文字のエスケープを解除し、元の文字列を復元
+
+		Args:
+			chara: エスケープを解除する文字
+		Returns:
+			復元後の文字列
+		"""
 		return chara.join(self._string.split(f'\\{chara}')) if self._string.find(f'\\{chara}') != -1 else self._string
 
 	@property

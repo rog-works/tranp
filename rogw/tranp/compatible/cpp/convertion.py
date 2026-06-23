@@ -1,20 +1,20 @@
 from typing import Any
 
-from rogw.tranp.compatible.cpp.cvar import CP, CPConst
+from rogw.tranp.compatible.cpp.cvar import CRef, CRefConst
 
 
-def const_cast[T](entity_type: type[CP[T]], value_at: CPConst[T]) -> CP[T]:
-	"""アドレス型のconstを解除
+def const_cast[T](entity_type: type[T], value: CRefConst[T]) -> CRef[T]:
+	"""不変型参照のconstを解除
 
 	Args:
-		entity_type: アドレス型
-		value_at: 対象のアドレス変数
+		entity_type: 値の型
+		value: 値
 	Returns:
-		変換後のアドレス変数
+		参照
 	Note:
 		XXX なるべく使用しないことを推奨
 	"""
-	return CP(value_at.raw)
+	return CRef(value.raw)
 
 
 def immutable_const_cast[T](value_type: type[T], value: T) -> T:

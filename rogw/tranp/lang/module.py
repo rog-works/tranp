@@ -1,7 +1,7 @@
-from collections.abc import Callable
-from importlib import import_module
 import os
 import sys
+from collections.abc import Callable
+from importlib import import_module
 from typing import Any
 
 
@@ -62,7 +62,7 @@ def to_fullyname(symbol: type | Callable) -> str:
 	Returns:
 		完全参照名
 	"""
-	return f'{symbol.__module__}.{symbol.__name__}'
+	return f'{symbol.__module__}.{symbol.__qualname__}'
 
 
 def filepath_to_module_path(filepath: str, basedir: str) -> str:

@@ -114,10 +114,8 @@ class PythonASTSerializer:
 		"""ハンドラー(op_comp)"""
 		tree = as_a(ASTTree, entry)
 		op_comp_string = ' '.join([as_a(ASTToken, child).value.string for child in tree.children])
-		op_comp_s = ASTNormal(seq, 'op_comp_s', op_comp_string)
-		op_comp = ASTNormal(seq + 1, tree.name, [seq])
-		normalized = [op_comp_s, op_comp]
-		return normalized
+		op_comp = ASTNormal(seq, tree.name, op_comp_string)
+		return [op_comp]
 
 	@classmethod
 	def on_ternary(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:

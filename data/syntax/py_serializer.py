@@ -1,6 +1,6 @@
 from typing import cast
 
-from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTTree
+from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
 from rogw.tranp.implements.syntax.tranp.serializer import ASTNormal, ASTSerializer
 from rogw.tranp.lang.convertion import as_a
 
@@ -23,6 +23,7 @@ class PythonASTSerializer:
 		serializer.on('for', cls.on_for)
 		serializer.on('while', cls.on_while)
 		serializer.on('ternary', cls.on_ternary)
+		serializer.on('op_comp', cls.on_op_comp)
 		serializer.on('comp_or', cls.on_comp_logic)
 		serializer.on('comp_and', cls.on_comp_logic)
 		return serializer.normalize(entry)
@@ -106,6 +107,16 @@ class PythonASTSerializer:
 			if normal.name == 'break':
 				normalized[i] = ASTNormal(normal.index, 'jump', while_end)
 
+		return normalized
+
+	@classmethod
+	def on_op_comp(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		"""ハンドラー(op_comp)"""
+		tree = as_a(ASTTree, entry)
+		op_comp_string = ' '.join([as_a(ASTToken, child).value.string for child in tree.children])
+		op_comp_s = ASTNormal(seq, 'op_comp_s', op_comp_string)
+		op_comp = ASTNormal(seq + 1, tree.name, [seq])
+		normalized = [op_comp_s, op_comp]
 		return normalized
 
 	@classmethod

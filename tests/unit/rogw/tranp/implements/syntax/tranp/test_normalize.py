@@ -11,6 +11,28 @@ class TestNormalize(TestCase):
 	@data_provider([
 		(
 			'\n'.join([
+				'a is not None',
+				'b not in []',
+			]),
+			[
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, 'op_comp_s', 'is not'),
+				(3, 'op_comp', [2]),
+				(4, 'none', 'None'),
+				(5, 'comp', [1, 3, 4]),
+				(6, 'name', 'b'),
+				(7, 'var', [6]),
+				(8, 'op_comp_s', 'not in'),
+				(9, 'op_comp', [8]),
+				(10, '__empty__', ''),
+				(11, 'list', [10]),
+				(12, 'comp', [7, 9, 11]),
+				(13, 'entry', [5, 12]),
+			],
+		),
+		(
+			'\n'.join([
 				'a.b = c',
 			]),
 			[

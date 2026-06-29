@@ -761,14 +761,13 @@ class Py2Cpp(ITranspiler):
 			return self.render(node, f'statement/{node.classification}', vars={'throws': throws, 'via': via})
 
 	def on_pass(self, node: defs.Pass) -> str:
-		# XXX statementsのスタック数が合わなくなるため出力
-		return ''
+		return self.render(node, f'statement/{node.classification}')
 
 	def on_break(self, node: defs.Break) -> str:
-		return 'break;'
+		return self.render(node, f'statement/{node.classification}')
 
 	def on_continue(self, node: defs.Continue) -> str:
-		return 'continue;'
+		return self.render(node, f'statement/{node.classification}')
 
 	def on_comment(self, node: defs.Comment) -> str:
 		return self.render(node, f'statement/{node.classification}', vars={'text': node.text})
@@ -1042,7 +1041,7 @@ class Py2Cpp(ITranspiler):
 		return or_types[0]
 
 	def on_null_type(self, node: defs.NullType) -> str:
-		return 'void'
+		return self.render(node, f'type/{node.classification}')
 
 	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
 		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
@@ -1522,6 +1521,9 @@ class Py2Cpp(ITranspiler):
 		return self.render(node, f'literal/{node.classification}')
 
 	# Expression
+
+	def on_elipsis(self, node: defs.Elipsis) -> str:
+		return self.render(node, f'expression/{node.classification}')
 
 	def on_group(self, node: defs.Group, expression: str) -> str:
 		return self.render(node, f'expression/{node.classification}', vars={'expression': expression})

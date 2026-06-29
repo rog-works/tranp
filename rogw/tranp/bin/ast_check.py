@@ -8,6 +8,7 @@ from lark.indenter import PythonIndenter
 
 from data.syntax.gram_rules import gram_rules
 from data.syntax.gram_tokenizer import gram_tokenizer
+from data.syntax.py_serializer import PythonASTSerializer
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import tty
 from rogw.tranp.implements.syntax.tranp.rule import Rules
@@ -79,13 +80,12 @@ class App:
 
 	def run(self) -> None:
 		"""実行処理"""
-		parser = self.make_parser(self.args.parser)
 		if self.args.help:
 			self.run_help()
 		elif self.args.input:
-			self.run_parse(parser)
+			self.run_parse()
 		else:
-			self.run_interactive(parser)
+			self.run_interactive()
 
 	def run_help(self) -> None:
 		"""実行処理(ヘルプ)"""
@@ -107,21 +107,15 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark
 $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 """)
 
-	def run_parse(self, parser: Parser) -> None:
-		"""実行処理(既存ファイルを解析)
-
-		Args:
-			parser: パーサー
-		"""
+	def run_parse(self) -> None:
+		"""実行処理(既存ファイルを解析)"""
 		source = self.load_file(self.args.input)
+		parser = self.build_parser(self.args.parser)
 		print(parser(source))
 
-	def run_interactive(self, parser: Parser) -> None:
-		"""実行処理(インタラクティブモード)
-
-		Args:
-			parser: パーサー
-		"""
+	def run_interactive(self) -> None:
+		"""実行処理(インタラクティブモード)"""
+		parser = self.build_parser(self.args.parser)
 		while True:
 			prompt = '\n'.join([
 				'==========',
@@ -153,7 +147,7 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 		with open(fullpath, mode='rb') as f:
 			return f.read().decode('utf-8')
 
-	def make_parser(self, name: str) -> Parser:
+	def build_parser(self, name: str) -> Parser:
 		"""パーサーを生成
 
 		Args:
@@ -161,16 +155,34 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 		Returns:
 			パーサー
 		"""
+		return self.build_for_lark() if name == 'lark' else self.build_for_other()
+
+	def build_for_lark(self) -> Parser:
+		"""Returns: パーサー(Lark)"""
 		grammar = self.load_file(self.args.grammar)
-		if name == 'lark':
-			parser = Lark(grammar, start='file_input', postlex=PythonIndenter(), parser='lalr')
-			return lambda source: parser.parse(source).pretty()
-		else:
-			gram_parser = SyntaxParser(gram_rules(), gram_tokenizer())
-			gram_ast = gram_parser.parse(grammar, 'entry')
-			rules = Rules.from_ast(gram_ast.simplify())
-			parser = SyntaxParser(rules)
-			return lambda source: parser.parse(source, 'entry').pretty()
+		parser = Lark(grammar, start='file_input', postlex=PythonIndenter(), parser='lalr')
+		return lambda source: parser.parse(source).pretty()
+
+	def build_for_other(self) -> Parser:
+		"""Returns: パーサー(Other)"""
+		grammar = self.load_file(self.args.grammar)
+		gram_parser = SyntaxParser(gram_rules(), gram_tokenizer())
+		gram_ast = gram_parser.parse(grammar, 'entry')
+		rules = Rules.from_ast(gram_ast.simplify())
+		parser = SyntaxParser(rules)
+
+		def callback(source: str) -> str:
+			tree = parser.parse(source, 'entry')
+			normalized = PythonASTSerializer.normalize(tree)
+			return '\n'.join([
+				tree.pretty(),
+				'----------',
+				'Normalized',
+				'----------',
+				'\n'.join(str(normal) for normal in normalized),
+			])
+
+		return callback
 
 
 if __name__ == '__main__':

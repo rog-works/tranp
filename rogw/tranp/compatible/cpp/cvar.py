@@ -401,6 +401,11 @@ class CWP(CVar[T_co]):
 		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
 		return self._weak()
 
+	@property
+	def dirty_raw(self) -> T_co | None:
+		"""Returns: 実体 Note: デバッグ/ログ出力用。なるべく使用しないことを推奨"""
+		return self._weak()
+
 	@override
 	def __hash__(self) -> int:
 		"""Returns: ハッシュ値"""

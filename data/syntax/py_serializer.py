@@ -8,6 +8,35 @@ from rogw.tranp.lang.convertion import as_a
 class PythonASTSerializer:
 	"""ASTシリアライザー(Python)"""
 
+	class Rules:
+		"""Grammarルール名"""
+		# 分/ブロック
+		Function = 'function'
+		# 分/代入
+		Move = 'move'
+		# 分/行
+		Break = 'break'
+		Return = 'return'
+		# 式/ブロック
+		If = 'if'
+		Else = 'else'
+		For = 'for'
+		While = 'while'
+		# 式/演算
+		Ternary = 'ternary'
+		OpComp = 'op_comp'
+		CompOr = 'comp_or'
+		CompAnd = 'comp_and'
+		# 式/チェーン
+		Invoke = 'invoke'
+		# 終端要素
+		Var = 'var'
+		Name = 'name'
+		# 拡張コマンド
+		Empty = '__empty__'
+		Jump = 'jump'
+		Next = 'next'
+
 	@classmethod
 	def normalize(cls, entry: ASTEntry) -> list[ASTNormal]:
 		"""ASTを正規化
@@ -18,15 +47,15 @@ class PythonASTSerializer:
 			正規化したAST
 		"""
 		serializer = ASTSerializer()
-		serializer.on('function', cls.on_function)
-		serializer.on('if', cls.on_if)
-		serializer.on('for', cls.on_for)
-		serializer.on('while', cls.on_while)
-		serializer.on('ternary', cls.on_ternary)
-		serializer.on('op_comp', cls.on_op_comp)
-		serializer.on('comp_or', cls.on_comp_logic)
-		serializer.on('comp_and', cls.on_comp_logic)
-		serializer.on('invoke', cls.on_invoke)
+		serializer.on(cls.Rules.Function, cls.on_function)
+		serializer.on(cls.Rules.If, cls.on_if)
+		serializer.on(cls.Rules.For, cls.on_for)
+		serializer.on(cls.Rules.While, cls.on_while)
+		serializer.on(cls.Rules.Ternary, cls.on_ternary)
+		serializer.on(cls.Rules.OpComp, cls.on_op_comp)
+		serializer.on(cls.Rules.CompOr, cls.on_comp_logic)
+		serializer.on(cls.Rules.CompAnd, cls.on_comp_logic)
+		serializer.on(cls.Rules.Invoke, cls.on_invoke)
 		return serializer.normalize(entry)
 
 	@classmethod
@@ -35,8 +64,8 @@ class PythonASTSerializer:
 		normalized = serializer.normalize_tree(as_a(ASTTree, entry), seq)
 		block_end = normalized[-1].child_ids[-1]
 		for i, normal in enumerate(normalized):
-			if normal.name == 'return':
-				normalized[i] = ASTNormal(normal.index, 'jump', block_end)
+			if normal.name == cls.Rules.Return:
+				normalized[i] = ASTNormal(normal.index, cls.Rules.Jump, block_end)
 
 		return normalized
 
@@ -47,9 +76,9 @@ class PythonASTSerializer:
 		thens: list[list[ASTNormal]] = []
 		then_seq = seq
 		for child in cast(list[ASTTree], tree.children):
-			if child.name == '__empty__':
+			if child.name == cls.Rules.Empty:
 				...
-			elif child.name != 'else':
+			elif child.name != cls.Rules.Else:
 				cond = serializer.normalize(child.children[0], then_seq)
 				block = serializer.normalize(child.children[1], cond[-1].index + 2)
 				then = ASTNormal(cond[-1].index + 1, child.name, block[-1].index + 1)
@@ -65,7 +94,7 @@ class PythonASTSerializer:
 		normalized: list[ASTNormal] = []
 		for then in thens:
 			block = then[-1]
-			then[-1] = ASTNormal(block.index, 'jump', if_end)
+			then[-1] = ASTNormal(block.index, cls.Rules.Jump, if_end)
 			normalized.extend(then)
 
 		return normalized
@@ -79,18 +108,18 @@ class PythonASTSerializer:
 		block = serializer.normalize(tree.children[2], name[-1].index + 4)
 		for_begin = name[-1].index
 		for_end = block[-1].index + 1
-		iter_name = ASTNormal(seq, 'name', f'#{seq}')
-		iter_move = ASTNormal(iter[-1].index + 1, 'move', [seq, iter[-1].index])
+		iter_name = ASTNormal(seq, cls.Rules.Name, f'#{seq}')
+		iter_move = ASTNormal(iter[-1].index + 1, cls.Rules.Move, [seq, iter[-1].index])
 		iter_next = [
-			ASTNormal(for_begin + 1, 'name', iter_name.string),
-			ASTNormal(for_begin + 2, 'var', [for_begin + 1]),
-			ASTNormal(for_begin + 3, 'next', for_end),
+			ASTNormal(for_begin + 1, cls.Rules.Name, iter_name.string),
+			ASTNormal(for_begin + 2, cls.Rules.Var, [for_begin + 1]),
+			ASTNormal(for_begin + 3, cls.Rules.Next, for_end),
 		]
-		block[-1] = ASTNormal(block[-1].index, 'jump', for_begin)
+		block[-1] = ASTNormal(block[-1].index, cls.Rules.Jump, for_begin)
 		normalized = [iter_name, *iter, iter_move, *name, *iter_next, *block]
 		for i, normal in enumerate(normalized):
-			if normal.name == 'break':
-				normalized[i] = ASTNormal(normal.index, 'jump', for_end)
+			if normal.name == cls.Rules.Break:
+				normalized[i] = ASTNormal(normal.index, cls.Rules.Jump, for_end)
 
 		return normalized
 
@@ -102,11 +131,11 @@ class PythonASTSerializer:
 		block = serializer.normalize(tree.children[1], when[-1].index + 2)
 		while_end = block[-1].index + 1
 		a_while = ASTNormal(when[-1].index + 1, entry.name, while_end)
-		block[-1] = ASTNormal(block[-1].index, 'jump', seq)
+		block[-1] = ASTNormal(block[-1].index, cls.Rules.Jump, seq)
 		normalized = [*when, a_while, *block]
 		for i, normal in enumerate(normalized):
-			if normal.name == 'break':
-				normalized[i] = ASTNormal(normal.index, 'jump', while_end)
+			if normal.name == cls.Rules.Break:
+				normalized[i] = ASTNormal(normal.index, cls.Rules.Jump, while_end)
 
 		return normalized
 
@@ -126,7 +155,7 @@ class PythonASTSerializer:
 		left = serializer.normalize(tree.children[0], when[-1].index + 2)
 		right = serializer.normalize(tree.children[2], left[-1].index + 2)
 		ternary = ASTNormal(when[-1].index + 1, entry.name, right[0].index)
-		jump = ASTNormal(left[-1].index + 1, 'jump', right[-1].index + 1)
+		jump = ASTNormal(left[-1].index + 1, cls.Rules.Jump, right[-1].index + 1)
 		normalized = [*when, ternary, *left, jump, *right]
 		return normalized
 
@@ -172,7 +201,7 @@ class PythonASTSerializer:
 			child_indexs = [receiver[-1].index, key[-1].index]
 		else:
 			receiver = serializer.normalize(tree.children[0], seq)
-			key = ASTNormal(receiver[-1].index + 1, '__empty__', '')
+			key = ASTNormal(receiver[-1].index + 1, cls.Rules.Empty, '')
 			normalized = [*receiver, key]
 			child_indexs = [receiver[-1].index, key.index]
 
@@ -182,5 +211,5 @@ class PythonASTSerializer:
 			normalized.extend(arg)
 			child_indexs.append(arg[-1].index)
 
-		normalized.append(ASTNormal(normalized[-1].index + 1, 'invoke', child_indexs))
+		normalized.append(ASTNormal(normalized[-1].index + 1, cls.Rules.Invoke, child_indexs))
 		return normalized

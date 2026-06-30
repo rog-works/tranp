@@ -26,6 +26,7 @@ class PythonASTSerializer:
 		serializer.on('op_comp', cls.on_op_comp)
 		serializer.on('comp_or', cls.on_comp_logic)
 		serializer.on('comp_and', cls.on_comp_logic)
+		serializer.on('invoke', cls.on_invoke)
 		return serializer.normalize(entry)
 
 	@classmethod
@@ -155,4 +156,31 @@ class PythonASTSerializer:
 			op[-1] = ASTNormal(comp.index, comp.name, ops_end)
 			normalized.extend(op)
 
+		return normalized
+
+	@classmethod
+	def on_invoke(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		"""ハンドラー(invoke)"""
+		tree = as_a(ASTTree, entry)
+
+		normalized: list[ASTNormal] = []
+		child_indexs: list[int] = []
+		if isinstance(tree.children[0], ASTTree) and len(tree.children[0].children) == 2:
+			receiver = serializer.normalize(tree.children[0].children[0], seq)
+			key = serializer.normalize(tree.children[0].children[1], receiver[-1].index + 1)
+			normalized = [*receiver, *key]
+			child_indexs = [receiver[-1].index, key[-1].index]
+		else:
+			receiver = serializer.normalize(tree.children[0], seq)
+			key = ASTNormal(receiver[-1].index + 1, '__empty__', '')
+			normalized = [*receiver, key]
+			child_indexs = [receiver[-1].index, key.index]
+
+		calls_end = normalized[-1].index
+		for i in range(len(tree.children) - 1):
+			arg = serializer.normalize(tree.children[i + 1], calls_end + i + 1)
+			normalized.extend(arg)
+			child_indexs.append(arg[-1].index)
+
+		normalized.append(ASTNormal(normalized[-1].index + 1, 'invoke', child_indexs))
 		return normalized

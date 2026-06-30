@@ -2,10 +2,12 @@
 {{ var_type[3:-1] }}*
 {%- elif var_type.startswith('CW<') -%}
 {{ var_type[3:-1] }}*
-{%- elif var_type.startswith('CUP<') -%}
-{{ i18n('cpp', 'unique_ptr') }}<{{ var_type[4:-1] }}>
 {%- elif var_type.startswith('CSP<') -%}
 {{ i18n('cpp', 'shared_ptr') }}<{{ var_type[4:-1] }}>
+{%- elif var_type.startswith('CWP<') -%}
+{{ i18n('cpp', 'weak_ptr') }}<{{ var_type[4:-1] }}>
+{%- elif var_type.startswith('CUP<') -%}
+{{ i18n('cpp', 'unique_ptr') }}<{{ var_type[4:-1] }}>
 {%- elif var_type.startswith('CRef<') -%}
 {{ var_type[5:-1] }}&
 {%- elif var_type.startswith('CPConst<') -%}

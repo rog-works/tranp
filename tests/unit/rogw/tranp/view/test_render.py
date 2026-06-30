@@ -1507,6 +1507,15 @@ class TestRenderer(TestCase):
 		self.assertRender('statement/return', vars, expected)
 
 	@data_provider([
+		('break', {}, 'break;'),
+		('comment', {'text': ' hoge'}, '// hoge'),
+		('continue', {}, 'continue;'),
+		('pass', {}, ''),
+	])
+	def test_render_statement_simple(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'statement/{spec}', vars, expected)
+
+	@data_provider([
 		({'symbol': 'T', 'is_declare': False}, 'T'),
 		({'symbol': 'T', 'is_declare': True}, '// template<typename T>'),
 	])

@@ -20,6 +20,8 @@ class CVars:
 			MakeSmart: メモリ確保(スマートポインター)
 			ToActual: アドレス変数を実体参照
 			ToAddress: 実体/参照から生ポインターに変換
+			ToWeak: 共有から弱参照に変換
+			ToShared: 弱参照から共有に変換
 			UnpackSmart: スマートポインターから生ポインターに変換
 			Deny: 不正な移動操作
 		"""
@@ -28,8 +30,10 @@ class CVars:
 		MakeSmart = 2
 		ToActual = 3
 		ToAddress = 4
-		UnpackSmart = 5
-		Deny = 6
+		ToWeak = 5
+		ToShared = 6
+		UnpackSmart = 7
+		Deny = 8
 
 	class RelayOperators(Enum):
 		"""リレー演算子の種別
@@ -61,6 +65,8 @@ class CVars:
 		Raw = 'raw'
 		Ref = 'ref'
 		Addr = 'addr'
+		Weak = 'weak'
+		Shared = 'shared'
 		Const = 'const'
 
 		@classmethod
@@ -78,68 +84,71 @@ class CVars:
 			for value in cls:
 				yield value.value
 
-	class Types(Enum):
+	class Types:
 		"""C++型変数種別"""
-		CRaw = 0x0001
-		CRef = 0x0002
-		CP = 0x0010
-		CW = 0x0020
-		CUP = 0x0040
-		CSP = 0x0080
+		CRaw: ClassVar = 0x0001
+		CRef: ClassVar = 0x0002
+		CP: ClassVar = 0x0004
+		CW: ClassVar = 0x0008
+		CSP: ClassVar = 0x0010
+		CWP: ClassVar = 0x0020
+		CUP: ClassVar = 0x0040
 		# 修飾子
-		Const = 0x1000
+		Const: ClassVar = 0x1000
 		# 不変型
-		CRawConst = 0x1001
-		CRefConst = 0x1002
-		CPConst = 0x1010
-		CWPConst = 0x1020
-		CUPConst = 0x1040
-		CSPConst = 0x1080
+		CRawConst: ClassVar = Const | CRaw
+		CRefConst: ClassVar = Const | CRef
+		CPConst: ClassVar = Const | CP
+		CSPConst: ClassVar = Const | CSP
+		CUPConst: ClassVar = Const | CUP
 		# マスク
-		RawMask = 0x000f
-		AddrMask = 0x00f0
-		AddrRawMask = CP | CW
-		AddrSmartMask = CUP | CSP
-		AddrDownableMask = CP | CW | CSP
+		RawMask: ClassVar = CRaw | CRef
+		AddrMask: ClassVar = CP | CW | CSP | CWP | CUP
+		AddrRawMask: ClassVar = CP | CW
+		AddrSmartMask: ClassVar = CUP | CSP
+		AddrDownableMask: ClassVar = CP | CW | CSP
 
-	TypeToOperator: ClassVar[dict[Types, RelayOperators]] = {
+	TypeToOperator: ClassVar[dict[int, RelayOperators]] = {
 		Types.CP: RelayOperators.Address,
 		Types.CW: RelayOperators.Address,
-		Types.CUP: RelayOperators.Address,
 		Types.CSP: RelayOperators.Address,
+		Types.CWP: RelayOperators.Address,
+		Types.CUP: RelayOperators.Address,
 		Types.CRef: RelayOperators.Raw,
 		Types.CPConst: RelayOperators.Address,
-		Types.CUPConst: RelayOperators.Address,
 		Types.CSPConst: RelayOperators.Address,
+		Types.CUPConst: RelayOperators.Address,
 		Types.CRefConst: RelayOperators.Raw,
 		Types.CRawConst: RelayOperators.Raw,
 		Types.CRaw: RelayOperators.Raw,
 	}
-	CastToMove: ClassVar[dict[tuple[Types, str], Moves]] = {
+	CastToMove: ClassVar[dict[tuple[int, str], Moves]] = {
 		(Types.CP, Casts.Raw.value): Moves.ToActual,
 		(Types.CP, Casts.Ref.value): Moves.ToActual,
 		(Types.CP, Casts.Const.value): Moves.Copy,
 		(Types.CW, Casts.Raw.value): Moves.ToActual,
 		(Types.CW, Casts.Addr.value): Moves.Copy,
-		(Types.CUP, Casts.Raw.value): Moves.ToActual,
-		(Types.CUP, Casts.Ref.value): Moves.ToActual,
-		(Types.CUP, Casts.Addr.value): Moves.UnpackSmart,
 		(Types.CUP, Casts.Const.value): Moves.Copy,
 		(Types.CSP, Casts.Raw.value): Moves.ToActual,
 		(Types.CSP, Casts.Ref.value): Moves.ToActual,
 		(Types.CSP, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CSP, Casts.Weak.value): Moves.ToWeak,
 		(Types.CSP, Casts.Const.value): Moves.Copy,
+		(Types.CWP, Casts.Shared.value): Moves.ToShared,
+		(Types.CUP, Casts.Raw.value): Moves.ToActual,
+		(Types.CUP, Casts.Ref.value): Moves.ToActual,
+		(Types.CUP, Casts.Addr.value): Moves.UnpackSmart,
 		(Types.CRef, Casts.Raw.value): Moves.Copy,
 		(Types.CRef, Casts.Addr.value): Moves.ToAddress,
 		(Types.CRef, Casts.Const.value): Moves.Copy,
 		(Types.CPConst, Casts.Raw.value): Moves.ToActual,
 		(Types.CPConst, Casts.Ref.value): Moves.ToActual,
-		(Types.CUPConst, Casts.Raw.value): Moves.ToActual,
-		(Types.CUPConst, Casts.Ref.value): Moves.ToActual,
-		(Types.CUPConst, Casts.Addr.value): Moves.UnpackSmart,
 		(Types.CSPConst, Casts.Raw.value): Moves.ToActual,
 		(Types.CSPConst, Casts.Ref.value): Moves.ToActual,
 		(Types.CSPConst, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CUPConst, Casts.Raw.value): Moves.ToActual,
+		(Types.CUPConst, Casts.Ref.value): Moves.ToActual,
+		(Types.CUPConst, Casts.Addr.value): Moves.UnpackSmart,
 		(Types.CRefConst, Casts.Raw.value): Moves.Copy,
 		(Types.CRefConst, Casts.Addr.value): Moves.ToAddress,
 		(Types.CRawConst, Casts.Raw.value): Moves.Copy,
@@ -160,13 +169,14 @@ class CVars:
 			cpp.CRef.__name__: CVars.Types.CRef,
 			cpp.CP.__name__: CVars.Types.CP,
 			cpp.CW.__name__: CVars.Types.CW,
-			cpp.CUP.__name__: CVars.Types.CUP,
 			cpp.CSP.__name__: CVars.Types.CSP,
+			cpp.CWP.__name__: CVars.Types.CWP,
+			cpp.CUP.__name__: CVars.Types.CUP,
 			cpp.CRawConst.__name__: CVars.Types.CRawConst,
 			cpp.CRefConst.__name__: CVars.Types.CRefConst,
 			cpp.CPConst.__name__: CVars.Types.CPConst,
-			cpp.CUPConst.__name__: CVars.Types.CUPConst,
 			cpp.CSPConst.__name__: CVars.Types.CSPConst,
+			cpp.CUPConst.__name__: CVars.Types.CUPConst,
 		}
 		for add_name, org_name in name_to_key.items():
 			assert add_name not in self._name_to_type, Errors.InvalidSchema(add_name, org_name)
@@ -177,7 +187,7 @@ class CVars:
 		for key in self._name_to_type.keys():
 			yield key
 
-	def resolve(self, symbol: IReflection) -> tuple[Types, str]:
+	def resolve(self, symbol: IReflection) -> tuple[int, str]:
 		"""Args: symbol: シンボル Returns: (C++型変数種別, C++型変数名) Note: Noneはポインターとして扱う"""
 		if symbol.types.domain_name in self._name_to_type:
 			return self._name_to_type[symbol.types.domain_name], symbol.types.domain_name
@@ -187,27 +197,27 @@ class CVars:
 		else:
 			return CVars.Types.CRaw, cpp.CRaw.__name__
 
-	def resolve_type(self, symbol: IReflection) -> Types:
+	def resolve_type(self, symbol: IReflection) -> int:
 		"""Args: symbol: シンボル Returns: C++型変数種別 Note: @see resolve"""
 		return self.resolve(symbol)[0]
 
-	def name_to_type(self, var_name: str) -> Types:
+	def name_to_type(self, var_name: str) -> int:
 		"""Args: var_name: C++型変数名 Returns: C++型変数種別"""
 		return self._name_to_type[var_name]
 
-	def equals(self, var_type: Types, expect_type: Types) -> bool:
+	def equals(self, var_type: int, expect_type: int) -> bool:
 		"""Args: var_type: C++型変数種別, expect_type: C++型変数種別 Returns: True = 同じ"""
 		return var_type == expect_type
 
-	def contains(self, var_type: Types, mask: Types) -> bool:
+	def contains(self, var_type: int, mask: int) -> bool:
 		"""Args: var_type: C++型変数種別, mask: 種別マスク Returns: True = 含む"""
-		return (var_type.value & mask.value) != 0
+		return (var_type & mask) != 0
 
-	def to_operator(self, var_type: Types) -> RelayOperators:
+	def to_operator(self, var_type: int) -> RelayOperators:
 		"""Args: var_type: C++型変数種別 Returns: リレー演算子"""
 		return CVars.TypeToOperator[var_type]
 
-	def to_move(self, var_type: Types, cast_key: str) -> Moves:
+	def to_move(self, var_type: int, cast_key: str) -> Moves:
 		"""Args: var_type: C++型変数種別, cast_key: 型変換メソッド名 Returns: 移動操作の種別"""
 		key = (var_type, cast_key)
 		return CVars.CastToMove.get(key, CVars.Moves.Deny)

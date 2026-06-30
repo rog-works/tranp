@@ -42,8 +42,11 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 			return '0' * 11
 
 	def __eq__(self, other: 'CVar | None') -> bool:
-		"""Args: other: 対象 Returns: True = 一致 Note: 実体のアドレス同士を比較"""
-		return other is not None and id(self._origin_raw) == id(other._origin_raw)
+		"""Args: other: 対象 Returns: True = 一致 Note: 実体のアドレス同士を比較。比較対象がNoneの場合は内部データがNoneであれば一致とする"""
+		if other is None:
+			return self._origin_raw is None
+
+		return id(self._origin_raw) == id(other._origin_raw)
 
 	def __ne__(self, other: 'CVar | None') -> bool:
 		"""Args: other: 対象 Returns: True = 不一致"""

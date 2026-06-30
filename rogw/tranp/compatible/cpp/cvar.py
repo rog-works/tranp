@@ -255,7 +255,7 @@ class CW(CVar[T_co]):
 
 	@property
 	def on(self) -> T_co:
-		"""Returns: 実体 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		"""Returns: 実体 Note: リレー代替メソッド。C++では`->`に相当"""
 		origin = self._weak()
 		if not origin:
 			raise Errors.Fatal(self)
@@ -264,7 +264,7 @@ class CW(CVar[T_co]):
 
 	@property
 	def raw(self) -> T_co:
-		"""Returns: 実体 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		"""Returns: 実体 Note: 実体参照代替メソッド。C++では`*`に相当"""
 		origin = self._weak()
 		if not origin:
 			raise Errors.Fatal(self)

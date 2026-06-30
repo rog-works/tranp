@@ -1450,6 +1450,8 @@ class TestRenderer(TestCase):
 		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),
 		({'receiver': 'addr', 'move': 'ToActual'}, '(*(addr))'),
 		({'receiver': 'sp', 'move': 'UnpackSmart'}, '(sp).get()'),
+		({'receiver': 'sp', 'move': 'ToWeak'}, 'sp'),
+		({'receiver': 'wp', 'move': 'ToShared'}, '(wp).lock()'),
 		({'receiver': 'raw', 'move': 'Copy'}, 'raw'),
 	])
 	def test_render_relay_cvar_to(self, vars: dict[str, Any], expected: str) -> None:

@@ -240,7 +240,7 @@ class CP(CVarNotNull[T_co]):
 		return getattr(self.raw, '__getitem__')(key)
 
 
-class CWP(CVar[T_co]):
+class CW(CVar[T_co]):
 	"""C++型変数の互換クラス(弱参照ポインター)
 
 	Note:
@@ -291,7 +291,7 @@ class CWP(CVar[T_co]):
 		origin = self._weak()
 		return CP(origin) if origin else None
 
-	def down[T](self, down_type: type[T]) -> 'CWP[T]':
+	def down[T](self, down_type: type[T]) -> 'CW[T]':
 		"""派生クラスにキャスト。C++では`static_cast<T>`に相当
 
 		Args:
@@ -306,7 +306,7 @@ class CWP(CVar[T_co]):
 
 		return self
 
-	def as_a[T](self, down_type: type[T]) -> 'CWP[T]':
+	def as_a[T](self, down_type: type[T]) -> 'CW[T]':
 		"""派生クラスにキャスト。C++では`dynamic_cast<T>`に相当。Python上はdownと等価
 
 		Args:
@@ -552,7 +552,7 @@ def can_down_addr[T](addr: CP[Any], down_type: type[T]) -> TypeIs[CP[T]]:
 	return isinstance(addr.raw, down_type)
 
 
-def can_down_weak[T](weak: CWP[Any], down_type: type[T]) -> TypeIs[CWP[T]]:
+def can_down_weak[T](weak: CW[Any], down_type: type[T]) -> TypeIs[CW[T]]:
 	"""同じか派生クラスか判定
 
 	Args:

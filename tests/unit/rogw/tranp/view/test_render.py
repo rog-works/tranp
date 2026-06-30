@@ -882,7 +882,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CP', 'is_statement': True}, 'dynamic_cast<int*>(p);'),
-		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CWP', 'is_statement': True}, 'dynamic_cast<int*>(p);'),
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CW', 'is_statement': True}, 'dynamic_cast<int*>(p);'),
 		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CSP', 'is_statement': True}, 'std::dynamic_pointer_cast<int>(p);'),
 	])
 	def test_render_func_call_cvar_as_a(self, vars: dict[str, Any], expected: str) -> None:
@@ -896,7 +896,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CP', 'is_statement': True}, 'static_cast<int*>(p);'),
-		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CWP', 'is_statement': True}, 'static_cast<int*>(p);'),
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CW', 'is_statement': True}, 'static_cast<int*>(p);'),
 		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CSP', 'is_statement': True}, 'std::static_pointer_cast<int>(p);'),
 	])
 	def test_render_func_call_cvar_down(self, vars: dict[str, Any], expected: str) -> None:

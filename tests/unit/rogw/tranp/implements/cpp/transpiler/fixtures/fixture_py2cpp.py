@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast, override
 
 from rogw.tranp.compatible.cpp.classes import byte, char, double, int64, uint32, uint64, void, wchar_t
-from rogw.tranp.compatible.cpp.cvar import CP, CSP, CUP, CWP, CPConst, CRawConst, CRef, T_co, T_New
+from rogw.tranp.compatible.cpp.cvar import CP, CSP, CUP, CW, CPConst, CRawConst, CRef, T_co, T_New
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
@@ -256,7 +256,7 @@ class CVarOps:
 		p.to_addr_hex()
 		CP(n).to_addr_hex()
 
-	def down_cast(self, p: CP[void], wp: CWP[void], sp: CSP[void], alt_sp: AltCSP[void]) -> None:
+	def down_cast(self, p: CP[void], wp: CW[void], sp: CSP[void], alt_sp: AltCSP[void]) -> None:
 		down_p = p.down(int)
 		down_wp = wp.down(int)
 		down_sp = sp.down(int)
@@ -268,7 +268,7 @@ class CVarOps:
 
 	Sub2: TypeAlias = Sub
 
-	def alias_call(self, ap: CP[Sub2], aw: CWP[Sub2], aup: CUP[Sub2], asp: CSP[Sub2], aref: CRef[Sub2]) -> None:
+	def alias_call(self, ap: CP[Sub2], aw: CW[Sub2], aup: CUP[Sub2], asp: CSP[Sub2], aref: CRef[Sub2]) -> None:
 		ap.on.call()
 		aw.on.call()
 		aup.on.call()

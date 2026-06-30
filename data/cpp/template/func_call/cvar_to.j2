@@ -4,7 +4,7 @@
 (&({{ arguments[0] }})){% if is_statement %};{% endif %}
 {%- elif cvar_type in ['CRef', 'CRefConst'] and arguments[0] == 'this' -%}
 (*{{ arguments[0] }}){% if is_statement %};{% endif %}
-{%- elif cvar_type == 'CWP' -%}
+{%- elif cvar_type == 'CW' -%}
 {{ arguments[0] }}{% if is_statement %};{% endif %}
 {%- else -%}
 {{ arguments[0] }}{% if is_statement %};{% endif %}

@@ -91,7 +91,7 @@ class TestTemplateManipulator(TestCase):
 		),
 		(
 			{
-				'klass': 'CWP',
+				'klass': 'CW',
 				'klass.0': 'T_co',
 				'parameters.0': 'Union',
 				'parameters.0.0': 'CP',
@@ -161,19 +161,19 @@ class TestTemplateManipulator(TestCase):
 			},
 			'klass',
 		),
-		# CWP(Self, CP<T_co>) => None
+		# CW(Self, CP<T_co>) => None
 		(
 			'parameters.0.0',
 			### schema: CP<T_co>
 			{
-				'klass': 'CWP',
+				'klass': 'CW',
 				'klass.0': 'T_co',
 				'parameters.0': 'CP',
 				'parameters.0.0': 'T_co',
 			},
 			### actual: Union<CP<Promise>, None>
 			{
-				'klass': 'CWP',
+				'klass': 'CW',
 				'klass.0': 'T_co',
 				'parameters.0': 'Union',
 				'parameters.0.0': 'CP',
@@ -186,7 +186,7 @@ class TestTemplateManipulator(TestCase):
 			'parameters.0.0.0',
 			### schema: Union<CP<T_co>, None>
 			{
-				'klass': 'CWP',
+				'klass': 'CW',
 				'klass.0': 'T_co',
 				'parameters.0': 'Union',
 				'parameters.0.0': 'CP',
@@ -194,7 +194,7 @@ class TestTemplateManipulator(TestCase):
 			},
 			### actual: CP<Promise>
 			{
-				'klass': 'CWP',
+				'klass': 'CW',
 				'klass.0': 'T_co',
 				'parameters.0': 'CP',
 				'parameters.0.0': 'Promise',
@@ -205,14 +205,14 @@ class TestTemplateManipulator(TestCase):
 			'parameters.0.0',
 			### schema: CP<T_co>
 			{
-				'klass': 'CWP',
+				'klass': 'CW',
 				'klass.0': 'T_co',
 				'parameters.0': 'CP',
 				'parameters.0.0': 'T_co',
 			},
 			### actual: CP<Promise>
 			{
-				'klass': 'CWP',
+				'klass': 'CW',
 				'klass.0': 'T_co',
 				'parameters.0': 'CP',
 				'parameters.0.0': 'Promise',
@@ -223,13 +223,13 @@ class TestTemplateManipulator(TestCase):
 			'parameters.0',
 			### schema: T_co
 			{
-				'klass': 'CWP',
+				'klass': 'CW',
 				'klass.0': 'T_co',
 				'parameters.0': 'T_co',
 			},
 			### actual: CP<Promise>
 			{
-				'klass': 'CWP',
+				'klass': 'CW',
 				'klass.0': 'T_co',
 				'parameters.0': 'CP',
 				'parameters.0.0': 'Promise',

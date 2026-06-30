@@ -83,7 +83,7 @@ class CVars:
 		CRaw = 0x0001
 		CRef = 0x0002
 		CP = 0x0010
-		CWP = 0x0020
+		CW = 0x0020
 		CUP = 0x0040
 		CSP = 0x0080
 		# 修飾子
@@ -98,13 +98,13 @@ class CVars:
 		# マスク
 		RawMask = 0x000f
 		AddrMask = 0x00f0
-		AddrRawMask = CP | CWP
+		AddrRawMask = CP | CW
 		AddrSmartMask = CUP | CSP
-		AddrDownableMask = CP | CWP | CSP
+		AddrDownableMask = CP | CW | CSP
 
 	TypeToOperator: ClassVar[dict[Types, RelayOperators]] = {
 		Types.CP: RelayOperators.Address,
-		Types.CWP: RelayOperators.Address,
+		Types.CW: RelayOperators.Address,
 		Types.CUP: RelayOperators.Address,
 		Types.CSP: RelayOperators.Address,
 		Types.CRef: RelayOperators.Raw,
@@ -119,8 +119,8 @@ class CVars:
 		(Types.CP, Casts.Raw.value): Moves.ToActual,
 		(Types.CP, Casts.Ref.value): Moves.ToActual,
 		(Types.CP, Casts.Const.value): Moves.Copy,
-		(Types.CWP, Casts.Raw.value): Moves.ToActual,
-		(Types.CWP, Casts.Addr.value): Moves.Copy,
+		(Types.CW, Casts.Raw.value): Moves.ToActual,
+		(Types.CW, Casts.Addr.value): Moves.Copy,
 		(Types.CUP, Casts.Raw.value): Moves.ToActual,
 		(Types.CUP, Casts.Ref.value): Moves.ToActual,
 		(Types.CUP, Casts.Addr.value): Moves.UnpackSmart,
@@ -159,7 +159,7 @@ class CVars:
 			cpp.CRaw.__name__: CVars.Types.CRaw,
 			cpp.CRef.__name__: CVars.Types.CRef,
 			cpp.CP.__name__: CVars.Types.CP,
-			cpp.CWP.__name__: CVars.Types.CWP,
+			cpp.CW.__name__: CVars.Types.CW,
 			cpp.CUP.__name__: CVars.Types.CUP,
 			cpp.CSP.__name__: CVars.Types.CSP,
 			cpp.CRawConst.__name__: CVars.Types.CRawConst,

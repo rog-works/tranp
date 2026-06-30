@@ -11,6 +11,21 @@ class TestNormalize(TestCase):
 	@data_provider([
 		(
 			'\n'.join([
+				'a.b(1, 2)',
+			]),
+			[
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, 'name', 'b'),
+				(3, 'relay', [1, 2]),
+				(4, 'digit', '1'),
+				(5, 'digit', '2'),
+				(6, 'invoke', [3, 4, 5]),
+				(7, 'entry', [6]),
+			],
+		),
+		(
+			'\n'.join([
 				'a is not None',
 				'b not in []',
 			]),

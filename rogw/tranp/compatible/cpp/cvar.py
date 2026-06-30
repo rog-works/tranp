@@ -31,23 +31,26 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		...
 
 	def to_addr_id(self) -> int:
-		"""Returns: アドレス値"""
-		return hash(self)
+		"""Returns: 実体のアドレス値"""
+		return id(self.raw)
 
 	def to_addr_hex(self) -> str:
-		"""Returns: アドレス値(16進数 ※先頭の'0x'は除外)"""
-		return hex(hash(self))[2:].upper()
+		"""Returns: 実体のアドレス値(16進数 ※先頭の'0x'は除外)"""
+		if self._origin_raw:
+			return hex(id(self._origin_raw))[2:].upper()
+		else:
+			return 'None'
 
 	def __eq__(self, other: 'CVar | None') -> bool:
-		"""Args: other: 対象 Returns: True = 一致"""
-		return other is not None and hash(self) == hash(other)
+		"""Args: other: 対象 Returns: True = 一致 Note: 実体のアドレス同士を比較"""
+		return other is not None and id(self._origin_raw) == id(other._origin_raw)
 
 	def __ne__(self, other: 'CVar | None') -> bool:
 		"""Args: other: 対象 Returns: True = 不一致"""
 		return not self.__eq__(other)
 
 	def __hash__(self) -> int:
-		"""Returns: ハッシュ値"""
+		"""Returns: ハッシュ値 Note: 実体のアドレス値"""
 		return id(self.raw)
 
 	def __str__(self) -> str:

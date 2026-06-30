@@ -548,6 +548,24 @@ class TestRenderer(TestCase):
 		self.assertRender('function/_initializer', vars, expected)
 
 	@data_provider([
+		({'var_type': 'CP<int>'}, 'int*'),
+		({'var_type': 'CW<int>'}, 'int*'),
+		({'var_type': 'CSP<int>'}, 'std::shared_ptr<int>'),
+		({'var_type': 'CWP<int>'}, 'std::weak_ptr<int>'),
+		({'var_type': 'CUP<int>'}, 'std::unique_ptr<int>'),
+		({'var_type': 'CRef<int>'}, 'int&'),
+		({'var_type': 'CPConst<int>'}, 'const int*'),
+		({'var_type': 'CSPConst<int>'}, 'const std::shared_ptr<int>'),
+		({'var_type': 'CUPConst<int>'}, 'const std::unique_ptr<int>'),
+		({'var_type': 'CRefConst<int>'}, 'const int&'),
+		({'var_type': 'int'}, 'int'),
+		({'var_type': 'std::vector<int>'}, 'std::vector<int>'),
+		({'var_type': 'std::map<std::string, int>'}, 'std::map<std::string, int>'),
+	])
+	def test_render_custom_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('type/custom_type', vars, expected)
+
+	@data_provider([
 		({'path': 'deco', 'arguments': ['a', 'b']}, 'deco(a, b)'),
 	])
 	def test_render_decorator(self, vars: dict[str, Any], expected: str) -> None:
@@ -882,7 +900,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CP', 'is_statement': True}, 'dynamic_cast<int*>(p);'),
-		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CWP', 'is_statement': True}, 'dynamic_cast<int*>(p);'),
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CW', 'is_statement': True}, 'dynamic_cast<int*>(p);'),
 		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CSP', 'is_statement': True}, 'std::dynamic_pointer_cast<int>(p);'),
 	])
 	def test_render_func_call_cvar_as_a(self, vars: dict[str, Any], expected: str) -> None:
@@ -896,7 +914,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CP', 'is_statement': True}, 'static_cast<int*>(p);'),
-		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CWP', 'is_statement': True}, 'static_cast<int*>(p);'),
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CW', 'is_statement': True}, 'static_cast<int*>(p);'),
 		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CSP', 'is_statement': True}, 'std::static_pointer_cast<int>(p);'),
 	])
 	def test_render_func_call_cvar_down(self, vars: dict[str, Any], expected: str) -> None:
@@ -1450,6 +1468,8 @@ class TestRenderer(TestCase):
 		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),
 		({'receiver': 'addr', 'move': 'ToActual'}, '(*(addr))'),
 		({'receiver': 'sp', 'move': 'UnpackSmart'}, '(sp).get()'),
+		({'receiver': 'sp', 'move': 'ToWeak'}, 'sp'),
+		({'receiver': 'wp', 'move': 'ToShared'}, '(wp).lock()'),
 		({'receiver': 'raw', 'move': 'Copy'}, 'raw'),
 	])
 	def test_render_relay_cvar_to(self, vars: dict[str, Any], expected: str) -> None:
@@ -1485,6 +1505,15 @@ class TestRenderer(TestCase):
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('statement/return', vars, expected)
+
+	@data_provider([
+		('break', {}, 'break;'),
+		('comment', {'text': ' hoge'}, '// hoge'),
+		('continue', {}, 'continue;'),
+		('pass', {}, ''),
+	])
+	def test_render_statement_simple(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'statement/{spec}', vars, expected)
 
 	@data_provider([
 		({'symbol': 'T', 'is_declare': False}, 'T'),

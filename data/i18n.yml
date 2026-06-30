@@ -60,6 +60,7 @@ aliases.rogw.tranp.compatible.cpp.classes#make_shared: std::make_shared
 aliases.rogw.tranp.compatible.cpp.classes#make_unique: std::make_unique
 aliases.rogw.tranp.compatible.cpp.classes#move: std::move
 aliases.rogw.tranp.compatible.cpp.classes#shared_ptr: std::shared_ptr
+aliases.rogw.tranp.compatible.cpp.classes#shared_ptr.to_weak: to_weak # FIXME 暫定対処
 aliases.rogw.tranp.compatible.cpp.classes#smart_ptr.get: get
 aliases.rogw.tranp.compatible.cpp.classes#string.stod: std::stod
 aliases.rogw.tranp.compatible.cpp.classes#string.stoi: std::stoi
@@ -73,6 +74,10 @@ aliases.rogw.tranp.compatible.cpp.classes#vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#vector.end: end
 aliases.rogw.tranp.compatible.cpp.classes#vector.iterator: iterator
 aliases.rogw.tranp.compatible.cpp.classes#wchar_t: wchar_t
+aliases.rogw.tranp.compatible.cpp.classes#weak_ptr: std::weak_ptr
+aliases.rogw.tranp.compatible.cpp.classes#weak_ptr.lock: lock
+aliases.rogw.tranp.compatible.cpp.cvar#CWP.available: expired # FIXME 暫定対処
+aliases.rogw.tranp.compatible.cpp.cvar#CWP.inavailable: expired
 # example
 # @see dsn.translation.import_dsn
 # lang

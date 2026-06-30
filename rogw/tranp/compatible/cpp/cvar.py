@@ -39,7 +39,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		if self._origin_raw:
 			return hex(id(self._origin_raw))[2:].upper()
 		else:
-			return 'None'
+			return '0' * 11
 
 	def __eq__(self, other: 'CVar | None') -> bool:
 		"""Args: other: 対象 Returns: True = 一致 Note: 実体のアドレス同士を比較"""
@@ -58,7 +58,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		return f'0x{self.to_addr_hex()}'
 
 	def __repr__(self) -> str:
-		"""Returns: シリアライズ表現"""
+		"""Returns: シリアライズ表現 Note: 本来アドレス値には自身のアドレスを使用するが、CVar自体に値としての価値はないため、内部データのアドレスを用いる"""
 		return f'<{self.__class__.__name__}[{self._origin_raw.__class__.__name__}]: at 0x{self.to_addr_hex()} with {self._origin_raw}>'
 
 

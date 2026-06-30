@@ -548,6 +548,24 @@ class TestRenderer(TestCase):
 		self.assertRender('function/_initializer', vars, expected)
 
 	@data_provider([
+		({'var_type': 'CP<int>'}, 'int*'),
+		({'var_type': 'CW<int>'}, 'int*'),
+		({'var_type': 'CSP<int>'}, 'std::shared_ptr<int>'),
+		({'var_type': 'CWP<int>'}, 'std::weak_ptr<int>'),
+		({'var_type': 'CUP<int>'}, 'std::unique_ptr<int>'),
+		({'var_type': 'CRef<int>'}, 'int&'),
+		({'var_type': 'CPConst<int>'}, 'const int*'),
+		({'var_type': 'CSPConst<int>'}, 'const std::shared_ptr<int>'),
+		({'var_type': 'CUPConst<int>'}, 'const std::unique_ptr<int>'),
+		({'var_type': 'CRefConst<int>'}, 'const int&'),
+		({'var_type': 'int'}, 'int'),
+		({'var_type': 'std::vector<int>'}, 'std::vector<int>'),
+		({'var_type': 'std::map<std::string, int>'}, 'std::map<std::string, int>'),
+	])
+	def test_render_custom_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('type/custom_type', vars, expected)
+
+	@data_provider([
 		({'path': 'deco', 'arguments': ['a', 'b']}, 'deco(a, b)'),
 	])
 	def test_render_decorator(self, vars: dict[str, Any], expected: str) -> None:

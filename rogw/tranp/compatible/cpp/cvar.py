@@ -14,25 +14,13 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
-	def on(self) -> T_co:
-		"""Returns: 実体 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
-		...
-
-	@property
-	@abstractmethod
-	def raw(self) -> T_co:
-		"""Returns: 実体 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
-		...
-
-	@property
-	@abstractmethod
 	def _origin_raw(self) -> T_co | None:
 		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
 		...
 
 	def to_addr_id(self) -> int:
 		"""Returns: 実体のアドレス値"""
-		return id(self.raw)
+		return id(self._origin_raw)
 
 	def to_addr_hex(self) -> str:
 		"""Returns: 実体のアドレス値(16進数 ※先頭の'0x'は除外)"""
@@ -54,7 +42,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 
 	def __hash__(self) -> int:
 		"""Returns: ハッシュ値 Note: 実体のアドレス値"""
-		return id(self.raw)
+		return id(self._origin_raw)
 
 	def __str__(self) -> str:
 		"""Returns: 文字列表現"""
@@ -84,20 +72,18 @@ class CVarNotNull(CVar[T_co]):
 
 	@property
 	@override
+	def _origin_raw(self) -> T_co:
+		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
+		return self._origin
+
+	@property
 	def on(self) -> T_co:
 		"""Returns: 実体 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
 		return self._origin
 
 	@property
-	@override
 	def raw(self) -> T_co:
 		"""Returns: 実体 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
-		return self._origin
-
-	@property
-	@override
-	def _origin_raw(self) -> T_co:
-		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
 		return self._origin
 
 
@@ -123,23 +109,26 @@ class CVarNullable(CVar[T_co]):
 
 	@property
 	@override
-	def on(self) -> T_co:
-		"""Returns: 実体 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
-		assert self._origin is not None, 'Origin is Null'
-		return self._origin
-
-	@property
-	@override
-	def raw(self) -> T_co:
-		"""Returns: 実体 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
-		assert self._origin is not None, 'Origin is Null'
-		return self._origin
-
-	@property
-	@override
 	def _origin_raw(self) -> T_co | None:
 		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
 		return self._origin
+
+	@property
+	def on(self) -> T_co:
+		"""Returns: 実体 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		if not self._origin:
+			raise Errors.Fatal(self)
+
+		return self._origin
+
+	@property
+	def raw(self) -> T_co:
+		"""Returns: 実体 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		if not self._origin:
+			raise Errors.Fatal(self)
+
+		return self._origin
+
 
 class CP(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(ポインター)"""
@@ -241,7 +230,7 @@ class CP(CVarNotNull[T_co]):
 
 
 class CW(CVar[T_co]):
-	"""C++型変数の互換クラス(弱参照ポインター)
+	"""C++型変数の互換クラス(ポインター/弱参照)
 
 	Note:
 		XXX あくまでもPython上で弱参照を扱うための構造であり、C++上はCPとしてトランスパイルされる
@@ -260,25 +249,27 @@ class CW(CVar[T_co]):
 
 	@property
 	@override
-	def on(self) -> T_co:
-		"""Returns: 実体 Note: リレー代替メソッド。C++では`->`に相当"""
-		origin = self._weak()
-		assert origin is not None, 'Origin is Null'
-		return origin
-
-	@property
-	@override
-	def raw(self) -> T_co:
-		"""Returns: 実体 Note: 実体参照代替メソッド。C++では`*`に相当"""
-		origin = self._weak()
-		assert origin is not None, 'Origin is Null'
-		return origin
-
-	@property
-	@override
 	def _origin_raw(self) -> T_co | None:
 		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
 		return self._weak()
+
+	@property
+	def on(self) -> T_co:
+		"""Returns: 実体 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		origin = self._weak()
+		if not origin:
+			raise Errors.Fatal(self)
+
+		return origin
+
+	@property
+	def raw(self) -> T_co:
+		"""Returns: 実体 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		origin = self._weak()
+		if not origin:
+			raise Errors.Fatal(self)
+
+		return origin
 
 	@override
 	def __hash__(self) -> int:
@@ -317,6 +308,114 @@ class CW(CVar[T_co]):
 			Errors.IllegalConvertion: 互換性の無い型を指定
 		"""
 		return self.down(down_type)
+
+
+class CSP(CVarNullable[T_co]):
+	"""C++型変数の互換クラス(共有ポインター)"""
+
+	@classmethod
+	def empty(cls) -> 'CSP[T_co] | None':
+		"""空の共有ポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
+
+		Returns:
+			インスタンス
+		"""
+		return CSP(None)
+
+	@classmethod
+	def new(cls, origin: T_New) -> 'CSP[T_New]':
+		"""メモリを生成し、共有ポインター型を返却するメモリ生成代替メソッド。C++では`std::make_shared`に相当
+
+		Args:
+			origin: 実体のインタンス
+		Returns:
+			インスタンス
+		"""
+		return CSP(CP(origin))
+
+	@property
+	def ref(self) -> 'CRef[T_co]':
+		"""Returns: 参照 Note: る参照変換代替メソッド。C++では`*`に相当"""
+		return CRef(self.raw)
+
+	@property
+	def addr(self) -> CP[T_co]:
+		"""Returns: ポインター Note: 参照変換代替メソッド。C++では`get`に相当"""
+		return CP(self.raw)
+
+	@property
+	def weak(self) -> 'CWP[T_co]':
+		"""Returns: 弱参照ポインター Note: 参照変換代替メソッド。C++では削除"""
+		return CWP(self)
+
+	@property
+	def const(self) -> 'CSPConst[T_co]':
+		"""Returns: 不変型共有ポインター Note: 参照変換代替メソッド。C++では削除"""
+		return CSPConst(self.raw)
+
+	def down[T](self, down_type: type[T]) -> 'CSP[T]':
+		"""派生クラスにキャスト。C++では`static_pointer_cast<T>`に相当
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		if not can_down_smart(self, down_type):
+			raise Errors.IllegalConvertion(self, down_type)
+
+		return self
+
+	def as_a[T](self, down_type: type[T]) -> 'CSP[T]':
+		"""派生クラスにキャスト。C++では`dynamic_pointer_cast<T>`に相当。Python上はdownと等価
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		return self.down(down_type)
+
+
+class CWP(CVar[T_co]):
+	"""C++型変数の互換クラス(弱参照ポインター)"""
+
+	_weak: ReferenceType[T_co]
+
+	def __init__(self, addr: CSP[T_co]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			addr: 共有ポインター
+		"""
+		self._weak = ReferenceType(addr.raw)
+		self._hash = id(addr.raw)
+
+	@property
+	@override
+	def _origin_raw(self) -> T_co | None:
+		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
+		return self._weak()
+
+	@override
+	def __hash__(self) -> int:
+		"""Returns: ハッシュ値"""
+		return self._hash
+
+	@property
+	def shared(self) -> CSP[T_co] | None:
+		"""Returns: 共有ポインター | None Note: 参照変換代替メソッド。C++では`lock`に相当"""
+		origin = self._weak()
+		return CSP(CP(origin) if origin else None)
+
+	@property
+	def available(self) -> bool:
+		"""Returns: True = 内部データが有効 Note: C++では`!expired`に相当"""
+		return self._weak() is not None
 
 
 class CUP(CVarNullable[T_co]):
@@ -366,72 +465,6 @@ class CUP(CVarNullable[T_co]):
 		clone = self.__class__(self.addr)
 		self._origin = None
 		return clone
-
-
-class CSP(CVarNullable[T_co]):
-	"""C++型変数の互換クラス(共有ポインター)"""
-
-	@classmethod
-	def empty(cls) -> 'CSP[T_co] | None':
-		"""空の共有ポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
-
-		Returns:
-			インスタンス
-		"""
-		return CSP(None)
-
-	@classmethod
-	def new(cls, origin: T_New) -> 'CSP[T_New]':
-		"""メモリを生成し、共有ポインター型を返却するメモリ生成代替メソッド。C++では`std::make_shared`に相当
-
-		Args:
-			origin: 実体のインタンス
-		Returns:
-			インスタンス
-		"""
-		return CSP(CP(origin))
-
-	@property
-	def ref(self) -> 'CRef[T_co]':
-		"""Returns: 参照 Note: る参照変換代替メソッド。C++では`*`に相当"""
-		return CRef(self.raw)
-
-	@property
-	def addr(self) -> CP[T_co]:
-		"""Returns: ポインター Note: 参照変換代替メソッド。C++では`get`に相当"""
-		return CP(self.raw)
-
-	@property
-	def const(self) -> 'CSPConst[T_co]':
-		"""Returns: 不変型共有ポインター Note: 参照変換代替メソッド。C++では削除"""
-		return CSPConst(self.raw)
-
-	def down[T](self, down_type: type[T]) -> 'CSP[T]':
-		"""派生クラスにキャスト。C++では`static_pointer_cast<T>`に相当
-
-		Args:
-			down_type: 派生クラスの型
-		Returns:
-			キャスト後の型
-		Raises:
-			Errors.IllegalConvertion: 互換性の無い型を指定
-		"""
-		if not can_down_smart(self, down_type):
-			raise Errors.IllegalConvertion(self, down_type)
-
-		return self
-
-	def as_a[T](self, down_type: type[T]) -> 'CSP[T]':
-		"""派生クラスにキャスト。C++では`dynamic_pointer_cast<T>`に相当。Python上はdownと等価
-
-		Args:
-			down_type: 派生クラスの型
-		Returns:
-			キャスト後の型
-		Raises:
-			Errors.IllegalConvertion: 互換性の無い型を指定
-		"""
-		return self.down(down_type)
 
 
 class CRef(CVarNotNull[T_co]):

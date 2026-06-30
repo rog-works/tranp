@@ -417,6 +417,11 @@ class CWP(CVar[T_co]):
 		"""Returns: True = 内部データが有効 Note: C++では`!expired`に相当"""
 		return self._weak() is not None
 
+	@property
+	def inavailable(self) -> bool:
+		"""Returns: True = 内部データが有効 Note: C++では`expired`に相当"""
+		return self._weak() is None
+
 
 class CUP(CVarNullable[T_co]):
 	"""C++型変数の互換クラス(占有ポインター)"""

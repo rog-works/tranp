@@ -75,6 +75,8 @@ aliases.rogw.tranp.compatible.cpp.classes#vector.end: end
 aliases.rogw.tranp.compatible.cpp.classes#vector.iterator: iterator
 aliases.rogw.tranp.compatible.cpp.classes#wchar_t: wchar_t
 aliases.rogw.tranp.compatible.cpp.classes#weak_ptr.lock: lock
+aliases.rogw.tranp.compatible.cpp.cvar#CWP.available: expired # FIXME 暫定対処
+aliases.rogw.tranp.compatible.cpp.cvar#CWP.inavailable: expired
 # example
 # @see dsn.translation.import_dsn
 # lang

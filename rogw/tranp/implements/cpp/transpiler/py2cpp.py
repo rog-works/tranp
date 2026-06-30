@@ -6,7 +6,7 @@ from typing import Any, ClassVar, Self, TypedDict, TypeVarTuple, cast, override
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.cpp.classes import byte, char, double, int64, uint32, uint64
-from rogw.tranp.compatible.cpp.cvar import CP, CSP, CUP, CW
+from rogw.tranp.compatible.cpp.cvar import CP, CSP, CUP, CW, CWP
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
@@ -90,6 +90,7 @@ class Py2Cpp(ITranspiler):
 			CP.__name__: '%p',
 			CW.__name__: '%p',
 			CSP.__name__: '%p',
+			CWP.__name__: '%p',
 			CUP.__name__: '%p',
 			'default': '%s',
 			**options.env.get('string_formats', {})

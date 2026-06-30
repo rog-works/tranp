@@ -403,7 +403,7 @@ class CWP(CVar[T_co]):
 
 	@property
 	def dirty_raw(self) -> T_co | None:
-		"""Returns: 実体 Note: デバッグ/ログ出力用。なるべく使用しないことを推奨"""
+		"""Returns: 実体 Note: Python専用。デバッグ・ログ出力用途のみOK。なるべく使用しないことを推奨"""
 		return self._weak()
 
 	@override

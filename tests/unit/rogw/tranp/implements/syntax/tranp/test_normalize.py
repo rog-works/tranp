@@ -11,7 +11,7 @@ class TestNormalize(TestCase):
 	@data_provider([
 		(
 			'\n'.join([
-				'a.b(1, 2)',
+				'a.b(1, 2).c(3)',
 			]),
 			[
 				(0, 'name', 'a'),
@@ -20,7 +20,27 @@ class TestNormalize(TestCase):
 				(3, 'digit', '1'),
 				(4, 'digit', '2'),
 				(5, 'invoke', [1, 2, 3, 4]),
-				(6, 'entry', [5]),
+				(6, 'name', 'c'),
+				(7, 'digit', '3'),
+				(8, 'invoke', [5, 6, 7]),
+				(9, 'entry', [8]),
+			],
+		),
+		(
+			'\n'.join([
+				'a()(1, 2)',
+			]),
+			[
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, '__empty__', ''),
+				(3, '__empty__', ''),
+				(4, 'invoke', [1, 2, 3]),
+				(5, '__empty__', ''),
+				(6, 'digit', '1'),
+				(7, 'digit', '2'),
+				(8, 'invoke', [4, 5, 6, 7]),
+				(9, 'entry', [8]),
 			],
 		),
 		(

@@ -194,7 +194,8 @@ class PythonASTSerializer:
 
 		normalized: list[ASTNormal] = []
 		child_indexs: list[int] = []
-		if isinstance(tree.children[0], ASTTree) and len(tree.children[0].children) == 2:
+		if tree.children[0].name != cls.Rules.Invoke and isinstance(tree.children[0], ASTTree) and len(tree.children[0].children) == 2:
+			# invoke以外の2要素のツリーをreceiver/keyに分解
 			receiver = serializer.normalize(tree.children[0].children[0], seq)
 			key = serializer.normalize(tree.children[0].children[1], receiver[-1].index + 1)
 			normalized = [*receiver, *key]

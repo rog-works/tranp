@@ -11,6 +11,41 @@ class TestNormalize(TestCase):
 	@data_provider([
 		(
 			'\n'.join([
+				'a.b(c, 2).d(3)',
+			]),
+			[
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, 'name', 'b'),
+				(3, 'name', 'c'),
+				(4, 'var', [3]),
+				(5, 'digit', '2'),
+				(6, 'invoke', [1, 2, 4, 5]),
+				(7, 'name', 'd'),
+				(8, 'digit', '3'),
+				(9, 'invoke', [6, 7, 8]),
+				(10, 'entry', [9]),
+			],
+		),
+		(
+			'\n'.join([
+				'a()(1, 2)',
+			]),
+			[
+				(0, 'name', 'a'),
+				(1, 'var', [0]),
+				(2, '__empty__', ''),
+				(3, '__empty__', ''),
+				(4, 'invoke', [1, 2, 3]),
+				(5, '__empty__', ''),
+				(6, 'digit', '1'),
+				(7, 'digit', '2'),
+				(8, 'invoke', [4, 5, 6, 7]),
+				(9, 'entry', [8]),
+			],
+		),
+		(
+			'\n'.join([
 				'a is not None',
 				'b not in []',
 			]),
@@ -160,15 +195,16 @@ class TestNormalize(TestCase):
 				(0, 'name', 'cond'),
 				(1, 'var', [0]),
 				(2, '__empty__', ''),
-				(3, 'invoke', [1, 2]),
-				(4, 'ternary', 8),
-				(5, 'name', 'a'),
-				(6, 'var', [5]),
-				(7, 'jump', 10),
-				(8, 'name', 'b'),
-				(9, 'var', [8]),
+				(3, '__empty__', ''),
+				(4, 'invoke', [1, 2, 3]),
+				(5, 'ternary', 9),
+				(6, 'name', 'a'),
+				(7, 'var', [6]),
+				(8, 'jump', 11),
+				(9, 'name', 'b'),
+				(10, 'var', [9]),
 				# / ternary
-				(10, 'entry', [9]),
+				(11, 'entry', [10]),
 			],
 		),
 		(

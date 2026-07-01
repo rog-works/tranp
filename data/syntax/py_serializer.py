@@ -206,11 +206,12 @@ class PythonASTSerializer:
 			normalized = [*receiver, key]
 			child_indexs = [receiver[-1].index, key.index]
 
-		calls_end = normalized[-1].index
+		arg_begin = normalized[-1].index + 1
 		for i in range(len(tree.children) - 1):
-			arg = serializer.normalize(tree.children[i + 1], calls_end + i + 1)
+			arg = serializer.normalize(tree.children[i + 1], arg_begin)
 			normalized.extend(arg)
 			child_indexs.append(arg[-1].index)
+			arg_begin = arg[-1].index + 1
 
 		normalized.append(ASTNormal(normalized[-1].index + 1, cls.Rules.Invoke, child_indexs))
 		return normalized

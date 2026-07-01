@@ -1344,7 +1344,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
 		parent_symbol = self.reflections.type_of(node)
-		return self.to_accessible_name(parent_symbol)
+		return self.render(node, 'func_call/super', vars={'class_symbol': self.to_accessible_name(parent_symbol)})
 
 	def on_for_in(self, node: defs.ForIn, iterates: str) -> str:
 		return iterates

@@ -1,0 +1,5 @@
+{%- if class_symbol.endswith('>') -%}
+{{ break_last_block(class_symbol, '<>')[0] }}
+{%- else -%}
+{{ class_symbol }}
+{%- endif -%}

@@ -1132,6 +1132,14 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/str_format', vars, expected)
 
 	@data_provider([
+		({'class_symbol': 'A'}, 'A'),
+		({'class_symbol': 'A<T>'}, 'A'),
+		({'class_symbol': 'A<int>::B<T>'}, 'A<int>::B'),
+	])
+	def test_render_func_call_super(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/super', vars, expected)
+
+	@data_provider([
 		({'calls': 'A.func', 'arguments': ['1 + 2', 'A.value']}, 'A.func(1 + 2, A.value)'),
 	])
 	def test_render_func_call(self, vars: dict[str, Any], expected: str) -> None:

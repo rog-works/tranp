@@ -28,8 +28,11 @@ elif := "elif" expr ":" "\n" block
 else := "else" ":" "\n" block
 
 // FIXME forの`name in primary`を`name in expr`にするとcompと条件が競合してしまい、パースエラーになる
-for := "for" name "in" primary ":" "\n" block
+for := "for" var_names "in" primary ":" "\n" block
 while := "while" expr ":" "\n" block
+
+// declare
+var_names[*] := (name ",")* name
 
 // block
 block := "\INDENT" (statement)+ "\DEDENT"
@@ -38,8 +41,7 @@ block := "\INDENT" (statement)+ "\DEDENT"
 expr[1] := lambda
 
 // lambda
-lambda[1] := ("lambda" [lambda_params] ":")? ternary
-lambda_params[*] := (name ",")* name
+lambda[1] := ("lambda" [var_names] ":")? ternary
 
 // operation
 // XXX 公式: assignment_expression: NAME ":=" expression

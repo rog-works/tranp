@@ -15,7 +15,7 @@ from rogw.tranp.implements.syntax.tranp.rule import Rules
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.lang.error import stacktrace
 
-DictArgs = TypedDict('DictArgs', {'input': str, 'parser': str, 'grammar': str, 'help': bool})
+DictArgs = TypedDict('DictArgs', {'input': str, 'parser': str, 'grammar': str, 'normalize': bool, 'help': bool})
 Parser: TypeAlias = Callable[[str], str]
 
 
@@ -32,6 +32,7 @@ class Args:
 		self.input = args['input']
 		self.parser = args['parser']
 		self.grammar = args['grammar']
+		self.normalize = args['normalize']
 		self.help = args['help']
 
 	def parse(self, argv: list[str]) -> DictArgs:
@@ -46,6 +47,7 @@ class Args:
 			'input': '',
 			'parser': 'lark',
 			'grammar': os.path.join(tranp_dir(), 'data/grammar.lark'),
+			'normalize': False,
 			'help': False,
 		}
 		while len(argv) != 0:
@@ -56,6 +58,8 @@ class Args:
 				args['parser'] = argv.pop(0)
 			elif arg == '-g':
 				args['grammar'] = argv.pop(0)
+			elif arg == '-n':
+				args['normalize'] = True
 			elif arg == '-h':
 				args['help'] = True
 
@@ -95,6 +99,7 @@ $ bin/ast.sh [-i source_path] [-g grammar_path] [-p parser_name] [-h]
 -i: Input source file
 -g: Input grammar file
 -p: Usage parser name (default="lark")
+-n: Dump normalize
 -h: Show help
 # Examples
 ## Interactive mode
@@ -173,8 +178,10 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 
 		def callback(source: str) -> str:
 			tree = parser.parse(source, 'entry')
-			# normalized = PythonASTSerializer.normalize(tree)
-			normalized = tree.normalize()
+			if not self.args.normalize:
+				return tree.pretty()
+
+			normalized = PythonASTSerializer.normalize(tree)
 			return '\n'.join([
 				tree.pretty(),
 				'----------',

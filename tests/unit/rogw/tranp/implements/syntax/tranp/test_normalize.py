@@ -11,6 +11,30 @@ class TestNormalize(TestCase):
 	@data_provider([
 		(
 			'\n'.join([
+				'for a, b in c:',
+				'  1',
+			]),
+			[
+				# for a in b:
+				(0, 'name', '#0'),
+				(1, 'name', 'c'),
+				(2, 'var', [1]),
+				(3, 'move', [0, 2]),
+				# block #0
+				(4, 'name', 'a'),
+				(5, 'name', 'b'),
+				(6, 'name', '#0'),
+				(7, 'var', [6]),
+				(8, 'next', 12),
+				(9, 'move', [4, 5, 8]),
+				(10, 'digit', '1'),
+				(11, 'jump', 4),
+				# / block #0
+				(12, 'entry', [11]),
+			],
+		),
+		(
+			'\n'.join([
 				'a.b(c, 2).d(3)',
 			]),
 			[
@@ -82,7 +106,7 @@ class TestNormalize(TestCase):
 			'\n'.join([
 				'for a in b:',
 				'  for c in d:',
-				'    break',
+				'    continue',
 				'  break',
 			]),
 			[
@@ -95,24 +119,26 @@ class TestNormalize(TestCase):
 				(4, 'name', 'a'),
 				(5, 'name', '#0'),
 				(6, 'var', [5]),
-				(7, 'next', 20),
+				(7, 'next', 22),
+				(8, 'move', [4, 7]),
 				# for c in d:
-				(8, 'name', '#8'),
-				(9, 'name', 'd'),
-				(10, 'var', [9]),
-				(11, 'move', [8, 10]),
+				(9, 'name', '#9'),
+				(10, 'name', 'd'),
+				(11, 'var', [10]),
+				(12, 'move', [9, 11]),
 				# block #1
-				(12, 'name', 'c'),
-				(13, 'name', '#8'),
-				(14, 'var', [13]),
-				(15, 'next', 18),
-				(16, 'jump', 18),
-				(17, 'jump', 12),
+				(13, 'name', 'c'),
+				(14, 'name', '#9'),
+				(15, 'var', [14]),
+				(16, 'next', 20),
+				(17, 'move', [13, 16]),
+				(18, 'jump', 13),
+				(19, 'jump', 13),
 				# / block #1
-				(18, 'jump', 20),
-				(19, 'jump', 4),
+				(20, 'jump', 22),
+				(21, 'jump', 4),
 				# / block #0
-				(20, 'entry', [19]),
+				(22, 'entry', [21]),
 			],
 		),
 		(
@@ -143,7 +169,7 @@ class TestNormalize(TestCase):
 			'\n'.join([
 				'while a:',
 				'  while b:',
-				'    break',
+				'    continue',
 				'  break',
 			]),
 			[
@@ -155,7 +181,7 @@ class TestNormalize(TestCase):
 				(3, 'name', 'b'),
 				(4, 'var', [3]),
 				(5, 'while', 8),
-				(6, 'jump', 8),
+				(6, 'jump', 3),
 				(7, 'jump', 3),
 				# / while b:
 				(8, 'jump', 10),

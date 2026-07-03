@@ -61,7 +61,11 @@ class PythonASTSerializer:
 
 	@classmethod
 	def on_function(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
-		"""ハンドラー(function)"""
+		"""ハンドラー(function)
+
+		Note:
+			* return: block終端へのjumpに変換
+		"""
 		normalized = serializer.normalize_tree(as_a(ASTTree, entry), seq)
 		block_end = normalized[-1].child_ids[-1]
 		for i, normal in enumerate(normalized):
@@ -72,18 +76,27 @@ class PythonASTSerializer:
 
 	@classmethod
 	def on_if(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
-		"""ハンドラー(if)"""
+		"""ハンドラー(if)
+
+		Note:
+			```
+			* when: 各ブロックの先頭に移動
+			* then/else: 直前の結果を評価する条件ジャンプに変換
+			* block: 各ブロックの末尾に移動。ifブロック外へのjumpに変換
+			```
+		"""
 		tree = as_a(ASTTree, entry)
 		thens: list[list[ASTNormal]] = []
 		then_seq = seq
 		for child in cast(list[ASTTree], tree.children):
 			if child.name == cls.Rules.Empty:
+				# 空のelse
 				...
 			elif child.name != cls.Rules.Else:
-				cond = serializer.normalize(child.children[0], then_seq)
-				block = serializer.normalize(child.children[1], cond[-1].index + 2)
-				then = ASTNormal(cond[-1].index + 1, child.name, block[-1].index + 1)
-				thens.append([*cond, then, *block])
+				when = serializer.normalize(child.children[0], then_seq)
+				block = serializer.normalize(child.children[1], when[-1].index + 2)
+				then = ASTNormal(when[-1].index + 1, child.name, block[-1].index + 1)
+				thens.append([*when, then, *block])
 				then_seq = then.context
 			else:
 				block = serializer.normalize(child.children[0], then_seq + 1)
@@ -102,7 +115,16 @@ class PythonASTSerializer:
 
 	@classmethod
 	def on_for(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
-		"""ハンドラー(for)"""
+		"""ハンドラー(for)
+
+		Note:
+			```
+			* expr: 先頭に移動。イテレーター用の隠し変数('#n')へのmoveに変換
+			* var_names: 中間に移動。イテレーターのnextと(3番目)、分割代入のmoveに変換(2番目)
+			* block: 末尾に移動。ブロック開始へのjumpに変換
+			* break/continue: jumpに変換
+			```
+		"""
 		tree = as_a(ASTTree, entry)
 		name_num = len(tree.children) - 2
 
@@ -146,7 +168,16 @@ class PythonASTSerializer:
 
 	@classmethod
 	def on_while(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
-		"""ハンドラー(while)"""
+		"""ハンドラー(while)
+
+		Note:
+			```
+			* when: 先頭に移動
+			* while: 2番目に移動。直前の結果を評価する条件ジャンプに変換
+			* block: 末尾に移動。ブロック開始へのjumpに変換
+			* break/continue: jumpに変換
+			```
+		"""
 		tree = as_a(ASTTree, entry)
 		when = serializer.normalize(tree.children[0], seq)
 		block = serializer.normalize(tree.children[1], when[-1].index + 2)
@@ -163,16 +194,17 @@ class PythonASTSerializer:
 		return normalized
 
 	@classmethod
-	def on_op_comp(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
-		"""ハンドラー(op_comp)"""
-		tree = as_a(ASTTree, entry)
-		op_comp_string = ' '.join([as_a(ASTToken, child).value.string for child in tree.children])
-		op_comp = ASTNormal(seq, tree.name, op_comp_string)
-		return [op_comp]
-
-	@classmethod
 	def on_ternary(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
-		"""ハンドラー(ternary)"""
+		"""ハンドラー(ternary)
+
+		Note:
+			```
+			* when: 先頭に移動
+			* ternary: 2番目に移動。直前の結果を評価する条件ジャンプに変換
+			* left: 3番目に移動。式の終端にjumpを追加
+			* right: 末尾に移動
+			```
+		"""
 		tree = as_a(ASTTree, entry)
 		when = serializer.normalize(tree.children[1], seq)
 		left = serializer.normalize(tree.children[0], when[-1].index + 2)
@@ -183,8 +215,24 @@ class PythonASTSerializer:
 		return normalized
 
 	@classmethod
+	def on_op_comp(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
+		"""ハンドラー(op_comp)
+
+		Note:
+			* op_comp_s: 演算子を結合し、1要素の文字列トークンに変換
+		"""
+		tree = as_a(ASTTree, entry)
+		op_comp_string = ' '.join([as_a(ASTToken, child).value.string for child in tree.children])
+		op_comp = ASTNormal(seq, tree.name, op_comp_string)
+		return [op_comp]
+
+	@classmethod
 	def on_comp_logic(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
-		"""ハンドラー(comp_or/comp_and)"""
+		"""ハンドラー(comp_or/comp_and)
+
+		Note:
+			* 直列化した継続要素を個別の比較演算に分割。コンテキストを演算終端のジャンプインデックスに変換
+		"""
 		tree = as_a(ASTTree, entry)
 		ops_count = int((len(tree.children) - 1) / 2)
 		ops = [serializer.normalize(tree.children[0], seq)]
@@ -212,7 +260,11 @@ class PythonASTSerializer:
 
 	@classmethod
 	def on_invoke(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
-		"""ハンドラー(invoke)"""
+		"""ハンドラー(invoke)
+
+		Note:
+			* primary: 必ずreceiver/keyの2要素になる様に分割
+		"""
 		tree = as_a(ASTTree, entry)
 
 		normalized: list[ASTNormal] = []

@@ -103,24 +103,41 @@ class PythonASTSerializer:
 	def on_for(cls, serializer: ASTSerializer, entry: ASTEntry, seq: int) -> list[ASTNormal]:
 		"""ハンドラー(for)"""
 		tree = as_a(ASTTree, entry)
-		iter = serializer.normalize(tree.children[1], seq + 1)
-		name = serializer.normalize(tree.children[0], iter[-1].index + 2)
-		block = serializer.normalize(tree.children[2], name[-1].index + 5)
-		for_begin = name[-1].index
-		for_end = block[-1].index + 1
+		name_num = len(tree.children) - 2
+
+		# 1.iterates
 		iter_name = ASTNormal(seq, cls.Rules.Name, f'#{seq}')
+		iter = serializer.normalize(tree.children[name_num], iter_name.index + 1)
 		iter_move = ASTNormal(iter[-1].index + 1, cls.Rules.Move, [seq, iter[-1].index])
-		iter_next = [
-			ASTNormal(for_begin + 1, cls.Rules.Name, iter_name.string),
-			ASTNormal(for_begin + 2, cls.Rules.Var, [for_begin + 1]),
-			ASTNormal(for_begin + 3, cls.Rules.Next, for_end),
-			ASTNormal(for_begin + 4, cls.Rules.Move, [for_begin, for_begin + 3]),
-		]
-		block[-1] = ASTNormal(block[-1].index, cls.Rules.Jump, for_begin)
-		normalized = [iter_name, *iter, iter_move, *name, *iter_next, *block]
+
+		# 2.var_names
+		var_name_begin = iter_move.index + 1
+		var_names = [serializer.normalize(tree.children[i], var_name_begin + i)[0] for i in range(name_num)]
+
+		block_begin = var_names[0].index
+		next_begin = var_names[-1].index + 1
+		next_end = next_begin + 3
+
+		# 5.block
+		block = serializer.normalize(tree.children[name_num + 1], next_end + 1)
+		block[-1] = ASTNormal(block[-1].index, cls.Rules.Jump, block_begin)
+
+		block_end = block[-1].index
+
+		# 3.next
+		iter_next: list[ASTNormal] = []
+		iter_next.append(ASTNormal(next_begin + 0, cls.Rules.Name, iter_name.string))
+		iter_next.append(ASTNormal(next_begin + 1, cls.Rules.Var, [next_begin + 0]))
+		iter_next.append(ASTNormal(next_begin + 2, cls.Rules.Next, block_end + 1))
+
+		# 4.var_destruction
+		var_name_indexs = [name.index for name in var_names]
+		var_destruction = ASTNormal(next_begin + 3, cls.Rules.Move, [*var_name_indexs, next_begin + 2])
+
+		normalized = [iter_name, *iter, iter_move, *var_names, *iter_next, var_destruction, *block]
 		for i, normal in enumerate(normalized):
 			if normal.name == cls.Rules.Break:
-				normalized[i] = ASTNormal(normal.index, cls.Rules.Jump, for_end)
+				normalized[i] = ASTNormal(normal.index, cls.Rules.Jump, block_end + 1)
 
 		return normalized
 

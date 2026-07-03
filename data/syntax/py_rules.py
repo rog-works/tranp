@@ -196,7 +196,7 @@ def py_rules() -> Rules:
 				('__empty__', ''),
 				('terms', [
 					('string', '"for"'),
-					('symbol', 'name'),
+					('symbol', 'var_names'),
 					('string', '"in"'),
 					('symbol', 'primary'),
 					('string', '":"'),
@@ -216,6 +216,20 @@ def py_rules() -> Rules:
 				])
 			]),
 			('rule', [
+				('symbol', 'var_names'),
+				('unwrap', '*'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'name'),
+							('string', '","')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'name')
+				])
+			]),
+			('rule', [
 				('symbol', 'block'),
 				('__empty__', ''),
 				('terms', [
@@ -230,7 +244,24 @@ def py_rules() -> Rules:
 			('rule', [
 				('symbol', 'expr'),
 				('unwrap', '1'),
-				('symbol', 'ternary')
+				('symbol', 'lambda')
+			]),
+			('rule', [
+				('symbol', 'lambda'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('string', '"lambda"'),
+							('expr_opt', [
+								('symbol', 'var_names')
+							]),
+							('string', '":"')
+						]),
+						('repeat', '?')
+					]),
+					('symbol', 'ternary')
+				])
 			]),
 			('rule', [
 				('symbol', 'ternary'),
@@ -238,7 +269,7 @@ def py_rules() -> Rules:
 				('terms', [
 					('expr_rep', [
 						('terms', [
-							('symbol', 'expr'),
+							('symbol', 'expr_move'),
 							('string', '"if"'),
 							('symbol', 'expr_move'),
 							('string', '"else"')
@@ -254,7 +285,7 @@ def py_rules() -> Rules:
 				('terms', [
 					('expr_rep', [
 						('terms', [
-							('symbol', 'expr'),
+							('symbol', 'comp_or'),
 							('string', '":="')
 						]),
 						('repeat', '?')

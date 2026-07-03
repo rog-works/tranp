@@ -31,6 +31,7 @@ def py_rules() -> Rules:
 				('unwrap', '1'),
 				('terms_or', [
 					('symbol', 'break'),
+					('symbol', 'continue'),
 					('symbol', 'pass'),
 					('symbol', 'return'),
 					('symbol', 'move')
@@ -40,6 +41,11 @@ def py_rules() -> Rules:
 				('symbol', 'break'),
 				('__empty__', ''),
 				('string', '"break"')
+			]),
+			('rule', [
+				('symbol', 'continue'),
+				('__empty__', ''),
+				('string', '"continue"')
 			]),
 			('rule', [
 				('symbol', 'pass'),

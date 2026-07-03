@@ -5,8 +5,9 @@ entry := (statement)+
 statement[1] := line "\n" | if | for | while | function
 
 // line
-line[1] := break | pass | return | move
+line[1] := break | continue | pass | return | move
 break := "break"
+continue := "continue"
 pass := "..."
 return := "return" expr
 

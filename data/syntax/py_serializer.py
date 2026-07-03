@@ -16,6 +16,7 @@ class PythonASTSerializer:
 		Move = 'move'
 		# 分/行
 		Break = 'break'
+		Continue = 'continue'
 		Return = 'return'
 		# 式/ブロック
 		If = 'if'
@@ -138,6 +139,8 @@ class PythonASTSerializer:
 		for i, normal in enumerate(normalized):
 			if normal.name == cls.Rules.Break:
 				normalized[i] = ASTNormal(normal.index, cls.Rules.Jump, block_end + 1)
+			elif normal.name == cls.Rules.Continue:
+				normalized[i] = ASTNormal(normal.index, cls.Rules.Jump, block_begin)
 
 		return normalized
 

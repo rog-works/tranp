@@ -1,28 +1,28 @@
-// entry
+// エントリーポイント
 entry := (statement)+
 
-// statement
+// 文
 statement[1] := line "\n" | if | for | while | function
 
-// line
+// 文/行
 line[1] := break | continue | pass | return | move
 break := "break"
 continue := "continue"
 pass := "..."
 return := "return" expr
 
-// line/move
+// 文/行/代入
 move[1] := (move_target "=")? expr
 move_target[*] := move_relay | move_indexer | name
 move_relay[*] := primary "." name
 move_indexer[*] := primary "[" slice "]"
 
-// block/schema
+// 文/ブロック/スキーマ
 function := "def" name "(" [params] ")" "->" [type] ":" "\n" block
 params := (param ",")* param
 param := name ":" type ["=" expr]
 
-// block/flow
+// 文/ブロック/制御構文
 if := then (elif)* [else]
 then := "if" expr ":" "\n" block
 elif := "elif" expr ":" "\n" block
@@ -32,37 +32,36 @@ else := "else" ":" "\n" block
 for := "for" var_names "in" primary ":" "\n" block
 while := "while" expr ":" "\n" block
 
-// declare
+// 変数宣言
 var_names[*] := (name ",")* name
 
-// block
+// ブロック
 block := "\INDENT" (statement)+ "\DEDENT"
 
-// expression
+// 式
 expr[1] := lambda
 
-// lambda
+// 式/ラムダ
 lambda[1] := ("lambda" [var_names] ":")? ternary
 
-// operation
-// XXX 公式: assignment_expression: NAME ":=" expression
+// 式/演算
 ternary[1] := (expr_move "if" expr_move "else")? expr_move
 expr_move[1] := (comp_or ":=")? comp_or
 
-// operation/bin/comparison
+// 式/演算/比較
 comp_or[1] := (comp_and op_or)* comp_and
 comp_and[1] := (comp_not op_and)* comp_not
 comp_not[1] := (op_not)? comp
 comp[1] := (calc_sum op_comp)* calc_sum
 
-// operation/bin/arithmetic
+// 式/演算/算術
 calc_sum[1] := (calc_mul op_add)* calc_mul
 calc_mul[1] := (unary op_mul)* unary
 
-// operation/unary
+// 式/演算/単項
 unary[1] := (op_unary)? primary
 
-// operator
+// 演算子
 op_or := "or"
 op_and := "and"
 op_comp := op_comp_s | (op_not)? op_in | op_is (op_not)?
@@ -74,7 +73,7 @@ op_add := /[-+]/
 op_mul := /[*\/%]/
 op_unary := "\OP_UNARY_MINUS"
 
-// atom
+// 最小単位
 primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
 invoke := primary "(" [args] ")"
@@ -82,23 +81,23 @@ indexer := primary "[" slice "]"
 atom[1] := boolean | none | var | string | digit | decimal | list | dict | "(" expr ")"
 var := name
 
-// type
+// タイプ
 type[1] := type_none | type_var
 type_none := none
 type_var := name
 
-// element
+// リスト・ペア
 args[*] := (expr ",")* expr
 slice[*] := (expr ":")* expr
 values[*] := (expr ",")* expr
 key_values[*] :=  (key_value ",")* key_value
 key_value := string ":" expr
 
-// literal
+// リテラル
 list := "[" [values] "]"
 dict := "{" [key_values] "}"
 
-// terminal
+// 終端要素
 boolean := /False|True/
 none := "None"
 name := /[a-zA-Z_]\w*/

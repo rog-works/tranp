@@ -173,7 +173,8 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 
 		def callback(source: str) -> str:
 			tree = parser.parse(source, 'entry')
-			normalized = PythonASTSerializer.normalize(tree)
+			# normalized = PythonASTSerializer.normalize(tree)
+			normalized = tree.normalize()
 			return '\n'.join([
 				tree.pretty(),
 				'----------',

@@ -35,12 +35,16 @@ while := "while" expr ":" "\n" block
 block := "\INDENT" (statement)+ "\DEDENT"
 
 // expression
-expr[1] := ternary
+expr[1] := lambda
+
+// lambda
+lambda[1] := ("lambda" [lambda_params] ":")? ternary
+lambda_params[*] := (name ",")* name
 
 // operation
 // XXX 公式: assignment_expression: NAME ":=" expression
-ternary[1] := (expr "if" expr_move "else")? expr_move
-expr_move[1] := (expr ":=")? comp_or
+ternary[1] := (expr_move "if" expr_move "else")? expr_move
+expr_move[1] := (comp_or ":=")? comp_or
 
 // operation/bin/comparison
 comp_or[1] := (comp_and op_or)* comp_and

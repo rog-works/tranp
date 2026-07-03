@@ -157,6 +157,8 @@ class PythonASTSerializer:
 		for i, normal in enumerate(normalized):
 			if normal.name == cls.Rules.Break:
 				normalized[i] = ASTNormal(normal.index, cls.Rules.Jump, while_end)
+			elif normal.name == cls.Rules.Continue:
+				normalized[i] = ASTNormal(normal.index, cls.Rules.Jump, seq)
 
 		return normalized
 

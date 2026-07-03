@@ -169,7 +169,7 @@ class TestNormalize(TestCase):
 			'\n'.join([
 				'while a:',
 				'  while b:',
-				'    break',
+				'    continue',
 				'  break',
 			]),
 			[
@@ -181,7 +181,7 @@ class TestNormalize(TestCase):
 				(3, 'name', 'b'),
 				(4, 'var', [3]),
 				(5, 'while', 8),
-				(6, 'jump', 8),
+				(6, 'jump', 3),
 				(7, 'jump', 3),
 				# / while b:
 				(8, 'jump', 10),

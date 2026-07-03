@@ -105,7 +105,7 @@ class PythonASTSerializer:
 		tree = as_a(ASTTree, entry)
 		iter = serializer.normalize(tree.children[1], seq + 1)
 		name = serializer.normalize(tree.children[0], iter[-1].index + 2)
-		block = serializer.normalize(tree.children[2], name[-1].index + 4)
+		block = serializer.normalize(tree.children[2], name[-1].index + 5)
 		for_begin = name[-1].index
 		for_end = block[-1].index + 1
 		iter_name = ASTNormal(seq, cls.Rules.Name, f'#{seq}')
@@ -114,6 +114,7 @@ class PythonASTSerializer:
 			ASTNormal(for_begin + 1, cls.Rules.Name, iter_name.string),
 			ASTNormal(for_begin + 2, cls.Rules.Var, [for_begin + 1]),
 			ASTNormal(for_begin + 3, cls.Rules.Next, for_end),
+			ASTNormal(for_begin + 4, cls.Rules.Move, [for_begin, for_begin + 3]),
 		]
 		block[-1] = ASTNormal(block[-1].index, cls.Rules.Jump, for_begin)
 		normalized = [iter_name, *iter, iter_move, *name, *iter_next, *block]

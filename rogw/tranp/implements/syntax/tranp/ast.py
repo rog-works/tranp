@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import TypeAlias
+from typing import NamedTuple, TypeAlias
 
 from rogw.tranp.implements.syntax.tranp.token import Token
 
@@ -131,20 +131,12 @@ class ASTTree:
 		return _normalizer.normalize(self)
 
 
-class ASTNormal:
+class ASTNormal(NamedTuple):
 	"""AST正規化エントリー"""
 
-	def __init__(self, index: int, name: str, context: int | str | list[int]) -> None:
-		"""インスタンスを生成
-
-		Args:
-			index: エントリーインデックス
-			name: コマンド名
-			context: コンテキスト
-		"""
-		self.index = index
-		self.name = name
-		self.context = context
+	index: int
+	name: str
+	context: int | str | list[int]
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
@@ -155,17 +147,6 @@ class ASTNormal:
 		data = (self.index, self.name, self.context)
 		return str(data)
 	
-	def __eq__(self, other: 'ASTNormal | tuple') -> bool:
-		"""Args: other: 比較対象 Returns: 比較結果"""
-		if isinstance(other, tuple):
-			return self.index == other[0] and self.name == other[1] and self.context == other[2]
-		else:
-			return self.index == other.index and self.name == self.name and self.context == self.context
-
-	def __ne__(self, other: 'ASTNormal | tuple') -> bool:
-		"""Args: other: 比較対象 Returns: 比較結果"""
-		return not self.__eq__(other)
-
 	@property
 	def string(self) -> str:
 		"""Returns: トークン文字列 Raises: AssetionError: トークン型以外で使用"""

@@ -23,11 +23,11 @@ from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.fixture_py2cpp_exp
 
 
 def verbose_on() -> bool:
-	return 'PYVERBOSE' in os.environ
+	return 'TRANPVERBOSE' in os.environ
 
 
 def profiler_on() -> bool:
-	return 'PYPROFILE' in os.environ
+	return 'TRANPPROFILE' in os.environ
 
 
 def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:

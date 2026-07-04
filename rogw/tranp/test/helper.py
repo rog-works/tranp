@@ -2,14 +2,15 @@ import functools
 import os
 from collections.abc import Callable
 
-__PYTESTINDEX = int(os.environ.get('PYTESTINDEX', -1))
+__TRANPTESTINDEX = int(os.environ.get('TRANPTESTINDEX', -1))
 
 
-def data_provider(args_list: list[tuple]) -> Callable:
+def data_provider(args_list: list[tuple], test_target_at: int = -1) -> Callable:
 	"""テストメソッドにデータを注入するデコレーター
 
 	Args:
 		args_list: 注入する引数リスト
+		test_target_at: 実行対象インデックス (default = -1)
 	Returns:
 		デコレーター
 	Note:
@@ -19,7 +20,9 @@ def data_provider(args_list: list[tuple]) -> Callable:
 		@functools.wraps(test_func)
 		def wrapper(self, *_):
 			for index, provide_args in enumerate(args_list):
-				if __PYTESTINDEX != -1 and __PYTESTINDEX != index:
+				if __TRANPTESTINDEX != -1 and __TRANPTESTINDEX != index:
+					continue
+				elif test_target_at != -1 and test_target_at != index:
 					continue
 
 				try:

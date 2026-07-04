@@ -320,7 +320,7 @@ class ProgreessMonitor:
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.peek = 0
-		self.verbose = 'PYVERBOSE' in os.environ
+		self.verbose = 'TRANPVERBOSE' in os.environ
 
 	def start(self, tokens: list[Token]) -> None:
 		"""ログ出力(開始) Args: tokens: トークンリスト"""

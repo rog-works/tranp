@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import TypeAlias
 
 from rogw.tranp.implements.syntax.tranp.token import Token
@@ -5,7 +6,7 @@ from rogw.tranp.implements.syntax.tranp.token import Token
 TupleToken: TypeAlias = tuple[str, str]
 TupleTree: TypeAlias = tuple[str, list['TupleToken | TupleTree']]
 TupleEntry: TypeAlias = TupleToken | TupleTree
-
+ASTEntry: TypeAlias = 'ASTToken | ASTTree'
 
 class ASTToken:
 	"""AST(トークン)"""
@@ -118,28 +119,127 @@ class ASTTree:
 		"""Args: other: 比較対象 Returns: True = 不一致"""
 		return not self.__eq__(other)
 
-	def normalize(self) -> list['ASTNormal']:
-		"""Returns: 正規化形式"""
-		return self._normalize(self, 0)[1]
+	def normalize(self, serializer: 'ASTNormalizer') -> list['ASTNormal']:
+		return serializer.normalize(self)
 
-	def _normalize(self, entry: 'ASTEntry', seq: int = 0) -> tuple[int, list['ASTNormal']]:
-		"""Args: entry: ASTエントリー, seq: 採番インデックス Returns: 正規化形式"""
-		if isinstance(entry, ASTToken):
-			return seq, [(seq, entry.name, entry.value.string, [])]
 
+class ASTNormal:
+	"""AST正規化エントリー"""
+
+	def __init__(self, index: int, name: str, context: int | str | list[int]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			index: エントリーインデックス
+			name: コマンド名
+			context: コンテキスト
+		"""
+		self.index = index
+		self.name = name
+		self.context = context
+
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		return f'<{self.__class__.__name__}[{self.name}]: #{self.index}, {self.context}>'
+
+	def __str__(self) -> str:
+		"""Returns: 文字列表現"""
+		data = (self.index, self.name, self.context)
+		return str(data)
+	
+	def __eq__(self, other: 'ASTNormal | tuple') -> bool:
+		"""Args: other: 比較対象 Returns: 比較結果"""
+		if isinstance(other, tuple):
+			return self.index == other[0] and self.name == other[1] and self.context == other[2]
+		else:
+			return self.index == other.index and self.name == self.name and self.context == self.context
+
+	def __ne__(self, other: 'ASTNormal | tuple') -> bool:
+		"""Args: other: 比較対象 Returns: 比較結果"""
+		return not self.__eq__(other)
+
+	@property
+	def string(self) -> str:
+		"""Returns: トークン文字列 Raises: AssetionError: トークン型以外で使用"""
+		assert isinstance(self.context, str)
+		return self.context
+
+	@property
+	def child_ids(self) -> list[int]:
+		"""Returns: 配下要素のIDリスト Raises: AssetionError: ツリー型以外で使用"""
+		assert isinstance(self.context, list)
+		return self.context
+
+	@property
+	def jump_at(self) -> int:
+		"""Returns: ジャンプ先のインデックス Raises: AssetionError: ジャンプ型以外で使用"""
+		assert isinstance(self.context, int)
+		return self.context
+
+
+class ASTNormalizer:
+	"""AST正規化ミドルウェア"""
+
+	Hander: TypeAlias = Callable[[ASTEntry, int], list[ASTNormal]]
+
+	def __init__(self) -> None:
+		"""インスタンスを生成"""
+		self._handlers: dict[str, ASTNormalizer.Hander] = {}
+
+	def on(self, name: str, callback: Hander) -> None:
+		"""ミドルウェアハンドラーを登録
+
+		Args:
+			name: コマンド名
+			callback: ハンドラー
+		"""
+		self._handlers[name] = callback
+
+	def normalize(self, entry: ASTEntry, seq: int = 0) -> list[ASTNormal]:
+		"""ASTを正規化
+
+		Args:
+			entry: ASTエントリー
+			seq: 出力インデックス (default = 0)
+		Returns:
+			正規化したAST
+		"""
+		if entry.name in self._handlers:
+			return self._handlers[entry.name](entry, seq)
+		elif isinstance(entry, ASTToken):
+			return self.normalize_token(entry, seq)
+		else:
+			return self.normalize_tree(entry, seq)
+
+	def normalize_token(self, token: ASTToken, seq: int) -> list[ASTNormal]:
+		"""ASTトークンを正規化
+
+		Args:
+			token: ASTトークン
+			seq: 出力インデックス
+		Returns:
+			正規化したAST
+		"""
+		return [ASTNormal(seq, token.name, token.value.string)]
+
+	def normalize_tree(self, tree: ASTTree, seq: int) -> list[ASTNormal]:
+		"""ASTツリーを正規化
+
+		Args:
+			tree: ASTツリー
+			seq: 出力インデックス
+		Returns:
+			正規化したAST
+		"""
 		entries: list[ASTNormal] = []
 		child_ids: list[int] = []
 		offset = 0
-		for child in entry.children:
-			child_id, nomalized = self._normalize(child, seq + offset)
-			child_ids.append(child_id)
-			entries.extend(nomalized)
-			offset += len(nomalized)
+		for child in tree.children:
+			normalized = self.normalize(child, seq + offset)
+			child_ids.append(normalized[-1].index)
+			entries.extend(normalized)
+			offset += len(normalized)
 
 		tree_id = seq + offset
-		entries.append((tree_id, entry.name, '', child_ids))
-		return tree_id, entries
-
-
-ASTEntry: TypeAlias = 'ASTToken | ASTTree'
-ASTNormal: TypeAlias = tuple[int, str, str, list[int]]
+		entries.append(ASTNormal(tree_id, tree.name, child_ids))
+		return entries

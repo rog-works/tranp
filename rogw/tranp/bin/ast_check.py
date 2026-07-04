@@ -8,7 +8,7 @@ from lark.indenter import PythonIndenter
 
 from data.syntax.gram_rules import gram_rules
 from data.syntax.gram_tokenizer import gram_tokenizer
-from data.syntax.py_serializer import PythonASTSerializer
+from data.syntax.py_serializer import PythonASTNormalizer
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import tty
 from rogw.tranp.implements.syntax.tranp.rule import Rules
@@ -181,7 +181,7 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 			if not self.args.normalize:
 				return tree.pretty()
 
-			normalized = PythonASTSerializer.normalize(tree)
+			normalized = tree.normalize(PythonASTNormalizer())
 			return '\n'.join([
 				tree.pretty(),
 				'----------',

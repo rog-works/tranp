@@ -1,8 +1,8 @@
 from unittest import TestCase
 
 from data.syntax.py_rules import py_rules
-from data.syntax.py_serializer import PythonASTSerializer
-from rogw.tranp.implements.syntax.tranp.serializer import ASTNormal
+from data.syntax.py_serializer import PythonASTNormalizer
+from rogw.tranp.implements.syntax.tranp.ast import ASTNormal
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.test.helper import data_provider
 
@@ -293,11 +293,11 @@ class TestNormalize(TestCase):
 	def test_normalize(self, code: str, expected: list[ASTNormal]) -> None:
 		parser = SyntaxParser(py_rules())
 		tree = parser.parse(code, 'entry')
-		actual = PythonASTSerializer.normalize(tree)
+		actual = tree.normalize(PythonASTNormalizer())
 		try:
 			self.assertEqual(expected, actual)
 		except AssertionError:
 			for entry in actual:
-				print(*entry, sep=', ')
+				print(entry)
 
 			raise

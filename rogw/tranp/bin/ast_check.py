@@ -179,14 +179,14 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other -n path/to/no
 		gram_ast = gram_parser.parse(grammar, 'entry')
 		rules = Rules.from_ast(gram_ast.simplify())
 		parser = SyntaxParser(rules)
-		normalizer = self.resolve_normalizer(self.args.normalizer)
+		normalizer_type = self.resolve_normalizer(self.args.normalizer)
 
 		def callback(source: str) -> str:
 			tree = parser.parse(source, 'entry')
 			if not self.args.normalizer:
 				return tree.pretty()
 
-			normalized = tree.normalize(normalizer)
+			normalized = tree.normalize(normalizer_type)
 			return '\n'.join([
 				tree.pretty(),
 				'----------',
@@ -197,13 +197,13 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other -n path/to/no
 
 		return callback
 	
-	def resolve_normalizer(self, filepath: str) -> ASTNormalizer | None:
+	def resolve_normalizer(self, filepath: str) -> type[ASTNormalizer] | None:
 		"""AST正規化ミドルウェアを解決
 
 		Args:
 			filepath: ミドルウェアのファイルパス
 		Returns:
-			AST正規化ミドルウェア | None
+			AST正規化ミドルウェアの型 | None
 		Raises:
 			ValueError: ミドルウェアの解決に失敗
 		"""
@@ -214,7 +214,7 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other -n path/to/no
 		module = import_module(filepath_to_module_path(abs_filepath, os.getcwd()))
 		for value in module.__dict__.values():
 			if isinstance(value, type) and issubclass(value, ASTNormalizer):
-				return value()
+				return value
 
 		raise ValueError(f'Unresolve ASTNormalizer. filepath: {filepath}')
 

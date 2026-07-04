@@ -1,6 +1,7 @@
 import os
 import sys
 from collections.abc import Callable
+from importlib import import_module
 from typing import TypeAlias, TypedDict
 
 from lark import Lark
@@ -8,14 +9,15 @@ from lark.indenter import PythonIndenter
 
 from data.syntax.gram_rules import gram_rules
 from data.syntax.gram_tokenizer import gram_tokenizer
-from data.syntax.py_serializer import PythonASTNormalizer
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import tty
+from rogw.tranp.implements.syntax.tranp.ast import ASTNormalizer
 from rogw.tranp.implements.syntax.tranp.rule import Rules
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.lang.error import stacktrace
+from rogw.tranp.lang.module import filepath_to_module_path, load_module, load_module_path
 
-DictArgs = TypedDict('DictArgs', {'input': str, 'parser': str, 'grammar': str, 'normalize': bool, 'help': bool})
+DictArgs = TypedDict('DictArgs', {'input': str, 'parser': str, 'grammar': str, 'normalizer': str, 'help': bool})
 Parser: TypeAlias = Callable[[str], str]
 
 
@@ -32,7 +34,7 @@ class Args:
 		self.input = args['input']
 		self.parser = args['parser']
 		self.grammar = args['grammar']
-		self.normalize = args['normalize']
+		self.normalizer = args['normalizer']
 		self.help = args['help']
 
 	def parse(self, argv: list[str]) -> DictArgs:
@@ -47,7 +49,7 @@ class Args:
 			'input': '',
 			'parser': 'lark',
 			'grammar': os.path.join(tranp_dir(), 'data/grammar.lark'),
-			'normalize': False,
+			'normalizer': '',
 			'help': False,
 		}
 		while len(argv) != 0:
@@ -59,7 +61,7 @@ class Args:
 			elif arg == '-g':
 				args['grammar'] = argv.pop(0)
 			elif arg == '-n':
-				args['normalize'] = True
+				args['normalizer'] = argv.pop(0)
 			elif arg == '-h':
 				args['help'] = True
 
@@ -94,22 +96,24 @@ class App:
 	def run_help(self) -> None:
 		"""実行処理(ヘルプ)"""
 		print("""# Usage
-$ bin/ast.sh [-i source_path] [-g grammar_path] [-p parser_name] [-h]
+$ bin/ast.sh [-i source_path] [-g grammar_path] [-p parser_name] [-n normalizer_path or "default"] [-h]
 # Options
 -i: Input source file
 -g: Input grammar file
 -p: Usage parser name (default="lark")
--n: Dump normalize
+-n: Normalizer file path
 -h: Show help
 # Examples
 ## Interactive mode
 $ bin/ast.sh
 $ bin/ast.sh -g path/to/grammar.lark
 $ bin/ast.sh -g path/to/grammar.lark -p other
+$ bin/ast.sh -g path/to/grammar.lark -p other -n default
 ## Command line mode
 $ bin/ast.sh -i path/to/source.py
 $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark
 $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
+$ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other -n path/to/normalizer.py
 """)
 
 	def run_parse(self) -> None:
@@ -175,13 +179,14 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 		gram_ast = gram_parser.parse(grammar, 'entry')
 		rules = Rules.from_ast(gram_ast.simplify())
 		parser = SyntaxParser(rules)
+		normalizer = self.resolve_normalizer(self.args.normalizer)
 
 		def callback(source: str) -> str:
 			tree = parser.parse(source, 'entry')
-			if not self.args.normalize:
+			if not self.args.normalizer:
 				return tree.pretty()
 
-			normalized = tree.normalize(PythonASTNormalizer())
+			normalized = tree.normalize(normalizer)
 			return '\n'.join([
 				tree.pretty(),
 				'----------',
@@ -191,6 +196,27 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 			])
 
 		return callback
+	
+	def resolve_normalizer(self, filepath: str) -> ASTNormalizer | None:
+		"""AST正規化ミドルウェアを解決
+
+		Args:
+			filepath: ミドルウェアのファイルパス
+		Returns:
+			AST正規化ミドルウェア | None
+		Raises:
+			ValueError: ミドルウェアの解決に失敗
+		"""
+		abs_filepath = os.path.abspath(filepath)
+		if not os.path.exists(filepath):
+			return None
+
+		module = import_module(filepath_to_module_path(abs_filepath, os.getcwd()))
+		for value in module.__dict__.values():
+			if isinstance(value, type) and issubclass(value, ASTNormalizer):
+				return value()
+
+		raise ValueError(f'Unresolve ASTNormalizer. filepath: {filepath}')
 
 
 if __name__ == '__main__':

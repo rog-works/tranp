@@ -119,8 +119,16 @@ class ASTTree:
 		"""Args: other: 比較対象 Returns: True = 不一致"""
 		return not self.__eq__(other)
 
-	def normalize(self, serializer: 'ASTNormalizer') -> list['ASTNormal']:
-		return serializer.normalize(self)
+	def normalize(self, normalizer: 'ASTNormalizer | None' = None) -> list['ASTNormal']:
+		"""ASTを正規化
+
+		Args:
+			normalizer: AST正規化ミドルウェア (default = None)
+		Returns:
+			正規化したAST
+		"""
+		_normalizer = normalizer if normalizer else ASTNormalizer()
+		return _normalizer.normalize(self)
 
 
 class ASTNormal:

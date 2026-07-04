@@ -9,13 +9,13 @@ from rogw.tranp.test.helper import data_provider
 class TestASTTree(TestCase):
 	@data_provider([
 		('self.data.models', [
-			(0, 'name', 'self', []),
-			(1, 'var', '', [0]),
-			(2, 'name', 'data', []),
-			(3, 'relay', '', [1, 2]),
-			(4, 'name', 'models', []),
-			(5, 'relay', '', [3, 4]),
-			(6, 'entry', '', [5]),
+			(0, 'name', 'self'),
+			(1, 'var', [0]),
+			(2, 'name', 'data'),
+			(3, 'relay', [1, 2]),
+			(4, 'name', 'models'),
+			(5, 'relay', [3, 4]),
+			(6, 'entry', [5]),
 		]),
 	])
 	def test_normalize(self, source: str, expected: list[ASTNormal]) -> None:

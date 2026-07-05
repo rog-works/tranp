@@ -213,7 +213,7 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other -n path/to/no
 
 		module = import_module(filepath_to_module_path(abs_filepath, os.getcwd()))
 		for value in module.__dict__.values():
-			if isinstance(value, type) and issubclass(value, ASTNormalizer):
+			if isinstance(value, type) and value != ASTNormalizer and issubclass(value, ASTNormalizer):
 				return value
 
 		raise ValueError(f'Unresolve ASTNormalizer. filepath: {filepath}')

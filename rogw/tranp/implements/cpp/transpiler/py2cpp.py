@@ -1699,8 +1699,8 @@ class PatternParser:
 	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
 	SuperCallPattern: ClassVar[re.Pattern] = re.compile(r'([\w\d]+)::__init__\((.*)\);$')
 	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
-	MoveDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'=\s*([^;]+);$')
-	InitDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'({[^;]*});$')
+	MoveDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'=\s*([^;]+)')
+	InitDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'({[^;]*})')
 	CVarRelaySubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
 	CVarToSubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
 

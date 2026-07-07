@@ -666,7 +666,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
 		annotations = [self.transpile(annotation) for annotation in node.var_type.annotations] if isinstance(node.var_type, defs.Type) else []
-		return self.render(node, f'element/{node.classification}', vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotations': annotations})
+		return self.render(node, f'element/{node.classification}', vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'is_pack_position': node.is_pack_position, 'is_pack_keyward': node.is_pack_keyward, 'annotations': annotations})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
 		return self.render(node, f'element/{node.classification}', vars={'path': path, 'arguments': arguments})
@@ -799,7 +799,7 @@ class Py2Cpp(ITranspiler):
 	# Primary
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		return self.render(node, f'expression/{node.classification}', vars={'label': label, 'value': value})
+		return self.render(node, f'expression/{node.classification}', vars={'label': label, 'value': value, 'is_pack_position': node.is_pack_position, 'is_pack_keyward': node.is_pack_keyward})
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type

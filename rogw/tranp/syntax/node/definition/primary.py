@@ -34,6 +34,14 @@ class Argument(Node):
 		children = self._children()
 		return children[1] if len(children) == 2 else children[0]
 
+	@property
+	def is_pack_position(self) -> bool:
+		return self.tag == 'starargs'
+
+	@property
+	def is_pack_keyward(self) -> bool:
+		return self.tag == 'kwargs'
+
 
 @Meta.embed(Node, accept_tags('typed_argvalue'))
 class InheritArgument(Node):

@@ -50,6 +50,14 @@ class Parameter(Node, IDeclaration, ISymbol):
 	def declare(self) -> 'Parameter':
 		return self
 
+	@property
+	def is_pack_position(self) -> bool:
+		return self.tag == 'starparam'
+
+	@property
+	def is_pack_keyward(self) -> bool:
+		return self.tag == 'kwparams'
+
 
 @Meta.embed(Node, accept_tags('decorator'))
 class Decorator(Node):

@@ -15,7 +15,7 @@ from rogw.tranp.syntax.node.interface import IDeclaration, ISymbol
 from rogw.tranp.syntax.node.node import Node
 
 
-@Meta.embed(Node, accept_tags('argvalue'))
+@Meta.embed(Node, accept_tags('argvalue', 'starargs', 'kwargs'))
 class Argument(Node):
 	"""Note: FIXME starargs/kwargsを受け入れるが、現状は通常の引数と同様に扱う"""
 

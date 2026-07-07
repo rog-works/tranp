@@ -1099,33 +1099,31 @@ class TestDefinition(TestCase):
 			self.assertEqual(type(argument.value), in_expected['var_type'])
 
 	@data_provider([
-		('def f(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', {'symbol': 'n', 'var_type': defs.VarOfType, 'default_value': defs.Empty, 'is_pack_position': False, 'is_pack_keyward': False}),
-		('def f(*args: Any) -> None: ...', 'file_input.function_def.function_def_raw.parameters.starparam', {'symbol': 'args', 'var_type': defs.VarOfType, 'default_value': defs.Empty, 'is_pack_position': True, 'is_pack_keyward': False}),
-		('def f(**kwargs: Any) -> None: ...', 'file_input.function_def.function_def_raw.parameters.kwparams', {'symbol': 'kwargs', 'var_type': defs.VarOfType, 'default_value': defs.Empty, 'is_pack_position': False, 'is_pack_keyward': True}),
+		('def f(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', {'symbol': 'n', 'var_type': defs.VarOfType, 'default_value': defs.Empty, 'packing': ''}),
+		('def f(*args: Any) -> None: ...', 'file_input.function_def.function_def_raw.parameters.starparam', {'symbol': 'args', 'var_type': defs.VarOfType, 'default_value': defs.Empty, 'packing': '*'}),
+		('def f(**kwargs: Any) -> None: ...', 'file_input.function_def.function_def_raw.parameters.kwparams', {'symbol': 'kwargs', 'var_type': defs.VarOfType, 'default_value': defs.Empty, 'packing': '**'}),
 	])
 	def test_parameter(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Parameter)
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertIsInstance(node.default_value, expected['default_value'])
-		self.assertEqual(node.is_pack_position, expected['is_pack_position'])
-		self.assertEqual(node.is_pack_keyward, expected['is_pack_keyward'])
+		self.assertEqual(node.packing, expected['packing'])
 
 	@data_provider([
-		('a(a, 1, True)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'Empty', 'value': defs.Integer, 'is_pack_position': False, 'is_pack_keyward': False}),
-		('a(1, *a, **b)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Var, 'is_pack_position': True, 'is_pack_keyward': False}),
-		('a(*[], **c)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.List, 'is_pack_position': True, 'is_pack_keyward': False}),
-		('a(**{})', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Dict, 'is_pack_position': False, 'is_pack_keyward': True}),
-		('a(*())', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Tuple, 'is_pack_position': True, 'is_pack_keyward': False}),
-		('a(1, **c)', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Var, 'is_pack_position': False, 'is_pack_keyward': True}),
-		('a(a, label=b, c)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'label', 'value': defs.Var, 'is_pack_position': False, 'is_pack_keyward': False}),
+		('a(a, 1, True)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'Empty', 'value': defs.Integer, 'packing': ''}),
+		('a(1, *a, **b)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Var, 'packing': '*'}),
+		('a(*[], **c)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.List, 'packing': '*'}),
+		('a(**{})', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Dict, 'packing': '**'}),
+		('a(*())', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Tuple, 'packing': '*'}),
+		('a(1, **c)', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Var, 'packing': '**'}),
+		('a(a, label=b, c)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'label', 'value': defs.Var, 'packing': ''}),
 	])
 	def test_argument(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Argument)
 		self.assertEqual(node.label.tokens if not node.label.is_a(defs.Empty) else 'Empty', expected['label'])
 		self.assertEqual(type(node.value), expected['value'])
-		self.assertEqual(node.is_pack_position, expected['is_pack_position'])
-		self.assertEqual(node.is_pack_keyward, expected['is_pack_keyward'])
+		self.assertEqual(node.packing, expected['packing'])
 
 	@data_provider([
 		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue', {'class_type': defs.VarOfType}),

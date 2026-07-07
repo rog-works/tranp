@@ -51,12 +51,8 @@ class Parameter(Node, IDeclaration, ISymbol):
 		return self
 
 	@property
-	def is_pack_position(self) -> bool:
-		return self.tag == 'starparam'
-
-	@property
-	def is_pack_keyward(self) -> bool:
-		return self.tag == 'kwparams'
+	def packing(self) -> str:
+		return '*' if self.tag == 'starparam' else ('**' if self.tag == 'kwparams' else '')
 
 
 @Meta.embed(Node, accept_tags('decorator'))

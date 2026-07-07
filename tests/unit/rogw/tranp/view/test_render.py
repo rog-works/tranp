@@ -176,8 +176,8 @@ class TestRenderer(TestCase):
 		self.assertRender('class/alt_class', vars, expected)
 
 	@data_provider([
-		({'label': '', 'value': 1, 'is_pack_position': False, 'is_pack_keyward': False}, '1'),
-		({'label': 'a', 'value': 1, 'is_pack_position': False, 'is_pack_keyward': False}, '1'),
+		({'label': '', 'value': 1}, '1'),
+		({'label': 'a', 'value': 1}, '1'),
 	])
 	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('expression/argument', vars, expected)
@@ -1473,12 +1473,12 @@ class TestRenderer(TestCase):
 		self.assertRender('element/parameter', vars, expected)
 
 	@data_provider([
-		({'receiver': 'raw', 'move': 'ToAddress', 'is_pack_position': False, 'is_pack_keyward': False}, '(&(raw))'),
-		({'receiver': 'addr', 'move': 'ToActual', 'is_pack_position': False, 'is_pack_keyward': False}, '(*(addr))'),
-		({'receiver': 'sp', 'move': 'UnpackSmart', 'is_pack_position': False, 'is_pack_keyward': False}, '(sp).get()'),
-		({'receiver': 'sp', 'move': 'ToWeak', 'is_pack_position': False, 'is_pack_keyward': False}, 'sp'),
-		({'receiver': 'wp', 'move': 'ToShared', 'is_pack_position': False, 'is_pack_keyward': False}, '(wp).lock()'),
-		({'receiver': 'raw', 'move': 'Copy', 'is_pack_position': False, 'is_pack_keyward': False}, 'raw'),
+		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),
+		({'receiver': 'addr', 'move': 'ToActual'}, '(*(addr))'),
+		({'receiver': 'sp', 'move': 'UnpackSmart'}, '(sp).get()'),
+		({'receiver': 'sp', 'move': 'ToWeak'}, 'sp'),
+		({'receiver': 'wp', 'move': 'ToShared'}, '(wp).lock()'),
+		({'receiver': 'raw', 'move': 'Copy'}, 'raw'),
 	])
 	def test_render_relay_cvar_to(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('relay/cvar_to', vars, expected)

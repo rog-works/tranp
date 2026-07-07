@@ -35,7 +35,7 @@ class Argument(Node):
 		return children[1] if len(children) == 2 else children[0]
 
 	@property
-	def packing(self) -> str:
+	def unpacking(self) -> str:
 		return '*' if self.tag == 'starargs' else ('**' if self.tag == 'kwargs' else '')
 
 

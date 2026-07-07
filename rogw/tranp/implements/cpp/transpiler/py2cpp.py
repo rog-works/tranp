@@ -799,7 +799,7 @@ class Py2Cpp(ITranspiler):
 	# Primary
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		return self.render(node, f'expression/{node.classification}', vars={'label': label, 'value': value, 'packing': node.packing})
+		return self.render(node, f'expression/{node.classification}', vars={'label': label, 'value': value, 'unpacking': node.unpacking})
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type

@@ -1111,19 +1111,19 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.packing, expected['packing'])
 
 	@data_provider([
-		('a(a, 1, True)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'Empty', 'value': defs.Integer, 'packing': ''}),
-		('a(1, *a, **b)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Var, 'packing': '*'}),
-		('a(*[], **c)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.List, 'packing': '*'}),
-		('a(**{})', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Dict, 'packing': '**'}),
-		('a(*())', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Tuple, 'packing': '*'}),
-		('a(1, **c)', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Var, 'packing': '**'}),
-		('a(a, label=b, c)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'label', 'value': defs.Var, 'packing': ''}),
+		('a(a, 1, True)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'Empty', 'value': defs.Integer, 'unpacking': ''}),
+		('a(1, *a, **b)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Var, 'unpacking': '*'}),
+		('a(*[], **c)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.List, 'unpacking': '*'}),
+		('a(**{})', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Dict, 'unpacking': '**'}),
+		('a(*())', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Tuple, 'unpacking': '*'}),
+		('a(1, **c)', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Var, 'unpacking': '**'}),
+		('a(a, label=b, c)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'label', 'value': defs.Var, 'unpacking': ''}),
 	])
 	def test_argument(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Argument)
 		self.assertEqual(node.label.tokens if not node.label.is_a(defs.Empty) else 'Empty', expected['label'])
 		self.assertEqual(type(node.value), expected['value'])
-		self.assertEqual(node.packing, expected['packing'])
+		self.assertEqual(node.unpacking, expected['unpacking'])
 
 	@data_provider([
 		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue', {'class_type': defs.VarOfType}),

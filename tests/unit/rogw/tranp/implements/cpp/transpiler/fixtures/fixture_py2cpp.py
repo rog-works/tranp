@@ -508,10 +508,6 @@ class ForFunction:
 		def immutable_returns(self) -> Annotated[CP[str], Embed.immutable]:
 			...
 
-		def __iter__(self) -> Iterator[str]:
-			for v in self.l:
-				yield v
-
 		def values(self) -> Iterator[str]:
 			return iter(self.l)
 

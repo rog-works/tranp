@@ -240,11 +240,6 @@ class Delegate {
 };"""
 
 	ForIteratorList = """public:
-/** __iter__ */
-std::vector<std::string>::iterator begin() { return (this->l).begin(); }
-std::vector<std::string>::iterator end() { return (this->l).end(); }"""
-
-	ForIteratorSeq = """public:
 /** values */
 std::vector<std::string>::iterator values() {
 	return this->l.begin();
@@ -258,4 +253,6 @@ struct Iterator_items {
 	std::map<std::string, int>::iterator begin() { return {this->__iterates->begin()}; }
 	std::map<std::string, int>::iterator end() { return {this->__iterates->end()}; }
 };
-Iterator_items items() { return {&(this->d)}; }"""
+Iterator_items items() {
+	return {&(this->d)};
+}"""

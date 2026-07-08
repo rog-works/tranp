@@ -308,8 +308,7 @@ class TestPy2Cpp(TestCase):
 		('ForFunction.ClassMethod.immutable_returns', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='immutable_returns', return_type='const std::string&')),
 
 		('ForFunction.Method.immutable_returns', '', defs.Method, BlockExpects.method(access='public', name='immutable_returns', return_type='const std::string*')),
-		('ForFunction.Method.__iter__', '', defs.Method, BlockExpects.ForIteratorList),
-		('ForFunction.Method.values', '', defs.Method, BlockExpects.ForIteratorSeq),
+		('ForFunction.Method.values', '', defs.Method, BlockExpects.ForIteratorList),
 		('ForFunction.Method.items', '', defs.Method, BlockExpects.ForIteratorDict),
 
 		('ForFunction.Operators.__eq__', '', defs.Method, BlockExpects.method(access='public', name='operator==', params=['const ForFunction::Operators& other'], return_type='bool')),

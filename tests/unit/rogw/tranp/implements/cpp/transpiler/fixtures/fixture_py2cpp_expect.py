@@ -244,6 +244,12 @@ class Delegate {
 std::vector<std::string>::iterator begin() { return (this->l).begin(); }
 std::vector<std::string>::iterator end() { return (this->l).end(); }"""
 
+	ForIteratorSeq = """public:
+/** values */
+std::vector<std::string>::iterator values() {
+	return this->l.begin();
+}"""
+
 	ForIteratorDict = """public:
 /** items */
 struct Iterator_items {

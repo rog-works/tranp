@@ -512,6 +512,9 @@ class ForFunction:
 			for v in self.l:
 				yield v
 
+		def values(self) -> Iterator[str]:
+			return iter(self.l)
+
 		def items(self) -> ItemsView[str, int]:
 			return self.d.items()
 

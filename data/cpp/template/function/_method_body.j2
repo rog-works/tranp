@@ -1,5 +1,7 @@
 {%- if symbol == '__iter__' %}
 {% include('function/_iterator_list.j2') %}
+{%- elif return_type.startswith('Iterator') %}
+{% include('function/_iterator_seq.j2') %}
 {%- elif return_type.startswith('ItemsView') %}
 {% include('function/_iterator_dict.j2') %}
 {%- else %}

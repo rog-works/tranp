@@ -1697,7 +1697,8 @@ class PatternParser:
 	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
 	ListSortKeyPattern: ClassVar[re.Pattern[str]] = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
 	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
-	SuperCallPattern: ClassVar[re.Pattern] = re.compile(r'([\w\d]+)::__init__\((.*)\);$')
+	# FIXME 本来は'::'のみだがやんごとなき理由により'.'を受け入れるように対応
+	SuperCallPattern: ClassVar[re.Pattern] = re.compile(r'([\w\d]+)(?:\.|::)__init__\(([^;]*)\)')
 	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
 	MoveDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'=\s*([^;]+)')
 	InitDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'({[^;]*})')

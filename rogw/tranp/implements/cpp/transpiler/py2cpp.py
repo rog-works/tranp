@@ -815,7 +815,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> str:
 		prop_name = self.to_prop_name_by_decl(node)
-		return f'this->{prop_name}'
+		return self.render(node, f'reference/{node.classification}', vars={'prop_name': prop_name})
 
 	def on_decl_local_var(self, node: defs.DeclLocalVar) -> str:
 		return node.tokens

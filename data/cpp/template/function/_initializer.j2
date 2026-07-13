@@ -8,7 +8,7 @@
 	{%- endif -%}
 	{%- for initializer_index in initializer_indexs -%}
 		{%- set statement = statements[initializer_index] -%}
-		{%- set elems = reg_fullmatch('this->([\\w\\d]+)\\s+=\\s+([^;]+);', statement) or reg_fullmatch('this->([\\w\\d]+)(\\{[^;]+\\});', statement) or reg_fullmatch('this->([\\w\\d]+);', statement) -%}
+		{%- set elems = reg_fullmatch('.+\\s+this->([\\w\\d]+)\\s+=\\s+([^;]+);', statement) or reg_fullmatch('.+\\s+this->([\\w\\d]+)(\\{[^;]+\\});', statement) or reg_fullmatch('.+\\s+this->([\\w\\d]+);', statement) -%}
 		{%- set this_var_symbol = elems[1] -%}
 		{%- set this_var_value = elems[2] if elems.lastindex == 2 else '' -%}
 		{%- if loop.index0 > 0 or initializer_index_of_super != -1 %}, {% endif -%}

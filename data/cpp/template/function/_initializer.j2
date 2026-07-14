@@ -1,16 +1,10 @@
 {%- if initializer_indexs or initializer_index_of_super != -1 %}{{ ' : ' -}}
 	{%- if initializer_index_of_super != -1 -%}
-		{%- set statement = statements[initializer_index_of_super] -%}
-		{%- set elems = reg_match('([\\w\\d]+)::__init__\\(([^;]*)\\);$', statement) -%}
-		{%- set super_parent = elems[1] -%}
-		{%- set super_args = elems[2] -%}
-		{{- super_parent }}({{ super_args -}})
+		{%- set super_class, super_args = super_initializer_parse(statements[initializer_index_of_super]) -%}
+		{{- super_class }}({{ super_args -}})
 	{%- endif -%}
 	{%- for initializer_index in initializer_indexs -%}
-		{%- set statement = statements[initializer_index] -%}
-		{%- set elems = reg_fullmatch('.+\\s+this->([\\w\\d]+)\\s+=\\s+([^;]+);', statement) or reg_fullmatch('.+\\s+this->([\\w\\d]+)(\\{[^;]*\\});', statement) or reg_fullmatch('.+\\s+this->([\\w\\d]+);', statement) -%}
-		{%- set this_var_symbol = elems[1] -%}
-		{%- set this_var_value = elems[2] if elems.lastindex == 2 else '' -%}
+		{%- set this_var_symbol, this_var_value = initializer_parse(statements[initializer_index]) -%}
 		{%- if loop.index0 > 0 or initializer_index_of_super != -1 %}, {% endif -%}
 		{%- if this_var_value.startswith('{') -%}
 			{{- this_var_symbol }}{{ this_var_value }}

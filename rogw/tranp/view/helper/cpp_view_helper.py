@@ -1,42 +1,52 @@
 import re
-from typing import cast
+from typing import ClassVar, cast
 
+from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.view.helper.block import BlockParser
 
 
 class CppViewHelper:
 	"""ビューヘルパー(C++用)"""
 
-	class Initializer:
-		"""ヘルパー(C++/イニシャライザー)"""
+	class SuperInitializer:
+		"""ヘルパー(C++/イニシャライザー/スーパーコール)"""
+
+		SuperCall: ClassVar = re.compile(r'([\w\d]+)::__init__\(([^;]*)\);$')
 
 		@classmethod
-		def parse(cls, ) -> 'CppViewHelper.Initializer':
-			...
+		def parse(cls, statement: str) -> tuple[str, str]:
+			"""Args: stetement: ステートメント Returns: (親クラス名, コンストラクター引数)"""
+			return as_a(re.Match, re.search(cls.SuperCall, statement)).group(1, 2)
+
+	class Initializer:
+		"""ヘルパー(C++/イニシャライザー/メンバー初期化)"""
+
+		MoveAssign: ClassVar = re.compile(r'.+\s+this->([\w\d]+)\s+=\s+([^;]+);')
+		Initializer: ClassVar = re.compile(r'.+\s+this->([\w\d]+)(\{[^;]*\});')
+		Empty: ClassVar = re.compile(r'.+\s+this->([\w\d]+);')
+
+		@classmethod
+		def parse(cls, statement: str) -> tuple[str, str]:
+			"""Args: stetement: ステートメント Returns: (シンボル名, 初期化子)"""
+			matches = as_a(re.Match, re.fullmatch(cls.MoveAssign, statement) or re.fullmatch(cls.Initializer, statement) or re.fullmatch(cls.Empty, statement)).groups()
+			return matches[0], (matches[1] if len(matches) == 2 else '')
 
 	class Param:
-		"""ヘルパー(C++/パラメーター)
-
-		Note:
-			```
-			### 期待値
-			1. `int n`
-			2. `int n = 0`
-			3. `int* p`
-			4. `int* p = nullptr`
-			5. `const int& n`
-			XXX C++のシグネシャーを前提とする点に注意
-			```
-		"""
+		"""ヘルパー(C++/パラメーター)"""
 
 		@classmethod
 		def parse(cls, parameter: str) -> 'CppViewHelper.Param':
-			"""パラメーターを元にインスタンスを生成
+			"""Args: parameter: パラメーター Returns: インスタンス
 
-			Args:
-				parameter: パラメーター
-			Returns:
-				インスタンス
+			Note:
+				```
+				### 期待値
+				1. `int n`
+				2. `int n = 0`
+				3. `int* p`
+				4. `int* p = nullptr`
+				5. `const int& n`
+				```
 			"""
 			param_default = BlockParser.break_separator(parameter, '=')
 			param, default_value = param_default if len(param_default) == 2 else (param_default[0], '')
@@ -44,6 +54,7 @@ class CppViewHelper:
 			symbol = type_symbol.pop()
 			var_type = ' '.join(type_symbol)
 			return cls(var_type, symbol, default_value)
+
 		def __init__(self, var_type: str, symbol: str, default_value: str) -> None:
 			"""インスタンスを生成
 

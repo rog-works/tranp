@@ -1,8 +1,10 @@
 import re
+from collections.abc import Callable
 from typing import ClassVar, cast
 
 from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.view.helper.block import BlockParser
+from rogw.tranp.view.render import RendererHelperFactory, RendererSetting
 
 
 class CppViewHelper:
@@ -74,3 +76,23 @@ class CppViewHelper:
 				return cast(re.Match, re.search(r'^(const\s+)?([\w\d\:]+)[^\*&]*[\*&]?', self.var_type))[2]
 			else:
 				return self.var_type.split('<')[0]
+
+
+def super_initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
+	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.SuperInitializer.parse"""
+	return lambda statement: CppViewHelper.SuperInitializer.parse(statement)
+
+
+def initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
+	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Initializer.parse"""
+	return lambda statement: CppViewHelper.Initializer.parse(statement)
+
+
+def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.Param]:
+	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Param.parse"""
+	return lambda parameter: CppViewHelper.Param.parse(parameter)
+
+
+def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
+	"""Returns: (ヘルパー一覧, フィルター一覧) ※C++用"""
+	return ([super_initializer_parse, initializer_parse, parameter_parse], [])

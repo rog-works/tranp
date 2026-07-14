@@ -1,8 +1,8 @@
 from typing import Any
 from unittest import TestCase
 
+from rogw.tranp.implements.cpp.view.cpp_view_helper import CppViewHelper
 from rogw.tranp.test.helper import data_provider
-from rogw.tranp.view.helper.cpp_view_helper import CppViewHelper
 
 
 class TestCppViewHelper(TestCase):

@@ -8,7 +8,6 @@ from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.lang.dict import dict_pluck
 from rogw.tranp.lang.string import is_quoted_literal as _is_quoted_literal
 from rogw.tranp.view.helper.block import BlockParser
-from rogw.tranp.view.helper.cpp_view_helper import CppViewHelper
 from rogw.tranp.view.helper.decorator import DecoratorQuery
 from rogw.tranp.view.render import RendererHelperFactory, RendererSetting
 
@@ -111,23 +110,3 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 			filter_fullmatch,
 		],
 	)
-
-
-def super_initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.SuperInitializer.parse"""
-	return lambda statement: CppViewHelper.SuperInitializer.parse(statement)
-
-
-def initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Initializer.parse"""
-	return lambda statement: CppViewHelper.Initializer.parse(statement)
-
-
-def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.Param]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Param.parse"""
-	return lambda parameter: CppViewHelper.Param.parse(parameter)
-
-
-def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
-	"""Returns: (ヘルパー一覧, フィルター一覧) ※C++用"""
-	return ([super_initializer_parse, initializer_parse, parameter_parse], [])

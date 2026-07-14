@@ -1677,10 +1677,7 @@ class PatternParser:
 	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
 	ListSortKeyPattern: ClassVar[re.Pattern[str]] = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
 	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
-	# FIXME 本来は'::'のみだがやんごとなき理由により'.'を受け入れるように対応
-	SuperCallPattern: ClassVar[re.Pattern] = re.compile(r'([\w\d]+)(?:\.|::)__init__\(([^;]*)\)')
 	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
-	MoveDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'=\s*([^;]+)')
 	InitDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'({[^;]*})')
 	CVarRelaySubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
 	CVarToSubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
@@ -1750,22 +1747,6 @@ class PatternParser:
 		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
 
 	@classmethod
-	def break_super_call(cls, func_call: str) -> tuple[str, str]:
-		"""関数コール(super)から親クラス名と引数リストに分解
-
-		Args:
-			func_call: 文字列
-		Returns:
-			(クラス, 引数リスト)
-		Note:
-			```
-			### 期待値
-			'NS::Class::__init__(arguments...);' -> ('Class', 'arguments...')
-			```
-		"""
-		return cast(re.Match, cls.SuperCallPattern.search(func_call)).group(1, 2)
-
-	@classmethod
 	def pluck_class_var_name(cls, decl_class_var: str) -> str:
 		"""代入式から右辺の部分を抜き出す
 
@@ -1780,28 +1761,6 @@ class PatternParser:
 			```
 		"""
 		matches = cls.DeclClassVarNamePattern.search(decl_class_var)
-		return matches[1] if matches else ''
-
-	@classmethod
-	def pluck_decl_right(cls, assign: str) -> str:
-		"""変数宣言時の代入式から右辺の部分を抜き出す
-
-		Args:
-			assign: 文字列
-		Returns:
-			右辺
-		Note:
-			```
-			### 期待値
-			'path.to = right;' -> 'right'
-			'path.to{right};' -> '{right}'
-			```
-		"""
-		matches = cls.MoveDeclRightPattern.search(assign)
-		if matches:
-			return matches[1]
-
-		matches = cls.InitDeclRightPattern.search(assign)
 		return matches[1] if matches else ''
 
 	@classmethod

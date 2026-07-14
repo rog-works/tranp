@@ -40,7 +40,7 @@ class Expects:
 		}
 
 	@classmethod
-	def constructor(cls, accessor: str, class_symbol: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, initializers: list[int] = [], super_initializer: int = -1) -> dict[str, Any]:
+	def constructor(cls, accessor: str, class_symbol: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, initializer_indexs: list[int] = [], initializer_index_of_super: int = -1) -> dict[str, Any]:
 		return {
 			'symbol': '__init__',
 			'parameters': parameters,
@@ -56,8 +56,8 @@ class Expects:
 			'is_override': is_override,
 			'allow_override': allow_override,
 			# constructor only
-			'initializer_indexs': initializers,
-			'initializer_index_of_super': super_initializer,
+			'initializer_indexs': initializer_indexs,
+			'initializer_index_of_super': initializer_index_of_super,
 		}
 
 	@classmethod
@@ -1187,7 +1187,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'constructor',
-			Expects.constructor(accessor='public', class_symbol='Hoge', parameters=['int base_n = 1', 'int value = 2'], statements=['Base::__init__(base_n);', 'int this->a = 1;', 'int this->b{2};', 'int this->c;', 'this->x = value;'], initializers=[1, 2, 3], super_initializer=0),
+			Expects.constructor(accessor='public', class_symbol='Hoge', parameters=['int base_n = 1', 'int value = 2'], statements=['Base::__init__(base_n);', 'int this->a = 1;', 'int this->b{2};', 'int this->c;', 'this->x = value;'], initializer_indexs=[1, 2, 3], initializer_index_of_super=0),
 			'\n'.join([
 				'public:',
 				'/** __init__ */',

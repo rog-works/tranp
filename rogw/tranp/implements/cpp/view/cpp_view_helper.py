@@ -94,5 +94,5 @@ def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.P
 
 
 def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
-	"""Returns: (ヘルパー一覧, フィルター一覧) ※C++用"""
+	"""Returns: (ヘルパー一覧, フィルター一覧)"""
 	return ([super_initializer_parse, initializer_parse, parameter_parse], [])

@@ -540,7 +540,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		({'initializer_indexs': [], 'initializer_index_of_super': -1, 'statements': ['this->a += 2;']}, ''),
-		({'initializer_indexs': [0, 1], 'initializer_index_of_super': -1, 'statements': ['int this->a = 1;', 'int this->b = 2;', 'this->a += 2;']}, ' : a(1), b(2)'),
+		({'initializer_indexs': [0, 1], 'initializer_index_of_super': -1, 'statements': ['int this->a = 1;', 'int this->b{};', 'this->a += 2;']}, ' : a(1), b{}'),
 		({'initializer_indexs': [], 'initializer_index_of_super': 0, 'statements': ['NS::A::__init__(a, b);', 'this->a += 2;']}, ' : A(a, b)'),
 		({'initializer_indexs': [1], 'initializer_index_of_super': 0, 'statements': ['NS::A::__init__(a, b);', 'int this->a = 1;', 'this->a += 2;']}, ' : A(a, b), a(1)'),
 	])

@@ -1,11 +1,11 @@
 from typing import Any
 from unittest import TestCase
 
+from rogw.tranp.implements.cpp.view.cpp_view_helper import CppViewHelper
 from rogw.tranp.test.helper import data_provider
-from rogw.tranp.view.helper.parameter import ParameterHelper
 
 
-class TestParameterHelper(TestCase):
+class TestCppViewHelper(TestCase):
 	@data_provider([
 		('int n', {'var_type': 'int', 'symbol': 'n', 'default_value': '', 'var_type_origin': 'int'}),
 		('int n = 0', {'var_type': 'int', 'symbol': 'n', 'default_value': '0', 'var_type_origin': 'int'}),
@@ -16,8 +16,8 @@ class TestParameterHelper(TestCase):
 		('const int n', {'var_type': 'const int', 'symbol': 'n', 'default_value': '', 'var_type_origin': 'int'}),
 		('int& n', {'var_type': 'int&', 'symbol': 'n', 'default_value': '', 'var_type_origin': 'int'}),
 	])
-	def test_schema(self, parameter: str, expected: dict[str, Any]) -> None:
-		instance = ParameterHelper.parse(parameter)
+	def test_param_parse(self, parameter: str, expected: dict[str, Any]) -> None:
+		instance = CppViewHelper.Param.parse(parameter)
 		self.assertEqual(instance.var_type, expected['var_type'])
 		self.assertEqual(instance.symbol, expected['symbol'])
 		self.assertEqual(instance.default_value, expected['default_value'])

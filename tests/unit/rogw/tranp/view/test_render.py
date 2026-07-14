@@ -40,7 +40,7 @@ class Expects:
 		}
 
 	@classmethod
-	def constructor(cls, accessor: str, class_symbol: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, initializers: list[dict[str, Any]] = [], super_initializer: dict[str, str] = {}) -> dict[str, Any]:
+	def constructor(cls, accessor: str, class_symbol: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, initializer_indexs: list[int] = [], initializer_index_of_super: int = -1) -> dict[str, Any]:
 		return {
 			'symbol': '__init__',
 			'parameters': parameters,
@@ -56,8 +56,8 @@ class Expects:
 			'is_override': is_override,
 			'allow_override': allow_override,
 			# constructor only
-			'initializers': initializers,
-			'super_initializer': super_initializer,
+			'initializer_indexs': initializer_indexs,
+			'initializer_index_of_super': initializer_index_of_super,
 		}
 
 	@classmethod
@@ -539,10 +539,10 @@ class TestRenderer(TestCase):
 		self.assertRender('comp/comp_for', vars, expected)
 
 	@data_provider([
-		({'initializers': [], 'super_initializer': {}}, ''),
-		({'initializers': [{'symbol': 'a', 'value': '1'}, {'symbol': 'b', 'value': '2'}], 'super_initializer': {}}, ' : a(1), b(2)'),
-		({'initializers': [], 'super_initializer': {'parent': 'A', 'arguments': 'a, b'}}, ' : A(a, b)'),
-		({'initializers': [{'symbol': 'a', 'value': '1'}], 'super_initializer': {'parent': 'A', 'arguments': 'a, b'}}, ' : A(a, b), a(1)'),
+		({'initializer_indexs': [], 'initializer_index_of_super': -1, 'statements': ['this->a += 2;']}, ''),
+		({'initializer_indexs': [0, 1], 'initializer_index_of_super': -1, 'statements': ['int this->a = 1;', 'int this->b{};', 'this->a += 2;']}, ' : a(1), b{}'),
+		({'initializer_indexs': [], 'initializer_index_of_super': 0, 'statements': ['NS::A::__init__(a, b);', 'this->a += 2;']}, ' : A(a, b)'),
+		({'initializer_indexs': [1], 'initializer_index_of_super': 0, 'statements': ['NS::A::__init__(a, b);', 'int this->a = 1;', 'this->a += 2;']}, ' : A(a, b), a(1)'),
 	])
 	def test_render_constructor_initializer(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('function/_initializer', vars, expected)
@@ -1187,7 +1187,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'constructor',
-			Expects.constructor(accessor='public', class_symbol='Hoge', parameters=['int base_n = 1', 'int value = 2'], statements=['this->x = value;'], initializers=[{'symbol': 'a', 'value': '1'}, {'symbol': 'b', 'value': '{2}'}, {'symbol': 'c', 'value': ''}], super_initializer={'parent': 'Base', 'arguments': 'base_n'}),
+			Expects.constructor(accessor='public', class_symbol='Hoge', parameters=['int base_n = 1', 'int value = 2'], statements=['Base::__init__(base_n);', 'int this->a = 1;', 'int this->b{2};', 'int this->c;', 'this->x = value;'], initializer_indexs=[1, 2, 3], initializer_index_of_super=0),
 			'\n'.join([
 				'public:',
 				'/** __init__ */',

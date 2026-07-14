@@ -1,0 +1,21 @@
+{%- if deco_query.contains('Embed.ignore') %}= delete;
+{%- elif is_abstract %}= 0;
+{%- else -%}
+{%- set statement_num = namespace(at=0) -%}
+{%- for statement in statements -%}
+{%- if statement and loop.index0 not in initializer_indexs and loop.index0 != initializer_index_of_super -%}
+{%- set statement_num.at = statement_num.at + 1 -%}
+{%- endif -%}
+{%- endfor -%}
+{%- if statement_num.at == 0 -%}{{ '{}' }}
+{%- else %}{
+{%- filter indent('\t') %}
+{%- for statement in statements -%}
+{%- if statement and loop.index0 not in initializer_indexs and loop.index0 != initializer_index_of_super %}
+{{ statement }}
+{%- endif -%}
+{%- endfor -%}
+{%- endfilter %}
+}
+{%- endif -%}
+{%- endif -%}

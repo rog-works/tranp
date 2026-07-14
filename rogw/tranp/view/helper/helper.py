@@ -9,7 +9,6 @@ from rogw.tranp.lang.dict import dict_pluck
 from rogw.tranp.lang.string import is_quoted_literal as _is_quoted_literal
 from rogw.tranp.view.helper.block import BlockParser
 from rogw.tranp.view.helper.decorator import DecoratorQuery
-from rogw.tranp.view.helper.parameter import ParameterHelper
 from rogw.tranp.view.render import RendererHelperFactory, RendererSetting
 
 
@@ -111,13 +110,3 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 			filter_fullmatch,
 		],
 	)
-
-
-def parameter_parse(setting: RendererSetting) -> Callable[[str], ParameterHelper]:
-	"""Note: @see rogw.tranp.view.helper.parameter.ParameterHelper"""
-	return lambda parameter: ParameterHelper.parse(parameter)
-
-
-def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
-	"""Returns: (ヘルパー一覧, フィルター一覧) ※C++用"""
-	return ([parameter_parse], [])

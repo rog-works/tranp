@@ -560,41 +560,21 @@ class Py2Cpp(ITranspiler):
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		this_vars = node.class_types.as_a(defs.Class).this_vars
 
-		# クラスの初期化ステートメントとそれ以外を分離
+		# 初期化ステートメントのインデックスを収集
 		this_var_declares = [this_var.declare.one_of(*defs.DeclAssignTs) for this_var in this_vars]
-		normal_statements: list[str] = []
-		initializer_statements: list[str] = []
-		super_initializer_statement = ''
+		initializer_indexs: list[int] = []
+		initializer_index_of_super = -1
 		for index, statement in enumerate(node.statements):
 			if statement in this_var_declares:
-				initializer_statements.append(statements[index])
+				initializer_indexs.append(index)
 			elif isinstance(statement, defs.FuncCall) and statement.calls.tokens.endswith('__init__'):
-				super_initializer_statement = statements[index]
-			else:
-				normal_statements.append(statements[index])
-
-		# 親クラスのコンストラクター呼び出しのデータを生成
-		super_initializer = {}
-		if super_initializer_statement:
-			# 期待値: `Class::__init__(a, b, c);`
-			super_class, super_args = PatternParser.break_super_call(super_initializer_statement)
-			super_initializer['parent'] = super_class
-			super_initializer['arguments'] = super_args
-
-		# メンバー変数の宣言用のデータを生成
-		initializers: list[dict[str, str]] = []
-		for index, this_var in enumerate(this_vars):
-			# 期待値: `this->a = 1234;`
-			this_var_name = self.to_prop_name_by_decl(this_var)
-			initial_value = PatternParser.pluck_decl_right(initializer_statements[index])
-			initializer = {'symbol': this_var_name, 'value': initial_value}
-			initializers.append(initializer)
+				initializer_index_of_super = index
 
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = {template_name: True for template_name in [*template_params, *self.fetch_function_template_names(node)]}.keys()
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'allow_override': self.allow_override_from_method(node)}
-		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
+		constructor_vars = {'initializer_indexs': initializer_indexs, 'initializer_index_of_super': initializer_index_of_super}
 		return self.render(node, f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
@@ -1697,10 +1677,7 @@ class PatternParser:
 	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
 	ListSortKeyPattern: ClassVar[re.Pattern[str]] = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
 	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
-	# FIXME 本来は'::'のみだがやんごとなき理由により'.'を受け入れるように対応
-	SuperCallPattern: ClassVar[re.Pattern] = re.compile(r'([\w\d]+)(?:\.|::)__init__\(([^;]*)\)')
 	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
-	MoveDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'=\s*([^;]+)')
 	InitDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'({[^;]*})')
 	CVarRelaySubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
 	CVarToSubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
@@ -1770,22 +1747,6 @@ class PatternParser:
 		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
 
 	@classmethod
-	def break_super_call(cls, func_call: str) -> tuple[str, str]:
-		"""関数コール(super)から親クラス名と引数リストに分解
-
-		Args:
-			func_call: 文字列
-		Returns:
-			(クラス, 引数リスト)
-		Note:
-			```
-			### 期待値
-			'NS::Class::__init__(arguments...);' -> ('Class', 'arguments...')
-			```
-		"""
-		return cast(re.Match, cls.SuperCallPattern.search(func_call)).group(1, 2)
-
-	@classmethod
 	def pluck_class_var_name(cls, decl_class_var: str) -> str:
 		"""代入式から右辺の部分を抜き出す
 
@@ -1800,28 +1761,6 @@ class PatternParser:
 			```
 		"""
 		matches = cls.DeclClassVarNamePattern.search(decl_class_var)
-		return matches[1] if matches else ''
-
-	@classmethod
-	def pluck_decl_right(cls, assign: str) -> str:
-		"""変数宣言時の代入式から右辺の部分を抜き出す
-
-		Args:
-			assign: 文字列
-		Returns:
-			右辺
-		Note:
-			```
-			### 期待値
-			'path.to = right;' -> 'right'
-			'path.to{right};' -> '{right}'
-			```
-		"""
-		matches = cls.MoveDeclRightPattern.search(assign)
-		if matches:
-			return matches[1]
-
-		matches = cls.InitDeclRightPattern.search(assign)
 		return matches[1] if matches else ''
 
 	@classmethod

@@ -634,4 +634,8 @@ class TestPy2Cpp(TestCase):
 		full_path = ModuleDSN.local_joined(via_node.full_path, offset_path)
 		node = self.fixture.shared_module.entrypoint.whole_by(full_path).as_a(expected_type)
 		actual = self.fixture.get(Py2Cpp).transpile(node)
-		self.assertEqual(expected, actual)
+		try:
+			self.assertEqual(expected, actual)
+		except AssertionError:
+			print(actual)
+			raise

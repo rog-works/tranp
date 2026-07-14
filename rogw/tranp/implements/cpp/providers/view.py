@@ -1,4 +1,5 @@
-from rogw.tranp.view.helper.helper import factories, factories_for_cpp
+from rogw.tranp.implements.cpp.view.cpp_view_helper import factories_for_cpp
+from rogw.tranp.view.helper.helper import factories
 from rogw.tranp.view.render import RendererHelperProvider, RendererSetting
 
 

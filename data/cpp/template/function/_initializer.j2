@@ -1,15 +1,17 @@
-{%- if initializers or super_initializer %}{{ ' : ' -}}
-	{%- if super_initializer -%}
-		{{- super_initializer.parent }}({{ super_initializer.arguments -}})
+{%- if initializer_indexs or initializer_index_of_super != -1 %}{{ ' : ' -}}
+	{%- if initializer_index_of_super != -1 -%}
+		{%- set super_class, super_args = super_initializer_parse(statements[initializer_index_of_super]) -%}
+		{{- super_class }}({{ super_args -}})
 	{%- endif -%}
-	{%- for this_var in initializers -%}
-		{%- if loop.index0 or super_initializer %}, {% endif -%}
-		{%- if this_var.value.startswith('{') -%}
-			{{- this_var.symbol }}{{ this_var.value }}
-		{%- elif this_var.value -%}
-			{{- this_var.symbol }}({{ this_var.value -}})
+	{%- for initializer_index in initializer_indexs -%}
+		{%- set this_var_symbol, this_var_value = initializer_parse(statements[initializer_index]) -%}
+		{%- if loop.index0 > 0 or initializer_index_of_super != -1 %}, {% endif -%}
+		{%- if this_var_value.startswith('{') -%}
+			{{- this_var_symbol }}{{ this_var_value }}
+		{%- elif this_var_value -%}
+			{{- this_var_symbol }}({{ this_var_value -}})
 		{%- else -%}
-			{{- this_var.symbol }}{}
+			{{- this_var_symbol }}{}
 		{%- endif -%}
 	{%- endfor -%}
 {%- endif -%}

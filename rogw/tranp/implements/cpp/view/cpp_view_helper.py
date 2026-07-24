@@ -80,17 +80,18 @@ class CppViewHelper:
 	class Method:
 		"""ヘルパー(C++/メソッド)"""
 
-		PatternFor: ClassVar = re.compile(r'for \([^;]+; [\w\d]+ < this->([\w\d]+)([^;]+); [^)]+\) \{')
-		PatternYield: ClassVar = re.compile(r'\s+return this->[\w\d]+\[[^;]+\]([^;]*);')
+		PatternFor: ClassVar = re.compile(r'for \([^;]+; ([\w\d]+) < ([^;]+); ([^)]+)\) \{')
+		PatternYield: ClassVar = re.compile(r'\s+return ([^;]+);')
+		PatternIterates: ClassVar = re.compile(r'this->([\w\d]+)')
 
 		@classmethod
-		def break_iterator_list_complex(cls, statements: list[str]) -> tuple[int, str, str, str]:
+		def break_iterator_list_complex(cls, statements: list[str]) -> tuple[int, str, str, str, str, str]:
 			"""イテレーターメソッドのステートメントを分解
 
 			Args:
 				statements: ステートメントリスト
 			Returns:
-				(ステートメント終了位置, イテレーション要素, サイズ取得, 値取得)
+				(ステートメント終了位置, イテレーション要素, インデックス名, インクリメント, サイズ取得, 値取得)
 			Note:
 				### 期待値
 				```cpp
@@ -104,9 +105,11 @@ class CppViewHelper:
 			for_statements = statements[for_index].split('\n')
 			matches_for = as_a(re.Match, cls.PatternFor.fullmatch(for_statements[0]))
 			matches_yield = as_a(re.Match, cls.PatternYield.fullmatch(for_statements[1]))
-			iterates, get_size = matches_for.group(1, 2)
+			matches_iterates = as_a(re.Match, cls.PatternIterates.search(matches_yield.group(1)))
+			index, get_size, increment = matches_for.group(1, 2, 3)
 			get_value = matches_yield.group(1)
-			return for_index, iterates, get_size, get_value
+			iterates = matches_iterates.group(1)
+			return for_index, iterates, index, increment, get_size, get_value
 
 
 def super_initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
@@ -124,7 +127,7 @@ def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.P
 	return lambda parameter: CppViewHelper.Param.parse(parameter)
 
 
-def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str]]:
+def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str, str, str]]:
 	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.Method.break_iterator_list_complex"""
 	return lambda statements: CppViewHelper.Method.break_iterator_list_complex(statements)
 

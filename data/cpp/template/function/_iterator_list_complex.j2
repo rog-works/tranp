@@ -13,5 +13,5 @@ Iterator_{{ symbol }} {{ symbol }}() {
 	{%- for i in range(begin) %}
 	{{ statements[i] }}
 	{%- endfor %}
-	return Iterator_{{ symbol }}(this->{{ iterates }}, 0);
+	return {this->{{ iterates }}, 0};
 }

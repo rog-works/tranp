@@ -1,5 +1,5 @@
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from enum import Enum
 from typing import Any, ClassVar, Self, TypedDict, TypeVarTuple, cast, override
 
@@ -584,6 +584,11 @@ class Py2Cpp(ITranspiler):
 		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotations': return_type_annotations}
+		# XXX イテレーターメソッド用の特殊化
+		if self.reflections.type_is(self.reflections.type_of(node.return_type).types, Iterator):
+			if isinstance(node.block.statements[0], defs.For):
+				method_vars['iterates_type'] = self.to_accessible_name(self.reflections.type_of(node.block.statements[0].iterates))
+
 		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
 		return self.render(node, f'function/{spec}', vars={**function_vars, **method_vars})
 

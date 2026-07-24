@@ -1153,7 +1153,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'keys',
-				'return_type': 'std::string',
+				'return_type': 'Iterator<std::string>',
 				'iterates_type': 'std::vector<std::tuple<std::string, int>>',
 				'statements': [
 					'\n'.join([

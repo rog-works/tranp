@@ -245,20 +245,20 @@ std::vector<std::string>::iterator values() {
 	return this->l.begin();
 }"""
 
-	ForIteratorListTuple = """public:
-/** keys */
-struct Iterator_keys {
-	std::vector<std::tuple<std::string, int>>& __iterates;
+	ForIteratorList2 = """public:
+/** numbers */
+struct Iterator_numbers {
+	const std::vector<Sub>& __iterates;
 	int __index;
-	Iterator_keys(const std::vector<std::tuple<std::string, int>>& iterates) : __iterates(iterates), __index(index) {}
-	bool operator!=(const Iterator_keys& other) const { return this->__index != other.__index; }
+	Iterator_numbers(const std::vector<Sub>& iterates, int index) : __iterates(iterates), __index(index) {}
+	bool operator!=(const Iterator_numbers& other) const { return this->__index != other.__index; }
 	void operator++() { this->__index += 1; }
-	const std::string& operator*() { return this->__iterates[this->__index].get<0>(); }
-	Iterator_keys begin() { return {this->__iterates, 0}; }
-	Iterator_keys end() { return {this->__iterates, this->__iterates.size()}; }
+	const int& operator*() const { return this->__iterates[this->__index].base_n; }
+	Iterator_numbers begin() const { return {this->__iterates, 0}; }
+	Iterator_numbers end() const { return {this->__iterates, this->__iterates.size()}; }
 };
-Iterator_keys keys() {
-	return {this->lt, 0};
+Iterator_numbers numbers() {
+	return {this->l_sub, 0};
 }"""
 
 	ForIteratorDict = """public:

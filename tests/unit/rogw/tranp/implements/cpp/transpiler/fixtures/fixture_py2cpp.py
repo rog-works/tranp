@@ -500,12 +500,12 @@ class ForFunction:
 	class Method:
 		l: list[str]
 		d: dict[str, int]
-		lt: list[tuple[str, int]]
+		l_sub: list[Sub]
 
 		def __init__(self) -> None:
 			self.l = []
 			self.d = {}
-			self.lt = []
+			self.l_sub = []
 
 		def immutable_returns(self) -> Annotated[CP[str], Embed.immutable]:
 			...
@@ -513,9 +513,9 @@ class ForFunction:
 		def values(self) -> Iterator[str]:
 			return iter(self.l)
 
-		def keys(self) -> Iterator[str]:
-			for index in range(len(self.lt)):
-				yield self.lt[index][0]
+		def numbers(self) -> Iterator[int]:
+			for index in range(len(self.l_sub)):
+				yield self.l_sub[index].base_n
 
 		def items(self) -> ItemsView[str, int]:
 			return self.d.items()

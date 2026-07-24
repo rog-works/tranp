@@ -77,6 +77,35 @@ class CppViewHelper:
 			else:
 				return self.var_type.split('<')[0]
 
+	class Method:
+		"""ヘルパー(C++/メソッド)"""
+
+		@classmethod
+		def break_iterator_list_complex(cls, statements: list[str]) -> tuple[int, str, str, str]:
+			"""イテレーターメソッドのステートメントを分解
+
+			Args:
+				statements: ステートメントリスト
+			Returns:
+				(ステートメント終了位置, イテレーション要素, サイズ取得, 値取得)
+			Note:
+				### 期待値
+				```cpp
+				Iterator<std::string> keys() {
+					for (auto index = 0; index < this->__entries.size(); index += 1) {
+						return this->__entries[index].get<0>();
+					}
+				}
+			"""
+			begin = [index for index, statement in enumerate(statements) if statement.startswith('for ')][0]
+			pattern1 = re.compile(r'for \([^;]+; [\w\d]+ < this->([\w\d]+)([^;]); [^)]+\) \{')
+			pattern2 = re.compile(r'\s+return this->[\w\d]+\[[;]+\](.*);')
+			matches = as_a(re.Match, pattern1.fullmatch(statements[begin]))
+			iterates, get_size = matches.group(1, 2)
+			matches = as_a(re.Match, pattern2.fullmatch(statements[begin + 1]))
+			get_value = matches.group(1)
+			return begin, iterates, get_size, get_value
+
 
 def super_initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
 	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.SuperInitializer.parse"""
@@ -93,6 +122,11 @@ def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.P
 	return lambda parameter: CppViewHelper.Param.parse(parameter)
 
 
+def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str]]:
+	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Param.parse"""
+	return lambda statements: CppViewHelper.Method.break_iterator_list_complex(statements)
+
+
 def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
-	return ([super_initializer_parse, initializer_parse, parameter_parse], [])
+	return ([super_initializer_parse, initializer_parse, parameter_parse, break_iterator_list_complex], [])

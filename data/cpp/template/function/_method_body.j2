@@ -1,4 +1,6 @@
-{%- if return_type.startswith('Iterator') %}
+{%- if return_type.startswith('Iterator') and iterates_type %}
+{% include('function/_iterator_list_complex.j2') %}
+{%- elif return_type.startswith('Iterator') %}
 {% include('function/_iterator_list.j2') %}
 {%- elif return_type.startswith('ItemsView') %}
 {% include('function/_iterator_dict.j2') %}

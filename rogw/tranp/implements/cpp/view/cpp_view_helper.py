@@ -80,6 +80,9 @@ class CppViewHelper:
 	class Method:
 		"""ヘルパー(C++/メソッド)"""
 
+		PatternFor: ClassVar = re.compile(r'for \([^;]+; [\w\d]+ < this->([\w\d]+)([^;]+); [^)]+\) \{')
+		PatternYield: ClassVar = re.compile(r'\s+return this->[\w\d]+\[[^;]+\]([^;]*);')
+
 		@classmethod
 		def break_iterator_list_complex(cls, statements: list[str]) -> tuple[int, str, str, str]:
 			"""イテレーターメソッドのステートメントを分解
@@ -98,12 +101,10 @@ class CppViewHelper:
 				}
 			"""
 			begin = [index for index, statement in enumerate(statements) if statement.startswith('for ')][0]
-			pattern1 = re.compile(r'for \([^;]+; [\w\d]+ < this->([\w\d]+)([^;]+); [^)]+\) \{')
-			pattern2 = re.compile(r'\s+return this->[\w\d]+\[[^;]+\]([^;]*);')
-			matches = as_a(re.Match, pattern1.fullmatch(statements[begin]))
-			iterates, get_size = matches.group(1, 2)
-			matches = as_a(re.Match, pattern2.fullmatch(statements[begin + 1]))
-			get_value = matches.group(1)
+			matches_for = as_a(re.Match, cls.PatternFor.fullmatch(statements[begin]))
+			matches_yield = as_a(re.Match, cls.PatternYield.fullmatch(statements[begin + 1]))
+			iterates, get_size = matches_for.group(1, 2)
+			get_value = matches_yield.group(1)
 			return begin, iterates, get_size, get_value
 
 

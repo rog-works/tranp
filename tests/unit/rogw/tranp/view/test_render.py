@@ -1150,14 +1150,19 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/default', vars, expected)
 
 	@data_provider([
-		({
-			'symbol': 'keys',
-			'return_type': 'std::string',
-			'iterates_type': 'std::vector<std::tuple<std::string, int>>',
-			'statements': [
-				'for (auto index = 0; index < this->entries.size(); index += 1) {',
-				'	return this->entries[index].get<0>();',
-			]},
+		(
+			{
+				'symbol': 'keys',
+				'return_type': 'std::string',
+				'iterates_type': 'std::vector<std::tuple<std::string, int>>',
+				'statements': [
+					'\n'.join([
+						'for (auto index = 0; index < this->entries.size(); index += 1) {',
+						'	return this->entries[index].get<0>();',
+						'}',
+					]),
+				],
+			},
 			'\n'.join([
 				'struct Iterator_keys {',
 				'	const std::vector<std::tuple<std::string, int>>& __iterates;',

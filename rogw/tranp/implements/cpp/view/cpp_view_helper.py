@@ -100,12 +100,13 @@ class CppViewHelper:
 					}
 				}
 			"""
-			begin = [index for index, statement in enumerate(statements) if statement.startswith('for ')][0]
-			matches_for = as_a(re.Match, cls.PatternFor.fullmatch(statements[begin]))
-			matches_yield = as_a(re.Match, cls.PatternYield.fullmatch(statements[begin + 1]))
+			for_index = [index for index, statement in enumerate(statements) if statement.startswith('for ')][0]
+			for_statements = statements[for_index].split('\n')
+			matches_for = as_a(re.Match, cls.PatternFor.fullmatch(for_statements[0]))
+			matches_yield = as_a(re.Match, cls.PatternYield.fullmatch(for_statements[1]))
 			iterates, get_size = matches_for.group(1, 2)
 			get_value = matches_yield.group(1)
-			return begin, iterates, get_size, get_value
+			return for_index, iterates, get_size, get_value
 
 
 def super_initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:

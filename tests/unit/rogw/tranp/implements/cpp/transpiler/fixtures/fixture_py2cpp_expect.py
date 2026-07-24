@@ -245,6 +245,22 @@ std::vector<std::string>::iterator values() {
 	return this->l.begin();
 }"""
 
+	ForIteratorListTuple = """public:
+/** keys */
+struct Iterator_keys {
+	std::vector<std::tuple<std::string, int>>& __iterates;
+	int __index;
+	Iterator_keys(const std::vector<std::tuple<std::string, int>>& iterates) : __iterates(iterates), __index(index) {}
+	bool operator!=(const Iterator_keys& other) const { return this->__index != other.__index; }
+	void operator++() { this->__index += 1; }
+	const std::string& operator*() { return this->__iterates[this->__index].get<0>(); }
+	Iterator_keys begin() { return {this->__iterates, 0}; }
+	Iterator_keys end() { return {this->__iterates, this->__iterates.size()}; }
+};
+Iterator_keys keys() {
+	return {this->lt, 0};
+}"""
+
 	ForIteratorDict = """public:
 /** items */
 struct Iterator_items {

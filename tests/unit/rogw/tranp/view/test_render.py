@@ -1170,7 +1170,7 @@ class TestRenderer(TestCase):
 				'	Iterator_keys end() const { return {this->__iterates, this->__iterates.size()}; }',
 				'};',
 				'Iterator_keys keys() {',
-				'	return Iterator_keys(this->entries, 0);',
+				'	return {this->entries, 0};',
 				'}',
 			]),
 		),

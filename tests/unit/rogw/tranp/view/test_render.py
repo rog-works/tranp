@@ -166,7 +166,11 @@ class TestRenderer(TestCase):
 	def assertRender(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		"""Note: 文字列の比較は通例と逆配置にした方が見やすいため逆で利用"""
 		actual = self.__fixture.renderer.render(template, vars=vars)
-		self.assertEqual(expected, actual)
+		try:
+			self.assertEqual(expected, actual)
+		except AssertionError:
+			print(actual)
+			raise
 
 	@data_provider([
 		({'accessor': '', 'symbol': 'B', 'actual_type': 'A'}, 'using B = A;'),
@@ -1144,6 +1148,35 @@ class TestRenderer(TestCase):
 	])
 	def test_render_func_call(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/default', vars, expected)
+
+	@data_provider([
+		({
+			'symbol': 'keys',
+			'return_type': 'std::string',
+			'iterates_type': 'std::vector<std::tuple<std::string, int>>',
+			'statements': [
+				'for (auto index = 0; index < this->entries.size(); index += 1) {',
+				'	return this->entries[index].get<0>();',
+			]},
+			'\n'.join([
+				'struct Iterator_keys {',
+				'	const std::vector<std::tuple<std::string, int>>& __iterates;',
+				'	int __index;',
+				'	Iterator_keys(const std::vector<std::tuple<std::string, int>>& iterates, int index) : __iterates(iterates), __index(index) {}',
+				'	bool operator!=(const Iterator_keys& other) const { return this->__index != other.__index; }',
+				'	void operator++() { this->__index += 1; }',
+				'	const std::string& operator*() const { return this->__iterates[this->__index].get<0>(); }',
+				'	Iterator_keys begin() const { return {this->__iterates, 0}; }',
+				'	Iterator_keys end() const { return {this->__iterates, this->__iterates.size()}; }',
+				'};',
+				'Iterator_keys keys() {',
+				'	return Iterator_keys(this->entries, 0);',
+				'}',
+			]),
+		),
+	])
+	def test_render_function_iterator_list_complex(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('function/_iterator_list_complex', vars, expected)
 
 	@data_provider([
 		({'parameters': ['A self'], 'decorators': []}, ''),

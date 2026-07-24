@@ -587,7 +587,10 @@ class Py2Cpp(ITranspiler):
 		# XXX イテレーターメソッド用の特殊化
 		if self.reflections.type_is(self.reflections.type_of(node.return_type).types, Iterator):
 			if isinstance(node.block.statements[0], defs.For):
-				method_vars['iterates_type'] = self.to_accessible_name(self.reflections.type_of(node.block.statements[0].iterates))
+				calls_range = node.block.statements[0].iterates.as_a(defs.FuncCall)
+				calls_len = calls_range.arguments[0].value.as_a(defs.FuncCall)
+				iterates = calls_len.as_a(defs.FuncCall).arguments[0].value
+				method_vars['iterates_type'] = self.to_accessible_name(self.reflections.type_of(iterates))
 
 		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
 		return self.render(node, f'function/{spec}', vars={**function_vars, **method_vars})

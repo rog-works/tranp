@@ -110,22 +110,22 @@ class CppViewHelper:
 
 
 def super_initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.SuperInitializer.parse"""
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.SuperInitializer.parse"""
 	return lambda statement: CppViewHelper.SuperInitializer.parse(statement)
 
 
 def initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Initializer.parse"""
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.Initializer.parse"""
 	return lambda statement: CppViewHelper.Initializer.parse(statement)
 
 
 def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.Param]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Param.parse"""
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.Param.parse"""
 	return lambda parameter: CppViewHelper.Param.parse(parameter)
 
 
 def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str]]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Param.parse"""
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.Method.break_iterator_list_complex"""
 	return lambda statements: CppViewHelper.Method.break_iterator_list_complex(statements)
 
 

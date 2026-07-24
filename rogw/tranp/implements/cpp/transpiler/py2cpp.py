@@ -584,7 +584,7 @@ class Py2Cpp(ITranspiler):
 		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotations': return_type_annotations}
-		# XXX イテレーターメソッド用の特殊化
+		# XXX イテレーターメソッド用の特殊化 @see data/cpp/template/function/_iterator_list_complex.j2
 		if self.reflections.type_is(self.reflections.type_of(node.return_type).types, Iterator):
 			if isinstance(node.block.statements[0], defs.For):
 				calls_range = node.block.statements[0].iterates.as_a(defs.FuncCall)

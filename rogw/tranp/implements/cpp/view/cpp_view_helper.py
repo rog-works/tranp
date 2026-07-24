@@ -96,7 +96,7 @@ class CppViewHelper:
 				```cpp
 				Iterator<std::string> keys() {
 					for (auto index = 0; index < this->__entries.size(); index += 1) {
-						return this->__entries[index].get<0>();
+						return this->__entries[index].key();
 					}
 				}
 			"""

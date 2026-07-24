@@ -1154,23 +1154,23 @@ class TestRenderer(TestCase):
 			{
 				'symbol': 'keys',
 				'return_type': 'Iterator<std::string>',
-				'iterates_type': 'std::vector<std::tuple<std::string, int>>',
+				'iterates_type': 'std::vector<DSN>>',
 				'statements': [
 					'\n'.join([
 						'for (auto index = 0; index < this->entries.size(); index += 1) {',
-						'	return this->entries[index].get<0>();',
+						'	return this->entries[index].key();',
 						'}',
 					]),
 				],
 			},
 			'\n'.join([
 				'struct Iterator_keys {',
-				'	const std::vector<std::tuple<std::string, int>>& __iterates;',
+				'	const std::vector<DSN>>& __iterates;',
 				'	int __index;',
-				'	Iterator_keys(const std::vector<std::tuple<std::string, int>>& iterates, int index) : __iterates(iterates), __index(index) {}',
+				'	Iterator_keys(const std::vector<DSN>>& iterates, int index) : __iterates(iterates), __index(index) {}',
 				'	bool operator!=(const Iterator_keys& other) const { return this->__index != other.__index; }',
 				'	void operator++() { this->__index += 1; }',
-				'	const std::string& operator*() const { return this->__iterates[this->__index].get<0>(); }',
+				'	const std::string& operator*() const { return this->__iterates[this->__index].key(); }',
 				'	Iterator_keys begin() const { return {this->__iterates, 0}; }',
 				'	Iterator_keys end() const { return {this->__iterates, this->__iterates.size()}; }',
 				'};',

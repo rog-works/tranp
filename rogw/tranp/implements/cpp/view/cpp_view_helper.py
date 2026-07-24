@@ -98,8 +98,8 @@ class CppViewHelper:
 				}
 			"""
 			begin = [index for index, statement in enumerate(statements) if statement.startswith('for ')][0]
-			pattern1 = re.compile(r'for \([^;]+; [\w\d]+ < this->([\w\d]+)([^;]); [^)]+\) \{')
-			pattern2 = re.compile(r'\s+return this->[\w\d]+\[[;]+\](.*);')
+			pattern1 = re.compile(r'for \([^;]+; [\w\d]+ < this->([\w\d]+)([^;]+); [^)]+\) \{')
+			pattern2 = re.compile(r'\s+return this->[\w\d]+\[[^;]+\]([^;]*);')
 			matches = as_a(re.Match, pattern1.fullmatch(statements[begin]))
 			iterates, get_size = matches.group(1, 2)
 			matches = as_a(re.Match, pattern2.fullmatch(statements[begin + 1]))

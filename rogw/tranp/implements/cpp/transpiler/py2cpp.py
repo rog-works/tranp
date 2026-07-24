@@ -1,5 +1,5 @@
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from enum import Enum
 from typing import Any, ClassVar, Self, TypedDict, TypeVarTuple, cast, override
 
@@ -584,6 +584,14 @@ class Py2Cpp(ITranspiler):
 		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotations': return_type_annotations}
+		# XXX イテレーターメソッド用の特殊化 @see data/cpp/template/function/_iterator_list_complex.j2
+		if self.reflections.type_is(self.reflections.type_of(node.return_type).types, Iterator):
+			if isinstance(node.block.statements[0], defs.For):
+				calls_range = node.block.statements[0].iterates.as_a(defs.FuncCall)
+				calls_len = calls_range.arguments[0].value.as_a(defs.FuncCall)
+				iterates = calls_len.as_a(defs.FuncCall).arguments[0].value
+				method_vars['iterates_type'] = self.to_accessible_name(self.reflections.type_of(iterates))
+
 		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
 		return self.render(node, f'function/{spec}', vars={**function_vars, **method_vars})
 
@@ -1678,7 +1686,6 @@ class PatternParser:
 	ListSortKeyPattern: ClassVar[re.Pattern[str]] = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
 	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
 	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
-	InitDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'({[^;]*})')
 	CVarRelaySubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
 	CVarToSubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
 

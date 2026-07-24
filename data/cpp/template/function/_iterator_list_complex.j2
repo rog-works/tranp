@@ -1,0 +1,17 @@
+{%- set begin, iterates, get_size, get_value = break_iterator_list_complex(statements) -%}
+struct Iterator_{{ symbol }} {
+	const {{ iterates_type }}& __iterates;
+	int __index;
+	Iterator_{{ symbol }}(const {{ iterates_type }}& iterates, int index) : __iterates(iterates), __index(index) {}
+	bool operator!=(const Iterator_{{ symbol }}& other) const { return this->__index != other.__index; }
+	void operator++() { this->__index += 1; }
+	const {{ return_type[('Iterator<' | length):-1] }}& operator*() const { return this->__iterates[this->__index]{{ get_value }}; }
+	Iterator_{{ symbol }} begin() const { return {this->__iterates, 0}; }
+	Iterator_{{ symbol }} end() const { return {this->__iterates, this->__iterates{{ get_size }}}; }
+};
+Iterator_{{ symbol }} {{ symbol }}() {
+	{%- for i in range(begin) %}
+	{{ statements[i] }}
+	{%- endfor %}
+	return {this->{{ iterates }}, 0};
+}

@@ -245,6 +245,22 @@ std::vector<std::string>::iterator values() {
 	return this->l.begin();
 }"""
 
+	ForIteratorList2 = """public:
+/** numbers */
+struct Iterator_numbers {
+	const std::vector<Sub>& __iterates;
+	int __index;
+	Iterator_numbers(const std::vector<Sub>& iterates, int index) : __iterates(iterates), __index(index) {}
+	bool operator!=(const Iterator_numbers& other) const { return this->__index != other.__index; }
+	void operator++() { this->__index += 1; }
+	const int& operator*() const { return this->__iterates[this->__index].base_n; }
+	Iterator_numbers begin() const { return {this->__iterates, 0}; }
+	Iterator_numbers end() const { return {this->__iterates, this->__iterates.size()}; }
+};
+Iterator_numbers numbers() {
+	return {this->l_sub, 0};
+}"""
+
 	ForIteratorDict = """public:
 /** items */
 struct Iterator_items {

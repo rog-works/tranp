@@ -77,22 +77,58 @@ class CppViewHelper:
 			else:
 				return self.var_type.split('<')[0]
 
+	class Method:
+		"""ヘルパー(C++/メソッド)"""
+
+		PatternFor: ClassVar = re.compile(r'for \([^;]+; [\w\d]+ < this->([\w\d]+)([^;]+); [^)]+\) \{')
+		PatternYield: ClassVar = re.compile(r'\s+return this->[\w\d]+\[[^;]+\]([^;]*);')
+
+		@classmethod
+		def break_iterator_list_complex(cls, statements: list[str]) -> tuple[int, str, str, str]:
+			"""イテレーターメソッドのステートメントを分解
+
+			Args:
+				statements: ステートメントリスト
+			Returns:
+				(ステートメント終了位置, イテレーション要素, サイズ取得, 値取得)
+			Note:
+				### 期待値
+				```cpp
+				Iterator<std::string> keys() {
+					for (auto index = 0; index < this->__entries.size(); index += 1) {
+						return this->__entries[index].key();
+					}
+				}
+			"""
+			for_index = [index for index, statement in enumerate(statements) if statement.startswith('for ')][0]
+			for_statements = statements[for_index].split('\n')
+			matches_for = as_a(re.Match, cls.PatternFor.fullmatch(for_statements[0]))
+			matches_yield = as_a(re.Match, cls.PatternYield.fullmatch(for_statements[1]))
+			iterates, get_size = matches_for.group(1, 2)
+			get_value = matches_yield.group(1)
+			return for_index, iterates, get_size, get_value
+
 
 def super_initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.SuperInitializer.parse"""
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.SuperInitializer.parse"""
 	return lambda statement: CppViewHelper.SuperInitializer.parse(statement)
 
 
 def initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Initializer.parse"""
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.Initializer.parse"""
 	return lambda statement: CppViewHelper.Initializer.parse(statement)
 
 
 def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.Param]:
-	"""Note: @see rogw.tranp.view.helper.cpp_view_helper.CppViewHelper.Param.parse"""
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.Param.parse"""
 	return lambda parameter: CppViewHelper.Param.parse(parameter)
+
+
+def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str]]:
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.Method.break_iterator_list_complex"""
+	return lambda statements: CppViewHelper.Method.break_iterator_list_complex(statements)
 
 
 def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
-	return ([super_initializer_parse, initializer_parse, parameter_parse], [])
+	return ([super_initializer_parse, initializer_parse, parameter_parse, break_iterator_list_complex], [])

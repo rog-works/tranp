@@ -472,9 +472,7 @@ class CUP(CVarNullable[T_co]):
 		Returns:
 			インスタンス
 		"""
-		clone = self.__class__(self.addr)
-		self._origin = None
-		return clone
+		return self
 
 
 class CRef(CVarNotNull[T_co]):

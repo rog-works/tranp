@@ -49,16 +49,16 @@ class CVars:
 
 	class Verbs(Enum):
 		"""操作メソッド Note: @see rogw.tranp.compatible.cpp.cvar"""
-		ToAddrId = 'to_addr_id'
-		ToAddrHex = 'to_addr_hex'
-		ToImmutable = 'to_immutable'
-		On = 'on'
-		Emtpy = 'empty'
-		New = 'new'
-		Move = 'move'
-		CopyProxy = 'copy_proxy'
-		Down = 'down'
 		AsA = 'as_a'
+		CopyProxy = 'copy_proxy'
+		Emtpy = 'empty'
+		Down = 'down'
+		Move = 'move'
+		New = 'new'
+		On = 'on'
+		ToAddrHex = 'to_addr_hex'
+		ToAddrId = 'to_addr_id'
+		ToImmutable = 'to_immutable'
 
 	class Casts(Enum):
 		"""参照変換メソッド Note: @see rogw.tranp.compatible.cpp.cvar"""

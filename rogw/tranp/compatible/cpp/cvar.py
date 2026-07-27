@@ -380,6 +380,14 @@ class CSP(CVarNullable[T_co]):
 		"""
 		return self.down(down_type)
 
+	def release(self) -> CP[T_co]:
+		"""所有権を破棄し、ポインターを返す。C++では`release`に相当
+
+		Returns:
+			ポインター
+		"""
+		return self.addr
+
 
 class CWP(CVar[T_co]):
 	"""C++型変数の互換クラス(弱参照ポインター)"""
@@ -473,6 +481,14 @@ class CUP(CVarNullable[T_co]):
 			インスタンス
 		"""
 		return self
+
+	def release(self) -> CP[T_co]:
+		"""所有権を破棄し、ポインターを返す。C++では`release`に相当
+
+		Returns:
+			ポインター
+		"""
+		return self.addr
 
 
 class CRef(CVarNotNull[T_co]):

@@ -55,7 +55,6 @@ class CVars:
 		Down = 'down'
 		Move = 'move'
 		New = 'new'
-		Release = 'release'
 		On = 'on'
 		ToAddrHex = 'to_addr_hex'
 		ToAddrId = 'to_addr_id'

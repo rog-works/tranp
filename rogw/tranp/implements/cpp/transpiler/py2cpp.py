@@ -986,10 +986,11 @@ class Py2Cpp(ITranspiler):
 			symbol = self.reflections.resolve(node.parent.class_types)
 
 		type_name = self.to_domain_name_by_class(symbol.types)
+		annotations = [self.transpile(annotation) for annotation in node.annotations]
 		if isinstance(symbol.types, defs.TemplateClass):
-			return self.render(node, f'type/template', vars={'type_name': type_name, 'definition_type': symbol.types.definition_type.tokens})
+			return self.render(node, f'type/template', vars={'type_name': type_name, 'annotations': annotations, 'definition_type': symbol.types.definition_type.tokens})
 		else:
-			return self.render(node, f'type/{node.classification}', vars={'type_name': type_name})
+			return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'annotations': annotations})
 
 	def on_literal_type(self, node: defs.LiteralType) -> str:
 		symbol = self.reflections.type_of(node)

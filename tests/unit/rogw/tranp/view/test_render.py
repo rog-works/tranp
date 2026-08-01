@@ -1595,11 +1595,12 @@ class TestRenderer(TestCase):
 		self.assertRender('flow/try', vars, expected)
 
 	@data_provider([
-		('var_of_type', {'type_name': 'int'}, 'int'),
-		('var_of_type', {'type_name': 'str'}, 'std::string'),
-		('template', {'type_name': 'T', 'definition_type': 'TypeVar'}, 'T'),
-		('template', {'type_name': 'T_Args', 'definition_type': 'TypeVarTuple'}, 'T_Args...'),
-		('template', {'type_name': 'P', 'definition_type': 'ParamSpec'}, 'P'),
+		('var_of_type', {'type_name': 'int', 'annotations': []}, 'int'),
+		('var_of_type', {'type_name': 'std::string', 'annotations': []}, 'std::string'),
+		('var_of_type', {'type_name': 'std::string', 'annotations': ['Embed::immutable']}, 'const std::string&'),
+		('template', {'type_name': 'T', 'annotations': [], 'definition_type': 'TypeVar'}, 'T'),
+		('template', {'type_name': 'T_Args', 'annotations': [], 'definition_type': 'TypeVarTuple'}, 'T_Args...'),
+		('template', {'type_name': 'P', 'annotations': [], 'definition_type': 'ParamSpec'}, 'P'),
 	])
 	def test_render_var_of_type(self, spec: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'type/{spec}', vars, expected)

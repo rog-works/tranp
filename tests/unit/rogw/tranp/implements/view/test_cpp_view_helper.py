@@ -18,7 +18,26 @@ class TestCppViewHelper(TestCase):
 	])
 	def test_param_parse(self, parameter: str, expected: dict[str, Any]) -> None:
 		instance = CppViewHelper.Param.parse(parameter)
-		self.assertEqual(instance.var_type, expected['var_type'])
-		self.assertEqual(instance.symbol, expected['symbol'])
-		self.assertEqual(instance.default_value, expected['default_value'])
-		self.assertEqual(instance.var_type_origin, expected['var_type_origin'])
+		self.assertEqual(expected['var_type'], instance.var_type)
+		self.assertEqual(expected['symbol'], instance.symbol)
+		self.assertEqual(expected['default_value'], instance.default_value)
+		self.assertEqual(expected['var_type_origin'], instance.var_type_origin)
+
+	@data_provider([
+		('std::string', [], 'const std::string&'),
+		('std::string*', [], 'const std::string*'),
+		('std::string', [CppViewHelper.VarType.AnnoMutable], 'std::string'),
+		('std::string*', [CppViewHelper.VarType.AnnoMutable], 'std::string*'),
+		('std::string&', [CppViewHelper.VarType.AnnoMutable], 'std::string&'),
+		('int', [], 'int'),
+		('int*', [], 'int*'),
+		('int&', [], 'int&'),
+		('int', [CppViewHelper.VarType.AnnoImmutable], 'const int&'),
+		('int*', [CppViewHelper.VarType.AnnoImmutable], 'const int*'),
+		('int&', [CppViewHelper.VarType.AnnoImmutable], 'const int&'),
+	])
+	def test_var_type_annotated(self, var_type: str, annotations: list[str], expected: str) -> None:
+		# @see example/config.yml
+		immutable_param_types = ['std::string', 'std::vector', 'std::map', 'std::function']
+		actual = CppViewHelper.VarType.annotated(var_type, annotations, immutable_param_types)
+		self.assertEqual(expected, actual)

@@ -37,6 +37,8 @@ class CppViewHelper:
 	class Param:
 		"""ヘルパー(C++/パラメーター)"""
 
+		VarType: ClassVar = re.compile(r'^(const\s+)?([\w\d\:]+)[^\*&]*[\*&]?')
+
 		@classmethod
 		def parse(cls, parameter: str) -> 'CppViewHelper.Param':
 			"""Args: parameter: パラメーター Returns: インスタンス
@@ -73,8 +75,8 @@ class CppViewHelper:
 		@property
 		def var_type_origin(self) -> str:
 			"""Returns: ベースの型"""
-			if self.var_type.startswith('const') or self.var_type[-1] in ['*', '&']:
-				return cast(re.Match, re.search(r'^(const\s+)?([\w\d\:]+)[^\*&]*[\*&]?', self.var_type))[2]
+			if self.var_type.startswith('const') or self.var_type.endswith('*') or self.var_type.endswith('&'):
+				return cast(re.Match, self.VarType.search(self.var_type))[2]
 			else:
 				return self.var_type.split('<')[0]
 
@@ -98,7 +100,7 @@ class CppViewHelper:
 			"""
 			if len(var_type) == 0:
 				return var_type
-			elif var_type.startswith('const '):
+			elif var_type.startswith('const'):
 				return var_type
 			elif cls.AnnoMutable in annotations:
 				return var_type

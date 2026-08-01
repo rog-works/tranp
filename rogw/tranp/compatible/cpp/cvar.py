@@ -145,15 +145,15 @@ class CP(CVarNotNull[T_co]):
 		return CP(origin)
 
 	@classmethod
-	def to_immutable[T](cls, raw: T) -> T:
-		"""不変型に暗黙変換。Python上はrawと同じ。C++では`*`に相当
+	def self_to_raw[T](cls, that: T) -> T:
+		"""自己参照を実体型に参照変換。Python上はオウム返し。C++では`*`に相当
 
 		Args:
-			raw: 実体
+			that: 自己参照
 		Returns:
 			実体
 		"""
-		return raw
+		return that
 
 	@property
 	def ref(self) -> 'CRef[T_co]':

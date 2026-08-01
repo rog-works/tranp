@@ -276,7 +276,7 @@ class CVarOps:
 		aref.on.call()
 
 	def immutable(self, p: Annotated['CVarOps', Embed.immutable]) -> None:
-		self.immutable(CP.to_immutable(self))
+		self.immutable(CP.self_to_raw(self))
 	
 	def alt_csp(self) -> None:
 		alt_sp = AltCSP.new(Sub(0))

@@ -1183,6 +1183,9 @@ class Py2Cpp(ITranspiler):
 			cvar_key = context_name
 			var_type, initializer = PatternParser.pluck_cvar_new(arguments[0])
 			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'cvar_type': cvar_key, 'var_type': var_type, 'initializer': initializer})
+		elif spec == FuncCallSpec.Tags.cvar_self_to_raw:
+			# 期待値: CP.self_to_raw(self)
+			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.cvar_smart_empty:
 			# 期待値: CSP[A].empty()
 			cvar_key = context_name
@@ -1192,9 +1195,6 @@ class Py2Cpp(ITranspiler):
 			# 期待値: CP(a)
 			cvar_key = context_name
 			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'cvar_type': cvar_key})
-		elif spec == FuncCallSpec.Tags.cvar_to_immutable:
-			# 期待値: CP.to_immutable(self)
-			return self.render(node, f'{node.classification}/{spec.name}', vars=func_call_vars)
 		elif spec == FuncCallSpec.Tags.cvar_to_addr_hex:
 			# 期待値: receiver.to_addr_hex()
 			receiver, _ = PatternParser.break_relay(calls)
@@ -1303,11 +1303,11 @@ class Py2Cpp(ITranspiler):
 						return FuncCallSpec.Tags.cvar_new_smart_list, cvar_key, new_type_raw
 
 					return FuncCallSpec.Tags.cvar_new_smart, cvar_key, None
-			elif prop == CVars.Verbs.ToImmutable.value and isinstance(node.calls.receiver, defs.Var) and len(node.arguments) == 1 and isinstance(node.arguments[0].value, defs.Var):
+			elif prop == CVars.Verbs.SelfToRaw.value and isinstance(node.calls.receiver, defs.Var) and len(node.arguments) == 1 and isinstance(node.arguments[0].value, defs.Var):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_type = self.cvars.resolve_type(receiver_raw)
 				if self.cvars.contains(cvar_type, CVars.Types.AddrRawMask):
-					return FuncCallSpec.Tags.cvar_to_immutable, '', None
+					return FuncCallSpec.Tags.cvar_self_to_raw, '', None
 			elif prop == CVars.Verbs.ToAddrHex.value:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_type, cvar_key = self.cvars.resolve(receiver_raw)
@@ -1623,9 +1623,9 @@ class FuncCallSpec:
 		cvar_new_addr = 404
 		cvar_new_smart_list = 405
 		cvar_new_smart = 406
-		cvar_smart_empty = 407
-		cvar_to = 408
-		cvar_to_immutable = 409
+		cvar_self_to_raw = 407
+		cvar_smart_empty = 408
+		cvar_to = 409
 		cvar_to_addr_hex = 410
 		cvar_to_addr_id = 411
 

@@ -1596,7 +1596,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		('var_of_type', {'type_name': 'int'}, 'int'),
-		('var_of_type', {'type_name': 'str'}, 'std::string'),
+		('var_of_type', {'type_name': 'std::string'}, 'std::string'),
 		('template', {'type_name': 'T', 'definition_type': 'TypeVar'}, 'T'),
 		('template', {'type_name': 'T_Args', 'definition_type': 'TypeVarTuple'}, 'T_Args...'),
 		('template', {'type_name': 'P', 'definition_type': 'ParamSpec'}, 'P'),

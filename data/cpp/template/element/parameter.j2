@@ -1,1 +1,1 @@
-{{ var_type_annotated(var_type, annotations) }} {{ symbol }}{% if default_value %} = {{ default_value }}{% endif -%}
+{{ var_type_annotated(var_type, annotations, env_get('immutable_param_types', [])) }} {{ symbol }}{% if default_value %} = {{ default_value }}{% endif -%}

@@ -37,7 +37,5 @@ class TestCppViewHelper(TestCase):
 		('int&', [CppViewHelper.VarType.AnnoImmutable], 'const int&'),
 	])
 	def test_var_type_annotated(self, var_type: str, annotations: list[str], expected: str) -> None:
-		# @see example/config.yml
-		immutable_param_types = ['std::string', 'std::vector', 'std::map', 'std::function']
-		actual = CppViewHelper.VarType.annotated(var_type, annotations, immutable_param_types)
+		actual = CppViewHelper.VarType.annotated(var_type, annotations, ['std::string'])
 		self.assertEqual(expected, actual)

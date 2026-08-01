@@ -86,13 +86,13 @@ class CppViewHelper:
 		PatternVarType: ClassVar = re.compile('^([\\w\\d:_]+)')
 
 		@classmethod
-		def annotated(cls, var_type: str, annotations: list[str], immutable_param_types: list[str]) -> str:
+		def annotated(cls, var_type: str, annotations: list[str], immutable_types: list[str]) -> str:
 			"""型注釈を元に型名に不変型の付与を試行
 
 			Args:
 				var_type: 型名
 				annotations: アノテーションリスト
-				immutable_param_types: 暗黙的不変型リスト
+				immutable_types: 暗黙的不変型リスト
 			Returns:
 				注釈適用後の型名
 			"""
@@ -104,7 +104,7 @@ class CppViewHelper:
 				return cls.to_immutable(var_type)
 
 			origin = as_a(re.Match, cls.PatternVarType.search(var_type)).group(1)
-			if origin in immutable_param_types:
+			if origin in immutable_types:
 				return cls.to_immutable(var_type)
 
 			return var_type
@@ -173,7 +173,7 @@ def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.P
 
 def var_type_annotated(setting: RendererSetting) -> Callable[[str, list[str]], str]:
 	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.VarType.annotated"""
-	return lambda var_type, annotations: CppViewHelper.VarType.annotated(var_type, annotations, setting.env.get('immutable_param_types', []))
+	return lambda var_type, annotations, immutable_types=[]: CppViewHelper.VarType.annotated(var_type, annotations, immutable_types)
 
 
 def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str, str, str]]:

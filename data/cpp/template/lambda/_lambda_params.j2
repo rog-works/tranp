@@ -1,3 +1,4 @@
+{%- set annotations = [] -%}
 {%- for symbol, var_type in params.items() -%}
 	{%- if loop.index0 > 0 %}, {% endif -%}
 	{%- include('element/parameter.j2') -%}

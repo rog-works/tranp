@@ -96,7 +96,9 @@ class CppViewHelper:
 			Returns:
 				注釈適用後の型名
 			"""
-			if var_type.startswith('const '):
+			if len(var_type) == 0:
+				return var_type
+			elif var_type.startswith('const '):
 				return var_type
 			elif cls.AnnoMutable in annotations:
 				return var_type

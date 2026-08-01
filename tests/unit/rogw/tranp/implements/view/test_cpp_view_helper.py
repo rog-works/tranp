@@ -24,6 +24,7 @@ class TestCppViewHelper(TestCase):
 		self.assertEqual(expected['var_type_origin'], instance.var_type_origin)
 
 	@data_provider([
+		('', [], ''),  # self/clsの検証
 		('std::string', [], 'const std::string&'),
 		('std::string*', [], 'const std::string*'),
 		('std::string', [CppViewHelper.VarType.AnnoMutable], 'std::string'),

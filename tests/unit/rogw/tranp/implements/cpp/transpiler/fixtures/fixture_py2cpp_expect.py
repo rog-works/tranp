@@ -218,12 +218,16 @@ class Inner2 {
 	return v;
 } else if constexpr (std::is_same_v<T, std::string>) {
 	return v;
+} else {
+	static_assert(std::is_same_v<T, void>, "Unmatch type");
 }"""
 
 	ForFlows_if_issubclass = """if constexpr (std::is_same_v<T, int>) {
 	return (*(static_cast<T*>(p)));
 } else if constexpr (std::is_same_v<T, std::string>) {
 	return (*(static_cast<T*>(p)));
+} else {
+	static_assert(std::is_same_v<T, void>, "Unmatch type");
 }"""
 
 	ForTemplateClass_Delegate = """public:

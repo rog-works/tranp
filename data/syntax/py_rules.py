@@ -34,6 +34,7 @@ def py_rules() -> Rules:
 					('symbol', 'continue'),
 					('symbol', 'pass'),
 					('symbol', 'return'),
+					('symbol', 'raise'),
 					('symbol', 'move')
 				])
 			]),
@@ -57,6 +58,16 @@ def py_rules() -> Rules:
 				('__empty__', ''),
 				('terms', [
 					('string', '"return"'),
+					('expr_opt', [
+						('symbol', 'expr')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'raise'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"raise"'),
 					('symbol', 'expr')
 				])
 			]),
@@ -509,6 +520,7 @@ def py_rules() -> Rules:
 					('symbol', 'digit'),
 					('symbol', 'decimal'),
 					('symbol', 'list'),
+					('symbol', 'tuple'),
 					('symbol', 'dict'),
 					('terms', [
 						('string', '"("'),
@@ -546,10 +558,27 @@ def py_rules() -> Rules:
 				('terms', [
 					('expr_rep', [
 						('terms', [
-							('symbol', 'expr'),
+							('symbol', 'arg'),
 							('string', '","')
 						]),
 						('repeat', '*')
+					]),
+					('symbol', 'arg')
+				])
+			]),
+			('rule', [
+				('symbol', 'arg'),
+				('unwrap', '*'),
+				('terms', [
+					('expr_rep', [
+						('terms_or', [
+							('terms', [
+								('symbol', 'name'),
+								('string', '"="')
+							]),
+							('symbol', 'packing')
+						]),
+						('repeat', '?')
 					]),
 					('symbol', 'expr')
 				])
@@ -583,6 +612,20 @@ def py_rules() -> Rules:
 				])
 			]),
 			('rule', [
+				('symbol', 'tuple_values'),
+				('unwrap', '*'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '","')
+						]),
+						('repeat', '+')
+					]),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
 				('symbol', 'key_values'),
 				('unwrap', '*'),
 				('terms', [
@@ -606,6 +649,11 @@ def py_rules() -> Rules:
 				])
 			]),
 			('rule', [
+				('symbol', 'packing'),
+				('__empty__', ''),
+				('regexp', '/\\*{1,2}/')
+			]),
+			('rule', [
 				('symbol', 'list'),
 				('__empty__', ''),
 				('terms', [
@@ -614,6 +662,15 @@ def py_rules() -> Rules:
 						('symbol', 'values')
 					]),
 					('string', '"]"')
+				])
+			]),
+			('rule', [
+				('symbol', 'tuple'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"("'),
+					('symbol', 'tuple_values'),
+					('string', '")"')
 				])
 			]),
 			('rule', [

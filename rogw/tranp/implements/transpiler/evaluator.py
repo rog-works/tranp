@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
@@ -10,6 +12,10 @@ from rogw.tranp.transpiler.types import Evaluator
 
 class LiteralEvaluator:
 	"""リテラル演算モジュール。Enum.value内のリテラル演算を対象とする想定"""
+
+	ArthmeticOps: ClassVar = ['+', '-', '/', '*', '%']
+	BitwiseOps: ClassVar = ['|', '^', '&', '<<', '>>']
+	AllowOps: ClassVar = ArthmeticOps + BitwiseOps
 
 	@injectable
 	def __init__(self, reflections: Reflections) -> None:
@@ -66,7 +72,7 @@ class LiteralEvaluator:
 				if isinstance(left, float) or isinstance(right, float) or op == '/':
 					left = self._calc(float(left), op, float(right))
 				elif isinstance(left, int) and isinstance(right, int):
-					left = int(self._calc(left, op, right))
+					left = int(self._calc(left, op, right)) if op in LiteralEvaluator.ArthmeticOps else self._bitwise(left, op, right)
 				elif isinstance(left, str) and isinstance(right, str) and op == '+':
 					assert self._allow_string(left) and self._allow_string(right)
 					left = self._cat(left, right)
@@ -97,6 +103,29 @@ class LiteralEvaluator:
 			return left * right
 		elif op == '%':
 			return left % right
+		else:
+			assert False
+
+	def _bitwise(self, left: int, op: str, right: int) -> int:
+		"""ビット演算
+
+		Args:
+			left: 左オペランド
+			op: 演算子
+			right: 右オペランド
+		Returns:
+			値
+		"""
+		if op == '|':
+			return left | right
+		elif op == '^':
+			return left ^ right
+		elif op == '&':
+			return left & right
+		elif op == '<<':
+			return left << right
+		elif op == '>>':
+			return left >> right
 		else:
 			assert False
 	
@@ -168,13 +197,29 @@ class LiteralEvaluator:
 		raise Errors.OperationNotAllowed(node, calls, arguments)
 
 	def on_integer(self, node: defs.Integer) -> Evaluator.Value:
-		return int(node.tokens)
+		tokens = node.tokens
+		if tokens.startswith('0x'):
+			return int(node.tokens, base=0x10)
+		else:
+			return int(node.tokens)
 
 	def on_float(self, node: defs.Float) -> Evaluator.Value:
 		return float(node.tokens)
 
 	def on_string(self, node: defs.String) -> Evaluator.Value:
 		return node.tokens
+
+	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[Evaluator.Value]) -> Evaluator.Value:
+		return self._op_bin_each(node, elements)
+
+	def on_xor_bitwise(self, node: defs.XorBitwise, elements: list[Evaluator.Value]) -> Evaluator.Value:
+		return self._op_bin_each(node, elements)
+
+	def on_and_bitwise(self, node: defs.AndBitwise, elements: list[Evaluator.Value]) -> Evaluator.Value:
+		return self._op_bin_each(node, elements)
+
+	def on_shift_bitwise(self, node: defs.ShiftBitwise, elements: list[Evaluator.Value]) -> Evaluator.Value:
+		return self._op_bin_each(node, elements)
 
 	def on_sum(self, node: defs.Sum, elements: list[Evaluator.Value]) -> Evaluator.Value:
 		return self._op_bin_each(node, elements)
@@ -195,10 +240,10 @@ class LiteralEvaluator:
 
 	def on_terminal(self, node: Node) -> Evaluator.Value:
 		token = node.tokens
-		if token in '+-*/%':
+		if token in LiteralEvaluator.AllowOps:
 			return token
 
-		raise Errors.OperationNotAllowed(node)
+		raise Errors.OperationNotAllowed(node.tokens)
 
 	def on_empty(self, node: defs.Empty) -> Evaluator.Value:
 		# FuncCallのためEmptyを許容

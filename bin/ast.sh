@@ -5,7 +5,7 @@ appdir=${cwd}/..
 
 for arg in "$@"; do
 	if [ "${arg}" == "-v" ]; then
-		export PYVERBOSE=1
+		export TRANPVERBOSE=1
 	fi
 done
 

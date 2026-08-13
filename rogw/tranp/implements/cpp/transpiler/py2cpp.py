@@ -933,7 +933,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		symbol = self.reflections.type_of(node).impl(refs.Object).actualize('self', 'type')
-		return self.to_domain_name(symbol)
+		return self.render(node, f'reference/{node.classification}', vars={'class_symbol': self.to_domain_name(symbol)})
 
 	def on_this_ref(self, node: defs.ThisRef) -> str:
 		return self.render(node, f'reference/{node.classification}')

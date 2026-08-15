@@ -1595,6 +1595,13 @@ class TestRenderer(TestCase):
 		self.assertRender('flow/try', vars, expected)
 
 	@data_provider([
+		({'symbol': 'var'}, 'var'),
+		({'symbol': 'var', 'class_symbol': 'A'}, 'A'),
+	])
+	def test_render_var(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('reference/var', vars, expected)
+
+	@data_provider([
 		('var_of_type', {'type_name': 'int', 'annotations': []}, 'int'),
 		('var_of_type', {'type_name': 'std::string', 'annotations': []}, 'std::string'),
 		('var_of_type', {'type_name': 'std::string', 'annotations': ['Embed::immutable']}, 'const std::string&'),

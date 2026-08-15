@@ -924,10 +924,10 @@ class Py2Cpp(ITranspiler):
 		actual_symbol = Defer.new(lambda: org_symbol.actualize('type'))
 		# クラスの直参照、または引数やローカル変数がクラス参照の場合
 		if org_symbol.type_is(type):
-			return self.render(node, f'reference/{node.classification}', vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
+			return self.render(node, f'reference/{node.classification}', vars={'symbol': node.tokens, 'class_symbol': self.to_domain_name_by_class(actual_symbol.types)})
 		# 上記以外のクラス系参照の場合
 		elif isinstance(actual_symbol.decl, defs.ClassDef):
-			return self.render(node, f'reference/{node.classification}', vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
+			return self.render(node, f'reference/{node.classification}', vars={'symbol': node.tokens, 'class_symbol': self.to_domain_name_by_class(actual_symbol.types)})
 		else:
 			return self.render(node, f'reference/{node.classification}', vars={'symbol': node.tokens})
 

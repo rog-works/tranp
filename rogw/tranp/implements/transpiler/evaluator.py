@@ -1,10 +1,12 @@
 from typing import ClassVar
 
+import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.semantics.procedure import Procedure
+from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import Evaluator
@@ -168,12 +170,18 @@ class LiteralEvaluator:
 		return ''
 
 	def on_relay(self, node: defs.Relay, receiver: Evaluator.Value) -> Evaluator.Value:
-		# Enum.X.value @see Py2cpp.on_relay
-		if node.prop.tokens == 'value':
+		prop = node.prop.tokens
+		if prop == 'value':
+			# Enum.X.value @see Py2cpp.on_relay
 			receiver_raw = self._reflections.type_of(node.receiver)
 			var_name = DSN.right(node.receiver.domain_name, 1)
 			var_value = receiver_raw.types.as_a(defs.Enum).var_value(var_name)
 			return self.exec(var_value)
+		elif prop == '__name__':
+			# XXX エイリアスの解決が不完全
+			receiver_raw = self._reflections.type_of(node.receiver).impl(refs.Object).actualize()
+			receiver_name = ClassDomainNaming.domain_name(receiver_raw.types, alias_handler=None, alias_transpiler=None)
+			return f'"{receiver_name}"'
 
 		# 上記以外は全て無視して良い
 		return ''

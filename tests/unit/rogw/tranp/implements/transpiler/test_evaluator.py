@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from rogw.tranp.implements.transpiler.evaluator import LiteralEvaluator
-from rogw.tranp.module.modules import Modules
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import Evaluator
@@ -38,6 +37,7 @@ class TestLiteralEvaluator(TestCase):
 		('file_input.getattr[8]', 2.1),
 		('file_input.getattr[9]', '"0.1"'),
 		('file_input.getattr[10]', '"1.2"'),
+		('file_input.getattr[11]', '"E0a"'),
 	])
 	def test_exec_enum_value(self, full_path: str, expected: Evaluator.Value) -> None:
 		node = self.fixture.shared_module.entrypoint.whole_by(full_path)

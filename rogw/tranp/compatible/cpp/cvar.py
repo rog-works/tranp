@@ -122,6 +122,17 @@ class CP(CVarNotNull[T_co]):
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CPConst(self.raw)
 
+	def _can_down[T](self, that: 'CP[Any]', down_type: type[T]) -> 'TypeIs[CP[T]]':
+		"""同じか派生クラスか判定
+
+		Args:
+			that: 自己参照
+			down_type: 派生クラスの型
+		Returns:
+			True = 同じか派生クラス
+		"""
+		return isinstance(that._origin, down_type)
+
 	def down[T](self, down_type: type[T]) -> 'CP[T]':
 		"""派生クラスにキャスト。C++ではstatic_castに相当
 
@@ -132,7 +143,7 @@ class CP(CVarNotNull[T_co]):
 		Raises:
 			Errors.IllegalConvertion: 互換性の無い型を指定
 		"""
-		if not can_down_addr(self, down_type):
+		if not self._can_down(self, down_type):
 			raise Errors.IllegalConvertion(self, down_type)
 
 		return self
@@ -239,6 +250,17 @@ class CW(CVar[T_co]):
 		origin = self._weak()
 		return CP(origin) if origin else None
 
+	def _can_down[T](self, that: 'CW[Any]', down_type: type[T]) -> 'TypeIs[CW[T]]':
+		"""同じか派生クラスか判定
+
+		Args:
+			that: 自己参照
+			down_type: 派生クラスの型
+		Returns:
+			True = 同じか派生クラス
+		"""
+		return isinstance(that.raw, down_type)
+
 	def down[T](self, down_type: type[T]) -> 'CW[T]':
 		"""派生クラスにキャスト。C++では`static_cast<T>`に相当
 
@@ -249,7 +271,7 @@ class CW(CVar[T_co]):
 		Raises:
 			Errors.IllegalConvertion: 互換性の無い型を指定
 		"""
-		if not can_down_weak(self, down_type):
+		if not self._can_down(self, down_type):
 			raise Errors.IllegalConvertion(self, down_type)
 
 		return self
@@ -359,6 +381,17 @@ class CSP(CVarNullable[T_co]):
 		"""Returns: 不変型共有ポインター Note: 参照変換代替メソッド。C++では削除"""
 		return CSPConst(self.raw)
 
+	def _can_down[T](self, that: 'CSP[Any]', down_type: type[T]) -> 'TypeIs[CSP[T]]':
+		"""同じか派生クラスか判定
+
+		Args:
+			that: 自己参照
+			down_type: 派生クラスの型
+		Returns:
+			True = 同じか派生クラス
+		"""
+		return isinstance(that.raw, down_type)
+
 	def down[T](self, down_type: type[T]) -> 'CSP[T]':
 		"""派生クラスにキャスト。C++では`static_pointer_cast<T>`に相当
 
@@ -369,7 +402,7 @@ class CSP(CVarNullable[T_co]):
 		Raises:
 			Errors.IllegalConvertion: 互換性の無い型を指定
 		"""
-		if not can_down_smart(self, down_type):
+		if not self._can_down(self, down_type):
 			raise Errors.IllegalConvertion(self, down_type)
 
 		return self
@@ -604,39 +637,3 @@ class CRawConst(CVarNotNull[T_co]):
 	def addr(self) -> CPConst[T_co]:
 		"""Returns: 不変型ポインター Note: 参照変換代替メソッド。C++では`&`に相当"""
 		return CPConst(self.raw)
-
-
-def can_down_addr[T](addr: CP[Any], down_type: type[T]) -> TypeIs[CP[T]]:
-	"""同じか派生クラスか判定
-
-	Args:
-		addr: ポインター
-		down_type: 派生クラスの型
-	Returns:
-		True = 同じか派生クラス
-	"""
-	return isinstance(addr.raw, down_type)
-
-
-def can_down_weak[T](weak: CW[Any], down_type: type[T]) -> TypeIs[CW[T]]:
-	"""同じか派生クラスか判定
-
-	Args:
-		weak: 弱参照
-		down_type: 派生クラスの型
-	Returns:
-		True = 同じか派生クラス
-	"""
-	return isinstance(weak.raw, down_type)
-
-
-def can_down_smart[T](smart: CSP[Any], down_type: type[T]) -> TypeIs[CSP[T]]:
-	"""同じか派生クラスか判定
-
-	Args:
-		smart: スマートポインター
-		down_type: 派生クラスの型
-	Returns:
-		True = 同じか派生クラス
-	"""
-	return isinstance(smart.raw, down_type)

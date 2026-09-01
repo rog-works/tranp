@@ -58,7 +58,6 @@ class CVars:
 		On = 'on'
 		ToAddrHex = 'to_addr_hex'
 		ToAddrId = 'to_addr_id'
-		SelfToRaw = 'self_to_raw'
 
 	class Casts(Enum):
 		"""参照変換メソッド Note: @see rogw.tranp.compatible.cpp.cvar"""

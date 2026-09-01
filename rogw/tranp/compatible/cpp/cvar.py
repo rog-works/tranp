@@ -101,17 +101,6 @@ class CP(CVarNotNull[T_co]):
 		"""
 		return CP(origin)
 
-	@classmethod
-	def self_to_raw[T](cls, that: T) -> T:
-		"""自己参照を実体型に参照変換。Python上はオウム返し。C++では`*`に相当
-
-		Args:
-			that: 自己参照
-		Returns:
-			実体
-		"""
-		return that
-
 	@property
 	def ref(self) -> 'CRef[T_co]':
 		"""参照を返却する参照変換代替メソッド。C++では`*`に相当"""

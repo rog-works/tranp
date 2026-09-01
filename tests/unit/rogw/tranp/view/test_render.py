@@ -798,6 +798,13 @@ class TestRenderer(TestCase):
 		self.assertRender('flow/for/default', vars, expected)
 
 	@data_provider([
+		({'arguments': ['*this', 'method_name', 'arg1', 'arg2'], 'operator': '->'}, '(this->*(method_name))(arg1, arg2)'),
+		({'arguments': ['this->a', 'method_name', 'arg1', 'arg2'], 'operator': '.'}, '(this->a.*(method_name))(arg1, arg2)'),
+	])
+	def test_render_func_call_c_func_invoke(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/c_func_invoke', vars, expected)
+
+	@data_provider([
 		({'arguments': ['"<string>"']}, '#include <string>'),
 		({'arguments': ['"' '"path/to/module.h"' '"']}, '#include "path/to/module.h"'),
 	])
@@ -957,8 +964,8 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'cvar_type': 'CP', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
 		({'cvar_type': 'CPConst', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
-		({'cvar_type': 'CP', 'arguments': ['this'], 'is_statement': True}, 'this;'),
-		({'cvar_type': 'CPConst', 'arguments': ['this'], 'is_statement': True}, 'this;'),
+		({'cvar_type': 'CP', 'arguments': ['*this'], 'is_statement': True}, '(this);'),
+		({'cvar_type': 'CPConst', 'arguments': ['*this'], 'is_statement': True}, '(this);'),
 		({'cvar_type': 'CP', 'arguments': ['this->n'], 'is_statement': True}, '(&(this->n));'),
 		({'cvar_type': 'CPConst', 'arguments': ['this->n'], 'is_statement': True}, '(&(this->n));'),
 		({'cvar_type': 'CSP', 'arguments': ['n'], 'is_statement': True}, 'n;'),

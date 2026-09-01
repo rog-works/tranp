@@ -317,7 +317,7 @@ class Json {
 	/**
 	 * インスタンスを生成
 	 */
-	Json() : object(), _jsons{}, _entries{}, _root(this), _entry_id(0) {}
+	Json() : object(), _jsons{}, _entries{}, _root((this)), _entry_id(0) {}
 	// method __repr__
 	public:
 	/**
@@ -384,7 +384,7 @@ class Json {
 	 */
 	std::shared_ptr<Json> _make_for_entry(int entry_id) {
 		std::shared_ptr<Json> under = std::make_shared<Json>();
-		under->_root = this;
+		under->_root = (this);
 		under->_entry_id = entry_id;
 		return under;
 	}
@@ -443,7 +443,7 @@ class Json {
 	 * @return ルートオブジェクト
 	 */
 	Json* root() {
-		return this->_root ? this->_root : this;
+		return this->_root ? this->_root : (this);
 	}
 	public:
 	/**

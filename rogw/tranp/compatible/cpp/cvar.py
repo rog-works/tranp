@@ -87,49 +87,6 @@ class CVarNotNull(CVar[T_co]):
 		return self._origin
 
 
-class CVarNullable(CVar[T_co]):
-	"""C++型変数の互換クラス(Null許容型)
-
-	Note:
-		```
-		対象: CSPのみ
-		XXX CSPのみ空の状態を表現するためNullを許容する
-		```
-	"""
-
-	_origin: T_co | None
-
-	def __init__(self, origin_at: CVarNotNull[T_co] | None) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin_at: 実体のポインター
-		"""
-		self._origin = origin_at.raw if origin_at else None
-
-	@property
-	@override
-	def _origin_raw(self) -> T_co | None:
-		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
-		return self._origin
-
-	@property
-	def on(self) -> T_co:
-		"""Returns: 実体 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
-		if not self._origin:
-			raise Errors.Fatal(self)
-
-		return self._origin
-
-	@property
-	def raw(self) -> T_co:
-		"""Returns: 実体 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
-		if not self._origin:
-			raise Errors.Fatal(self)
-
-		return self._origin
-
-
 class CP(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(ポインター)"""
 
@@ -310,6 +267,52 @@ class CW(CVar[T_co]):
 		return self.down(down_type)
 
 
+class CVarNullable(CVar[T_co]):
+	"""C++型変数の互換クラス(Null許容型)
+
+	Note:
+		```
+		対象: CSPのみ
+		XXX CSPのみ空の状態を表現するためNullを許容する
+		```
+	"""
+
+	_origin: CP[T_co] | None
+
+	def __init__(self, origin_at: CP[T_co] | None) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin_at: 実体のポインター
+		"""
+		self._origin = origin_at
+
+	@property
+	@override
+	def _origin_raw(self) -> T_co | None:
+		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
+		if not self._origin:
+			raise Errors.Fatal(self)
+
+		return self._origin.raw
+
+	@property
+	def on(self) -> T_co:
+		"""Returns: 実体 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		if not self._origin:
+			raise Errors.Fatal(self)
+
+		return self._origin.raw
+
+	@property
+	def raw(self) -> T_co:
+		"""Returns: 実体 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		if not self._origin:
+			raise Errors.Fatal(self)
+
+		return self._origin.raw
+
+
 class CSP(CVarNullable[T_co]):
 	"""C++型変数の互換クラス(共有ポインター)"""
 
@@ -341,7 +344,10 @@ class CSP(CVarNullable[T_co]):
 	@property
 	def addr(self) -> CP[T_co]:
 		"""Returns: ポインター Note: 参照変換代替メソッド。C++では`get`に相当"""
-		return CP(self.raw)
+		if not self._origin:
+			raise Errors.Fatal(self)
+
+		return self._origin
 
 	@property
 	def weak(self) -> 'CWP[T_co]':
@@ -467,7 +473,10 @@ class CUP(CVarNullable[T_co]):
 	@property
 	def addr(self) -> CP[T_co]:
 		"""Returns: ポインター Note: 参照変換代替メソッド。C++では`get`に相当"""
-		return CP(self.raw)
+		if not self._origin:
+			raise Errors.Fatal(self)
+
+		return self._origin
 
 	@property
 	def const(self) -> 'CUPConst[T_co]':

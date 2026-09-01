@@ -302,10 +302,7 @@ class CVarNullable(CVar[T_co]):
 	@override
 	def _origin_raw(self) -> T_co | None:
 		"""Returns: 実体 Note: 派生クラス用。C++としての役割は無い"""
-		if not self._origin:
-			raise Errors.Fatal(self)
-
-		return self._origin.raw
+		return self._origin.raw if self._origin else None
 
 	@property
 	def on(self) -> T_co:

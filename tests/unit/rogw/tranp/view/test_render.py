@@ -798,6 +798,13 @@ class TestRenderer(TestCase):
 		self.assertRender('flow/for/default', vars, expected)
 
 	@data_provider([
+		({'arguments': ['*this', 'method_name', 'arg1', 'arg2'], 'operator': '->'}, '(this->*(method_name))(arg1, arg2)'),
+		({'arguments': ['this->a', 'method_name', 'arg1', 'arg2'], 'operator': '.'}, '(this->a.*(method_name))(arg1, arg2)'),
+	])
+	def test_render_func_call_c_func_invoke(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/c_func_invoke', vars, expected)
+
+	@data_provider([
 		({'arguments': ['"<string>"']}, '#include <string>'),
 		({'arguments': ['"' '"path/to/module.h"' '"']}, '#include "path/to/module.h"'),
 	])

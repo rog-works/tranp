@@ -1461,7 +1461,7 @@ class TestRenderer(TestCase):
 		('dict', {'items': []}, '{}'),
 		('dict', {'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
 		('falsy', {}, 'false'),
-		('float', {'value': 1.0}, '1.0'),
+		('float', {'value': 1.0}, '1.0f'),
 		('integer', {'value': 1}, '1'),
 		('list', {'values': []}, '{}'),
 		('list', {'values': ['1234', '2345']}, '{\n\t{1234},\n\t{2345},\n}'),

@@ -335,7 +335,10 @@ class TestPy2Cpp(TestCase):
 		('ForFunction.Modifier.to_protected', '', defs.Method, BlockExpects.method(access='protected', name='to_protected')),
 		('ForFunction.Modifier.to_private', '', defs.Method, BlockExpects.method(access='private', name='to_private')),
 		('ForFunction.Modifier.pure', '', defs.Method, BlockExpects.method(access='public', name='pure', pure=True)),
-		('ForFunction.Modifier.mod_mutable', '', defs.Method, BlockExpects.method(access='public', name='mod_mutable', params=['std::string s_m', 'const std::string& s_i', 'const std::vector<int>& ns_i', 'const std::map<std::string, int>& dsn_i', 'const std::function<void()>& func_i'])),
+		('ForFunction.Modifier.implicit_immutable', '', defs.Method, BlockExpects.method(access='public', name='implicit_immutable', params=['const std::string& s_i', 'const std::vector<int>& ns_i', 'const std::map<std::string, int>& dsn_i', 'const std::function<void()>& func_i'])),
+		('ForFunction.Modifier.mod_immutable', '', defs.Method, BlockExpects.method(access='public', name='mod_immutable', params=['const int& n', 'const ForFunction::Modifier& v'])),
+		('ForFunction.Modifier.mod_reference', '', defs.Method, BlockExpects.method(access='public', name='mod_reference', params=['int& n', 'ForFunction::Modifier& v'])),
+		('ForFunction.Modifier.mod_mutable', '', defs.Method, BlockExpects.method(access='public', name='mod_mutable', params=['std::string s_m'])),
 
 		('ForFunction.closure.bind_ref', '', defs.Closure, 'auto bind_ref = []() -> void {};'),
 		('ForFunction.closure.bind_copy', '', defs.Closure, 'auto bind_copy = [this]() mutable -> void {\n\tthis->closure();\n};'),

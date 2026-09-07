@@ -1,3 +1,4 @@
+{%- macro get_content() -%}
 {%- if var_type.startswith('CP<') -%}
 {{ var_type[3:-1] }}*
 {%- elif var_type.startswith('CW<') -%}
@@ -23,3 +24,5 @@ const {{ var_type[10:-1] }}
 {%- else -%}
 {{ var_type }}
 {%- endif -%}
+{%- endmacro -%}
+{{ get_content() }}

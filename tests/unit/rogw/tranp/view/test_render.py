@@ -242,8 +242,10 @@ class TestRenderer(TestCase):
 		self.assertRender('operation/binary_operator', vars, expected)
 
 	@data_provider([
-		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
-		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void'}, 'typename PluckMethod<T, void, T_Args...>::method'),
+		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool', 'annotations': []}, 'std::function<bool(int, float)>'),
+		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool', 'annotations': ['Embed::immutable']}, 'const std::function<bool(int, float)>&'),
+		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void', 'annotations': []}, 'typename PluckMethod<T, void, T_Args...>::method'),
+		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void', 'annotations': ['Embed::immutable']}, 'const typename PluckMethod<T, void, T_Args...>::method&'),
 	])
 	def test_render_callable_type(self, spec: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'type/{spec}', vars, expected)
@@ -552,19 +554,31 @@ class TestRenderer(TestCase):
 		self.assertRender('function/_initializer', vars, expected)
 
 	@data_provider([
-		({'var_type': 'CP<int>'}, 'int*'),
-		({'var_type': 'CW<int>'}, 'int*'),
-		({'var_type': 'CSP<int>'}, 'std::shared_ptr<int>'),
-		({'var_type': 'CWP<int>'}, 'std::weak_ptr<int>'),
-		({'var_type': 'CUP<int>'}, 'std::unique_ptr<int>'),
-		({'var_type': 'CRef<int>'}, 'int&'),
-		({'var_type': 'CPConst<int>'}, 'const int*'),
-		({'var_type': 'CSPConst<int>'}, 'const std::shared_ptr<int>'),
-		({'var_type': 'CUPConst<int>'}, 'const std::unique_ptr<int>'),
-		({'var_type': 'CRefConst<int>'}, 'const int&'),
-		({'var_type': 'int'}, 'int'),
-		({'var_type': 'std::vector<int>'}, 'std::vector<int>'),
-		({'var_type': 'std::map<std::string, int>'}, 'std::map<std::string, int>'),
+		({'var_type': 'CP<int>', 'annotations': []}, 'int*'),
+		({'var_type': 'CW<int>', 'annotations': []}, 'int*'),
+		({'var_type': 'CSP<int>', 'annotations': []}, 'std::shared_ptr<int>'),
+		({'var_type': 'CWP<int>', 'annotations': []}, 'std::weak_ptr<int>'),
+		({'var_type': 'CUP<int>', 'annotations': []}, 'std::unique_ptr<int>'),
+		({'var_type': 'CRef<int>', 'annotations': []}, 'int&'),
+		({'var_type': 'CPConst<int>', 'annotations': []}, 'const int*'),
+		({'var_type': 'CSPConst<int>', 'annotations': []}, 'const std::shared_ptr<int>'),
+		({'var_type': 'CUPConst<int>', 'annotations': []}, 'const std::unique_ptr<int>'),
+		({'var_type': 'CRefConst<int>', 'annotations': []}, 'const int&'),
+		({'var_type': 'std::vector<int>', 'annotations': []}, 'std::vector<int>'),
+		({'var_type': 'std::map<std::string, int>', 'annotations': []}, 'std::map<std::string, int>'),
+		# アノテーション
+		({'var_type': 'CP<int>', 'annotations': ['Embed::immutable']}, 'const int*'),
+		({'var_type': 'CW<int>', 'annotations': ['Embed::immutable']}, 'const int*'),
+		({'var_type': 'CSP<int>', 'annotations': ['Embed::immutable']}, 'const std::shared_ptr<int>&'),
+		({'var_type': 'CWP<int>', 'annotations': ['Embed::immutable']}, 'const std::weak_ptr<int>&'),
+		({'var_type': 'CUP<int>', 'annotations': ['Embed::immutable']}, 'const std::unique_ptr<int>&'),
+		({'var_type': 'CRef<int>', 'annotations': ['Embed::immutable']}, 'const int&'),
+		({'var_type': 'CPConst<int>', 'annotations': ['Embed::immutable']}, 'const int*'),
+		({'var_type': 'CSPConst<int>', 'annotations': ['Embed::immutable']}, 'const std::shared_ptr<int>'),
+		({'var_type': 'CUPConst<int>', 'annotations': ['Embed::immutable']}, 'const std::unique_ptr<int>'),
+		({'var_type': 'CRefConst<int>', 'annotations': ['Embed::immutable']}, 'const int&'),
+		({'var_type': 'std::tuple<int, float>', 'annotations': ['Embed::immutable']}, 'const std::tuple<int, float>&'),
+		({'var_type': 'std::variant<std::string, int>', 'annotations': ['Embed::immutable']}, 'const std::variant<std::string, int>&'),
 	])
 	def test_render_custom_type(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('type/custom_type', vars, expected)
@@ -585,10 +599,11 @@ class TestRenderer(TestCase):
 		self.assertRender(f'statement/delete', vars, expected)
 
 	@data_provider([
-		({'key_type': 'int', 'value_type': 'float'}, 'std::map<int, float>'),
+		({'type_name': 'std::map', 'key_type': 'std::string', 'value_type': 'int', 'annotations': []}, 'std::map<std::string, int>'),
+		({'type_name': 'std::map', 'key_type': 'std::string', 'value_type': 'int', 'annotations': ['Embed::immutable']}, 'const std::map<std::string, int>&'),
 	])
 	def test_render_dict_type(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('type/dict_type', vars, expected)
+		self.assertRender(f'type/dict_type', vars, expected)
 
 	@data_provider([
 		(
@@ -1458,6 +1473,13 @@ class TestRenderer(TestCase):
 		self.assertRender('lambda/default', vars, expected)
 
 	@data_provider([
+		({'type_name': 'std::vector', 'value_type': 'int', 'annotations': []}, 'std::vector<int>'),
+		({'type_name': 'std::vector', 'value_type': 'int', 'annotations': ['Embed::immutable']}, 'const std::vector<int>&'),
+	])
+	def test_render_list_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'type/list_type', vars, expected)
+
+	@data_provider([
 		('dict', {'items': []}, '{}'),
 		('dict', {'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
 		('falsy', {}, 'false'),
@@ -1491,33 +1513,24 @@ class TestRenderer(TestCase):
 		# 明示変換系
 		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotations': []}, 'int n'),
 		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotations': ['Embed::mutable']}, 'int n'),
-		# ({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotations': ['Embed::immutable']}, 'const int& n'),
 		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotations': []}, 'int n = 1'),
 		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotations': ['Embed::mutable']}, 'int n = 1'),
-		# ({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotations': ['Embed::immutable']}, 'const int& n = 1'),
 		# 暗黙変換系
 		({'var_type': 'std::string', 'symbol': 's', 'annotations': []}, 'const std::string& s'),
 		({'var_type': 'std::string', 'symbol': 's', 'annotations': ['Embed::mutable']}, 'std::string s'),
-		# ({'var_type': 'std::string', 'symbol': 's', 'annotations': ['Embed::immutable']}, 'const std::string& s'),
 		({'var_type': 'std::string*', 'symbol': 'p', 'annotations': []}, 'const std::string* p'),
 		({'var_type': 'std::string*', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'std::string* p'),
-		# ({'var_type': 'std::string*', 'symbol': 'p', 'annotations': ['Embed::immutable']}, 'const std::string* p'),
 		({'var_type': 'std::string&', 'symbol': 'p', 'annotations': []}, 'const std::string& p'),
 		({'var_type': 'std::string&', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'std::string& p'),
-		# ({'var_type': 'std::string&', 'symbol': 'p', 'annotations': ['Embed::immutable']}, 'const std::string& p'),
 		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotations': []}, 'const std::vector<int>& ns'),
 		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotations': ['Embed::mutable']}, 'std::vector<int> ns'),
-		# ({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotations': ['Embed::immutable']}, 'const std::vector<int>& ns'),
 		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotations': []}, 'const std::map<std::string, int>& dns'),
 		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotations': ['Embed::mutable']}, 'std::map<std::string, int> dns'),
-		# ({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotations': ['Embed::immutable']}, 'const std::map<std::string, int>& dns'),
 		# 変換不可系
 		({'var_type': 'const std::string', 'symbol': 'p', 'annotations': []}, 'const std::string p'),
 		({'var_type': 'const std::string', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'const std::string p'),
-		# ({'var_type': 'const std::string', 'symbol': 'p', 'annotations': ['Embed::immutable']}, 'const std::string p'),
 		({'var_type': 'const std::string&', 'symbol': 'p', 'annotations': []}, 'const std::string& p'),
 		({'var_type': 'const std::string&', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'const std::string& p'),
-		# ({'var_type': 'const std::string&', 'symbol': 'p', 'annotations': ['Embed::immutable']}, 'const std::string& p'),
 	])
 	def test_render_parameter(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('element/parameter', vars, expected)
@@ -1609,10 +1622,18 @@ class TestRenderer(TestCase):
 		self.assertRender('reference/var', vars, expected)
 
 	@data_provider([
+		({'receiver': 'A', 'type_name': 'B', 'annotations': []}, 'A::B'),
+		({'receiver': 'A', 'type_name': 'B', 'annotations': ['Embed::immutable']}, 'const A::B&'),
+	])
+	def test_render_relay_of_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'type/relay_of_type', vars, expected)
+
+	@data_provider([
 		('var_of_type', {'type_name': 'int', 'annotations': []}, 'int'),
 		('var_of_type', {'type_name': 'std::string', 'annotations': []}, 'std::string'),
 		('var_of_type', {'type_name': 'std::string', 'annotations': ['Embed::immutable']}, 'const std::string&'),
 		('template', {'type_name': 'T', 'annotations': [], 'definition_type': 'TypeVar'}, 'T'),
+		('template', {'type_name': 'T', 'annotations': ['Embed::immutable'], 'definition_type': 'TypeVar'}, 'const T&'),
 		('template', {'type_name': 'T_Args', 'annotations': [], 'definition_type': 'TypeVarTuple'}, 'T_Args...'),
 		('template', {'type_name': 'P', 'annotations': [], 'definition_type': 'ParamSpec'}, 'P'),
 	])

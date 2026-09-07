@@ -197,7 +197,7 @@ def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.P
 
 
 def param_type_annotated(setting: RendererSetting) -> Callable[[str, list[str], list[str]], str]:
-	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.VarType.annotated"""
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.ParamType.annotated"""
 	return lambda var_type, annotations, immutable_types: CppViewHelper.ParamType.annotated(var_type, annotations, immutable_types)
 
 

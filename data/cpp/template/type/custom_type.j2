@@ -25,4 +25,4 @@ const {{ var_type[10:-1] }}
 {{ var_type }}
 {%- endif -%}
 {%- endmacro -%}
-{{ get_content() }}
+{{ var_type_annotated(get_content(), annotations) }}

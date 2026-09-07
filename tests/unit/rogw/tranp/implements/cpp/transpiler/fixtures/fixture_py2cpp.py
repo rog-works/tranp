@@ -446,6 +446,10 @@ class ForClass:
 		@Embed.alias(Names.Name.value)
 		def b_to_name(self) -> None: ...
 
+		def access(self, a: 'ForClass') -> None:
+			print(self.Inner)
+			print(a.Alias.Inner)
+
 	class Expose:
 		@Embed.python
 		class Class: ...

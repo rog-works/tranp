@@ -288,11 +288,14 @@ class TestPy2Cpp(TestCase):
 		('ForClass.Alias.InnerB.super_call', 'function_def_raw.block.funccall', defs.FuncCall, 'ForClass::Alias2::Inner2::func();'),
 		('ForClass.Alias.a_cpp', '', defs.Method, BlockExpects.method(access='public', name='a')),
 		('ForClass.Alias.b_to_name', '', defs.Method, BlockExpects.method(access='public', name='name')),
+		('ForClass.Alias.access', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'printf(this->Inner2);'),
+		('ForClass.Alias.access', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'printf(a.Alias2::Inner2);'),
 
 		('ForClass.Expose.Class', '', defs.Class, '// class Class'),
 		('ForClass.Expose.Enums', '', defs.Enum, '// enum Enums'),
 		('ForClass.Expose.method', '', defs.Method, '// method method'),
 		('ForClass.Expose.method_cpp', '', defs.Method, BlockExpects.method(access='public', name='method')),
+
 		('hide_func', '', defs.Function, '// function hide_func'),
 
 		('ForAltClass.assign', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'CSP2<Sub> sp = std::make_shared<Sub>(0);'),

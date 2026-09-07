@@ -27,6 +27,21 @@ class TestCppViewHelper(TestCase):
 		('', [], ''),  # self/clsの検証
 		('std::string', [], 'const std::string&'),
 		('std::string*', [], 'const std::string*'),
+		('std::string', [CppViewHelper.ParamType.AnnoMutable], 'std::string'),
+		('std::string*', [CppViewHelper.ParamType.AnnoMutable], 'std::string*'),
+		('std::string&', [CppViewHelper.ParamType.AnnoMutable], 'std::string&'),
+		('int', [], 'int'),
+		('int*', [], 'int*'),
+		('int&', [], 'int&'),
+	])
+	def test_param_type_annotated(self, var_type: str, annotations: list[str], expected: str) -> None:
+		actual = CppViewHelper.ParamType.annotated(var_type, annotations, ['std::string'])
+		self.assertEqual(expected, actual)
+
+	@data_provider([
+		('', [], ''),  # self/clsの検証
+		('std::string', [], 'const std::string&'),
+		('std::string*', [], 'const std::string*'),
 		('std::string', [CppViewHelper.VarType.AnnoMutable], 'std::string'),
 		('std::string*', [CppViewHelper.VarType.AnnoMutable], 'std::string*'),
 		('std::string&', [CppViewHelper.VarType.AnnoMutable], 'std::string&'),

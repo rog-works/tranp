@@ -244,8 +244,10 @@ class TestRenderer(TestCase):
 	@data_provider([
 		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool', 'annotations': []}, 'std::function<bool(int, float)>'),
 		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool', 'annotations': ['Embed::immutable']}, 'const std::function<bool(int, float)>&'),
+		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool', 'annotations': ['Embed::reference']}, 'std::function<bool(int, float)>&'),
 		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void', 'annotations': []}, 'typename PluckMethod<T, void, T_Args...>::method'),
 		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void', 'annotations': ['Embed::immutable']}, 'const typename PluckMethod<T, void, T_Args...>::method&'),
+		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void', 'annotations': ['Embed::reference']}, 'typename PluckMethod<T, void, T_Args...>::method&'),
 	])
 	def test_render_callable_type(self, spec: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'type/{spec}', vars, expected)
@@ -566,7 +568,7 @@ class TestRenderer(TestCase):
 		({'var_type': 'CRefConst<int>', 'annotations': []}, 'const int&'),
 		({'var_type': 'std::vector<int>', 'annotations': []}, 'std::vector<int>'),
 		({'var_type': 'std::map<std::string, int>', 'annotations': []}, 'std::map<std::string, int>'),
-		# アノテーション
+		# immutable
 		({'var_type': 'CP<int>', 'annotations': ['Embed::immutable']}, 'const int*'),
 		({'var_type': 'CW<int>', 'annotations': ['Embed::immutable']}, 'const int*'),
 		({'var_type': 'CSP<int>', 'annotations': ['Embed::immutable']}, 'const std::shared_ptr<int>&'),
@@ -579,6 +581,19 @@ class TestRenderer(TestCase):
 		({'var_type': 'CRefConst<int>', 'annotations': ['Embed::immutable']}, 'const int&'),
 		({'var_type': 'std::tuple<int, float>', 'annotations': ['Embed::immutable']}, 'const std::tuple<int, float>&'),
 		({'var_type': 'std::variant<std::string, int>', 'annotations': ['Embed::immutable']}, 'const std::variant<std::string, int>&'),
+		# reference
+		({'var_type': 'CP<int>', 'annotations': ['Embed::reference']}, 'int*'),
+		({'var_type': 'CW<int>', 'annotations': ['Embed::reference']}, 'int*'),
+		({'var_type': 'CSP<int>', 'annotations': ['Embed::reference']}, 'std::shared_ptr<int>&'),
+		({'var_type': 'CWP<int>', 'annotations': ['Embed::reference']}, 'std::weak_ptr<int>&'),
+		({'var_type': 'CUP<int>', 'annotations': ['Embed::reference']}, 'std::unique_ptr<int>&'),
+		({'var_type': 'CRef<int>', 'annotations': ['Embed::reference']}, 'int&'),
+		({'var_type': 'CPConst<int>', 'annotations': ['Embed::reference']}, 'const int*'),
+		({'var_type': 'CSPConst<int>', 'annotations': ['Embed::reference']}, 'const std::shared_ptr<int>&'),
+		({'var_type': 'CUPConst<int>', 'annotations': ['Embed::reference']}, 'const std::unique_ptr<int>&'),
+		({'var_type': 'CRefConst<int>', 'annotations': ['Embed::reference']}, 'const int&'),
+		({'var_type': 'std::tuple<int, float>', 'annotations': ['Embed::reference']}, 'std::tuple<int, float>&'),
+		({'var_type': 'std::variant<std::string, int>', 'annotations': ['Embed::reference']}, 'std::variant<std::string, int>&'),
 	])
 	def test_render_custom_type(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('type/custom_type', vars, expected)
@@ -601,6 +616,7 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'type_name': 'std::map', 'key_type': 'std::string', 'value_type': 'int', 'annotations': []}, 'std::map<std::string, int>'),
 		({'type_name': 'std::map', 'key_type': 'std::string', 'value_type': 'int', 'annotations': ['Embed::immutable']}, 'const std::map<std::string, int>&'),
+		({'type_name': 'std::map', 'key_type': 'std::string', 'value_type': 'int', 'annotations': ['Embed::reference']}, 'std::map<std::string, int>&'),
 	])
 	def test_render_dict_type(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'type/dict_type', vars, expected)
@@ -1475,6 +1491,7 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'type_name': 'std::vector', 'value_type': 'int', 'annotations': []}, 'std::vector<int>'),
 		({'type_name': 'std::vector', 'value_type': 'int', 'annotations': ['Embed::immutable']}, 'const std::vector<int>&'),
+		({'type_name': 'std::vector', 'value_type': 'int', 'annotations': ['Embed::reference']}, 'std::vector<int>&'),
 	])
 	def test_render_list_type(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'type/list_type', vars, expected)
@@ -1624,6 +1641,7 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'receiver': 'A', 'type_name': 'B', 'annotations': []}, 'A::B'),
 		({'receiver': 'A', 'type_name': 'B', 'annotations': ['Embed::immutable']}, 'const A::B&'),
+		({'receiver': 'A', 'type_name': 'B', 'annotations': ['Embed::reference']}, 'A::B&'),
 	])
 	def test_render_relay_of_type(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'type/relay_of_type', vars, expected)
@@ -1632,10 +1650,12 @@ class TestRenderer(TestCase):
 		('var_of_type', {'type_name': 'int', 'annotations': []}, 'int'),
 		('var_of_type', {'type_name': 'std::string', 'annotations': []}, 'std::string'),
 		('var_of_type', {'type_name': 'std::string', 'annotations': ['Embed::immutable']}, 'const std::string&'),
+		('var_of_type', {'type_name': 'std::string', 'annotations': ['Embed::reference']}, 'std::string&'),
 		('template', {'type_name': 'T', 'annotations': [], 'definition_type': 'TypeVar'}, 'T'),
-		('template', {'type_name': 'T', 'annotations': ['Embed::immutable'], 'definition_type': 'TypeVar'}, 'const T&'),
 		('template', {'type_name': 'T_Args', 'annotations': [], 'definition_type': 'TypeVarTuple'}, 'T_Args...'),
 		('template', {'type_name': 'P', 'annotations': [], 'definition_type': 'ParamSpec'}, 'P'),
+		('template', {'type_name': 'T', 'annotations': ['Embed::immutable'], 'definition_type': 'TypeVar'}, 'const T&'),
+		('template', {'type_name': 'T', 'annotations': ['Embed::reference'], 'definition_type': 'TypeVar'}, 'T&'),
 	])
 	def test_render_var_of_type(self, spec: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'type/{spec}', vars, expected)

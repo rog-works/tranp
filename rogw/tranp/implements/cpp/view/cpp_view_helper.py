@@ -80,12 +80,40 @@ class CppViewHelper:
 			else:
 				return self.var_type.split('<')[0]
 
+	class ParamType:
+		"""ヘルパー(C++/引数の型)"""
+
+		AnnoMutable: ClassVar = f'{Embed.__name__}::{Embed.mutable.__name__}'
+		PatternOriginType: ClassVar = re.compile('^([\\w\\d:_]+)')
+
+		@classmethod
+		def annotated(cls, var_type: str, annotations: list[str], immutable_types: list[str]) -> str:
+			"""型注釈を元に型名に不変型の付与を試行
+
+			Args:
+				var_type: 型名
+				annotations: アノテーションリスト
+				immutable_types: 暗黙的不変型リスト
+			Returns:
+				注釈適用後の型名
+			"""
+			if len(var_type) == 0:
+				return var_type
+			elif var_type.startswith('const'):
+				return var_type
+			elif cls.AnnoMutable in annotations:
+				return var_type
+			elif as_a(re.Match, cls.PatternOriginType.search(var_type)).group(1) in immutable_types:
+				return CppViewHelper.VarType.to_immutable(var_type)
+			else:
+				return var_type
+
 	class VarType:
-		"""ヘルパー(C++/型)"""
+		"""ヘルパー(C++/変数の型)"""
 
 		AnnoMutable: ClassVar = f'{Embed.__name__}::{Embed.mutable.__name__}'
 		AnnoImmutable: ClassVar = f'{Embed.__name__}::{Embed.immutable.__name__}'
-		PatternVarType: ClassVar = re.compile('^([\\w\\d:_]+)')
+		PatternOriginType: ClassVar = re.compile('^([\\w\\d:_]+)')
 
 		@classmethod
 		def annotated(cls, var_type: str, annotations: list[str], immutable_types: list[str]) -> str:
@@ -107,7 +135,7 @@ class CppViewHelper:
 			elif cls.AnnoImmutable in annotations:
 				return cls.to_immutable(var_type)
 
-			origin = as_a(re.Match, cls.PatternVarType.search(var_type)).group(1)
+			origin = as_a(re.Match, cls.PatternOriginType.search(var_type)).group(1)
 			if origin in immutable_types:
 				return cls.to_immutable(var_type)
 

@@ -111,12 +111,10 @@ class CppViewHelper:
 	class VarType:
 		"""ヘルパー(C++/変数の型)"""
 
-		AnnoMutable: ClassVar = f'{Embed.__name__}::{Embed.mutable.__name__}'
 		AnnoImmutable: ClassVar = f'{Embed.__name__}::{Embed.immutable.__name__}'
-		PatternOriginType: ClassVar = re.compile('^([\\w\\d:_]+)')
 
 		@classmethod
-		def annotated(cls, var_type: str, annotations: list[str], immutable_types: list[str]) -> str:
+		def annotated(cls, var_type: str, annotations: list[str]) -> str:
 			"""型注釈を元に型名に不変型の付与を試行
 
 			Args:
@@ -130,16 +128,10 @@ class CppViewHelper:
 				return var_type
 			elif var_type.startswith('const'):
 				return var_type
-			elif cls.AnnoMutable in annotations:
-				return var_type
 			elif cls.AnnoImmutable in annotations:
 				return cls.to_immutable(var_type)
-
-			origin = as_a(re.Match, cls.PatternOriginType.search(var_type)).group(1)
-			if origin in immutable_types:
-				return cls.to_immutable(var_type)
-
-			return var_type
+			else:
+				return var_type
 
 		@classmethod
 		def to_immutable(cls, var_type: str) -> str:
@@ -203,9 +195,14 @@ def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.P
 	return lambda parameter: CppViewHelper.Param.parse(parameter)
 
 
+def param_type_annotated(setting: RendererSetting) -> Callable[[str, list[str], list[str]], str]:
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.VarType.annotated"""
+	return lambda var_type, annotations, immutable_types: CppViewHelper.ParamType.annotated(var_type, annotations, immutable_types)
+
+
 def var_type_annotated(setting: RendererSetting) -> Callable[[str, list[str]], str]:
 	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.VarType.annotated"""
-	return lambda var_type, annotations, immutable_types=[]: CppViewHelper.VarType.annotated(var_type, annotations, immutable_types)
+	return lambda var_type, annotations: CppViewHelper.VarType.annotated(var_type, annotations)
 
 
 def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str, str, str]]:
@@ -215,4 +212,4 @@ def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]
 
 def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
-	return ([super_initializer_parse, initializer_parse, parameter_parse, var_type_annotated, break_iterator_list_complex], [])
+	return ([super_initializer_parse, initializer_parse, parameter_parse, param_type_annotated, var_type_annotated, break_iterator_list_complex], [])

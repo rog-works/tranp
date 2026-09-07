@@ -977,7 +977,8 @@ class Py2Cpp(ITranspiler):
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		prop_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).prop_of(node.prop)
 		type_name = self.to_domain_name_by_class(prop_symbol.types)
-		return self.render(node, f'type/{node.classification}', vars={'receiver': receiver, 'type_name': type_name})
+		annotations = [self.transpile(annotation) for annotation in node.annotations]
+		return self.render(node, f'type/{node.classification}', vars={'receiver': receiver, 'type_name': type_name, 'annotations': annotations})
 
 	def on_var_of_type(self, node: defs.VarOfType) -> str:
 		symbol = self.reflections.type_of(node)
@@ -998,10 +999,12 @@ class Py2Cpp(ITranspiler):
 		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
-		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'value_type': value_type})
+		annotations = [self.transpile(annotation) for annotation in node.annotations]
+		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'value_type': value_type, 'annotations': annotations})
 
 	def on_dict_type(self, node: defs.DictType, type_name: str, key_type: str, value_type: str) -> str:
-		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
+		annotations = [self.transpile(annotation) for annotation in node.annotations]
+		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type, 'annotations': annotations})
 
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
 		"""
@@ -1017,11 +1020,13 @@ class Py2Cpp(ITranspiler):
 			if isinstance(second_type.types, defs.TemplateClass) and second_type.types.definition_type.type_name.tokens == TypeVarTuple.__name__:
 				spec = 'pluck_method'
 
-		return self.render(node, f'type/{spec}', vars={'type_name': type_name, 'parameters': parameters, 'return_type': return_type})
+		annotations = [self.transpile(annotation) for annotation in node.annotations]
+		return self.render(node, f'type/{spec}', vars={'type_name': type_name, 'parameters': parameters, 'return_type': return_type, 'annotations': annotations})
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, sub_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name
-		return self.render(node, f'type/{node.classification}', vars={'var_type': f'{type_name}<{", ".join(sub_types)}>'})
+		annotations = [self.transpile(annotation) for annotation in node.annotations]
+		return self.render(node, f'type/{node.classification}', vars={'var_type': f'{type_name}<{", ".join(sub_types)}>', 'annotations': annotations})
 
 	def on_literal_dict_type(self, node: defs.LiteralDictType, type_name: str, key_type: str, value_type: str) -> str:
 		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})

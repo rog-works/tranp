@@ -340,11 +340,15 @@ class RelayOfType(GeneralType):
 
 
 @Meta.embed(Node, accept_tags('typed_var'))
-class VarOfType(GeneralType, ITerminal): pass
+class VarOfType(GeneralType, ITerminal):
+	@property
+	def class_types_for_self(self) -> Node:
+		"""Note: Self専用"""
+		return self._ancestor('class_def')
 
 
 @Meta.embed(Node, accept_tags('typed_literal'))
-class LiteralType(VarOfType):
+class LiteralType(GeneralType, ITerminal):
 	"""Note: XXX 本来はGenericType相当だが、実用的にはint/strでしか使用しないため簡略化"""
 
 	@property

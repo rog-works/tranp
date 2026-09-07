@@ -849,7 +849,7 @@ class Py2Cpp(ITranspiler):
 			else:
 				return self.render(node, f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': receiver})
 		elif self.is_relay_this(node):
-			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.render(node, f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Address.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 		elif self.is_relay_cvar(node, receiver_symbol):
@@ -863,7 +863,7 @@ class Py2Cpp(ITranspiler):
 			# XXX contextはactualize前のインスタンスを使う
 			cvar_type = self.cvars.resolve_type(org_receiver_symbol.context)
 			operator = self.cvars.to_operator(cvar_type).name
-			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.render(node, f'{node.classification}/default', vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 		elif self.is_relay_cvar_cast(node, receiver_symbol):
@@ -878,7 +878,7 @@ class Py2Cpp(ITranspiler):
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.render(node, f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Static.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 		else:
-			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.render(node, f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Raw.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 

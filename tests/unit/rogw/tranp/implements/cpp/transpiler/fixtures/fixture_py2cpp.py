@@ -555,6 +555,14 @@ class ForFunction:
 				self['a'] = CRef(sub)
 
 	class Modifier:
+		class Vars:
+			r: Annotated[int, Embed.reference]
+			i: Annotated[list[int], Embed.immutable]
+
+			def __init__(self, n: CP[int], arr: list[int]) -> None:
+				self.r = n.raw
+				self.i = arr
+
 		@Embed.public
 		def _to_public(self) -> None: ...
 		@Embed.protected

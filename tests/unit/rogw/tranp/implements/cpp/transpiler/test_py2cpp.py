@@ -331,6 +331,8 @@ class TestPy2Cpp(TestCase):
 		('ForFunction.Operators.__getitem__', '', defs.Method, BlockExpects.method(access='public', name='operator[]', params=['const std::string& key'], return_type='Sub&')),
 		('ForFunction.Operators.__setitem__', '', defs.Method, '// method __setitem__'),
 
+		('ForFunction.Modifier.Vars', '', defs.Class, BlockExpects.ForFunction_ModifierVars),
+
 		('ForFunction.Modifier._to_public', '', defs.Method, BlockExpects.method(access='public', name='_to_public')),
 		('ForFunction.Modifier.to_protected', '', defs.Method, BlockExpects.method(access='protected', name='to_protected')),
 		('ForFunction.Modifier.to_private', '', defs.Method, BlockExpects.method(access='private', name='to_private')),

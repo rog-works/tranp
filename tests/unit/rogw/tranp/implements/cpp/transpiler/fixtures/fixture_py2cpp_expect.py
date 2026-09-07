@@ -190,6 +190,16 @@ class DeclProps : public DeclPropsBase {
 	}
 };"""
 
+	ForFunction_ModifierVars = """public:
+/** Vars */
+class Vars {
+	public: int& r;
+	public: const std::vector<int>& i;
+	public:
+	/** __init__ */
+	Vars(int* n, const std::vector<int>& arr) : r((*(n))), i(arr) {}
+};"""
+
 	ForClass_AliasInner = """public:
 /** Inner2 */
 class Inner2 {

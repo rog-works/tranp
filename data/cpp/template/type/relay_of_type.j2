@@ -1,1 +1,2 @@
-{{ receiver }}::{{ type_name }}
+{%- set var_type = receiver + '::' + type_name -%}
+{{ var_type_annotated(var_type, annotations) }}

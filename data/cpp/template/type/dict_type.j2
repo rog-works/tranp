@@ -1,1 +1,2 @@
-{{ i18n('classes', 'dict') }}<{{ key_type }}, {{ value_type }}>
+{%- set var_type = i18n('classes', 'dict') + '<' + key_type + ', ' + value_type + '>' -%}
+{{ var_type_annotated(var_type, annotations) }}

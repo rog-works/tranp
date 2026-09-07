@@ -1,1 +1,2 @@
-{{ i18n('collections.abc', 'Callable') }}<{{ return_type }}({{ parameters | join(', ') }})>
+{%- set var_type = i18n('collections.abc', 'Callable') + '<' + return_type + '(' + (parameters | join(', ')) + ')>' -%}
+{{ var_type_annotated(var_type, annotations) }}

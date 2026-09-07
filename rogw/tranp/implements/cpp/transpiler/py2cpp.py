@@ -981,9 +981,9 @@ class Py2Cpp(ITranspiler):
 
 	def on_var_of_type(self, node: defs.VarOfType) -> str:
 		symbol = self.reflections.type_of(node)
-		# ノードが戻り値の型であり、且つSelfの場合、所属クラスのシンボルに変換 FIXME 場当たり的、且つ不完全なため修正を検討
-		if isinstance(node.parent, (defs.Method, defs.ClassMethod)) and isinstance(symbol.types, defs.TemplateClass) and symbol.types.domain_name == Self.__name__:
-			symbol = self.reflections.resolve(node.parent.class_types)
+		# Selfの場合、所属クラスのシンボルに変換
+		if isinstance(symbol.types, defs.TemplateClass) and symbol.types.domain_name == Self.__name__:
+			symbol = self.reflections.resolve(node.class_types_for_self.as_a(defs.Class))
 
 		type_name = self.to_domain_name_by_class(symbol.types)
 		annotations = [self.transpile(annotation) for annotation in node.annotations]

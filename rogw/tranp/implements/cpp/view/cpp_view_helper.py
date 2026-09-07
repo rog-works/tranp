@@ -112,6 +112,7 @@ class CppViewHelper:
 		"""ヘルパー(C++/変数の型)"""
 
 		AnnoImmutable: ClassVar = f'{Embed.__name__}::{Embed.immutable.__name__}'
+		AnnoReference: ClassVar = f'{Embed.__name__}::{Embed.reference.__name__}'
 
 		@classmethod
 		def annotated(cls, var_type: str, annotations: list[str]) -> str:
@@ -126,10 +127,10 @@ class CppViewHelper:
 			"""
 			if len(var_type) == 0:
 				return var_type
-			elif var_type.startswith('const'):
-				return var_type
-			elif cls.AnnoImmutable in annotations:
+			elif cls.AnnoImmutable in annotations and not var_type.startswith('const'):
 				return cls.to_immutable(var_type)
+			elif cls.AnnoReference in annotations and not (var_type.endswith('*') or var_type.endswith('&')):
+				return f'{var_type}&'
 			else:
 				return var_type
 

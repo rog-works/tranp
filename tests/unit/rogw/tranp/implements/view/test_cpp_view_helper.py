@@ -40,11 +40,8 @@ class TestCppViewHelper(TestCase):
 
 	@data_provider([
 		('', [], ''),  # self/clsの検証
-		('std::string', [], 'const std::string&'),
-		('std::string*', [], 'const std::string*'),
-		('std::string', [CppViewHelper.VarType.AnnoMutable], 'std::string'),
-		('std::string*', [CppViewHelper.VarType.AnnoMutable], 'std::string*'),
-		('std::string&', [CppViewHelper.VarType.AnnoMutable], 'std::string&'),
+		('std::string', [], 'std::string'),
+		('std::string*', [], 'std::string*'),
 		('int', [], 'int'),
 		('int*', [], 'int*'),
 		('int&', [], 'int&'),
@@ -53,5 +50,5 @@ class TestCppViewHelper(TestCase):
 		('int&', [CppViewHelper.VarType.AnnoImmutable], 'const int&'),
 	])
 	def test_var_type_annotated(self, var_type: str, annotations: list[str], expected: str) -> None:
-		actual = CppViewHelper.VarType.annotated(var_type, annotations, ['std::string'])
+		actual = CppViewHelper.VarType.annotated(var_type, annotations)
 		self.assertEqual(expected, actual)

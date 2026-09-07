@@ -25,18 +25,52 @@ class TestCppViewHelper(TestCase):
 
 	@data_provider([
 		('', [], ''),  # self/clsの検証
-		('std::string', [], 'const std::string&'),
-		('std::string*', [], 'const std::string*'),
-		('std::string', [CppViewHelper.VarType.AnnoMutable], 'std::string'),
-		('std::string*', [CppViewHelper.VarType.AnnoMutable], 'std::string*'),
-		('std::string&', [CppViewHelper.VarType.AnnoMutable], 'std::string&'),
 		('int', [], 'int'),
 		('int*', [], 'int*'),
 		('int&', [], 'int&'),
+		('std::string', [], 'const std::string&'),
+		('std::string*', [], 'const std::string*'),
+		('std::string', [CppViewHelper.ParamType.AnnoMutable], 'std::string'),
+		('std::string*', [CppViewHelper.ParamType.AnnoMutable], 'std::string*'),
+		('std::string&', [CppViewHelper.ParamType.AnnoMutable], 'std::string&'),
+	])
+	def test_param_type_annotated(self, var_type: str, annotations: list[str], expected: str) -> None:
+		actual = CppViewHelper.ParamType.annotated(var_type, annotations, ['std::string'])
+		self.assertEqual(expected, actual)
+
+	@data_provider([
+		('', [], ''),  # self/clsの検証
+		('int', [], 'int'),
+		('int*', [], 'int*'),
+		('int&', [], 'int&'),
+		('std::string', [], 'std::string'),
+		('std::vector<int>', [], 'std::vector<int>'),
+		('const int', [], 'const int'),
+		('const int*', [], 'const int*'),
+		('const int&', [], 'const int&'),
+		('const std::string', [], 'const std::string'),
+		('const std::vector<int>', [], 'const std::vector<int>'),
 		('int', [CppViewHelper.VarType.AnnoImmutable], 'const int&'),
 		('int*', [CppViewHelper.VarType.AnnoImmutable], 'const int*'),
 		('int&', [CppViewHelper.VarType.AnnoImmutable], 'const int&'),
+		('std::string', [CppViewHelper.VarType.AnnoImmutable], 'const std::string&'),
+		('std::vector<int>', [CppViewHelper.VarType.AnnoImmutable], 'const std::vector<int>&'),
+		('const int', [CppViewHelper.VarType.AnnoImmutable], 'const int'),
+		('const int*', [CppViewHelper.VarType.AnnoImmutable], 'const int*'),
+		('const int&', [CppViewHelper.VarType.AnnoImmutable], 'const int&'),
+		('const std::string', [CppViewHelper.VarType.AnnoImmutable], 'const std::string'),
+		('const std::vector<int>', [CppViewHelper.VarType.AnnoImmutable], 'const std::vector<int>'),
+		('int', [CppViewHelper.VarType.AnnoReference], 'int&'),
+		('int*', [CppViewHelper.VarType.AnnoReference], 'int*'),
+		('int&', [CppViewHelper.VarType.AnnoReference], 'int&'),
+		('std::string', [CppViewHelper.VarType.AnnoReference], 'std::string&'),
+		('std::vector<int>', [CppViewHelper.VarType.AnnoReference], 'std::vector<int>&'),
+		('const int', [CppViewHelper.VarType.AnnoReference], 'const int&'),
+		('const int*', [CppViewHelper.VarType.AnnoReference], 'const int*'),
+		('const int&', [CppViewHelper.VarType.AnnoReference], 'const int&'),
+		('const std::string', [CppViewHelper.VarType.AnnoReference], 'const std::string&'),
+		('const std::vector<int>', [CppViewHelper.VarType.AnnoReference], 'const std::vector<int>&'),
 	])
 	def test_var_type_annotated(self, var_type: str, annotations: list[str], expected: str) -> None:
-		actual = CppViewHelper.VarType.annotated(var_type, annotations, ['std::string'])
+		actual = CppViewHelper.VarType.annotated(var_type, annotations)
 		self.assertEqual(expected, actual)

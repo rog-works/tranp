@@ -64,12 +64,17 @@ class Embed:
 
 	@classmethod
 	def mutable(cls) -> None:
-		"""変性フラグを埋め込み (対象: 仮引数)"""
+		"""引数の暗黙的不変型を解除"""
 		...
 
 	@classmethod
 	def immutable(cls) -> None:
-		"""不変性フラグを埋め込み (対象: 仮引数)"""
+		"""変数型に不変性を付与"""
+		...
+
+	@classmethod
+	def reference(cls) -> None:
+		"""変数型に参照を付与"""
 		...
 
 	@classmethod

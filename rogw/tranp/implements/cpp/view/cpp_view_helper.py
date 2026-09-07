@@ -80,12 +80,11 @@ class CppViewHelper:
 			else:
 				return self.var_type.split('<')[0]
 
-	class VarType:
-		"""ヘルパー(C++/型)"""
+	class ParamType:
+		"""ヘルパー(C++/引数の型)"""
 
 		AnnoMutable: ClassVar = f'{Embed.__name__}::{Embed.mutable.__name__}'
-		AnnoImmutable: ClassVar = f'{Embed.__name__}::{Embed.immutable.__name__}'
-		PatternVarType: ClassVar = re.compile('^([\\w\\d:_]+)')
+		PatternOriginType: ClassVar = re.compile('^([\\w\\d:_]+)')
 
 		@classmethod
 		def annotated(cls, var_type: str, annotations: list[str], immutable_types: list[str]) -> str:
@@ -104,14 +103,36 @@ class CppViewHelper:
 				return var_type
 			elif cls.AnnoMutable in annotations:
 				return var_type
-			elif cls.AnnoImmutable in annotations:
-				return cls.to_immutable(var_type)
+			elif as_a(re.Match, cls.PatternOriginType.search(var_type)).group(1) in immutable_types:
+				return CppViewHelper.VarType.to_immutable(var_type)
+			else:
+				return var_type
 
-			origin = as_a(re.Match, cls.PatternVarType.search(var_type)).group(1)
-			if origin in immutable_types:
-				return cls.to_immutable(var_type)
+	class VarType:
+		"""ヘルパー(C++/変数の型)"""
 
-			return var_type
+		AnnoImmutable: ClassVar = f'{Embed.__name__}::{Embed.immutable.__name__}'
+		AnnoReference: ClassVar = f'{Embed.__name__}::{Embed.reference.__name__}'
+
+		@classmethod
+		def annotated(cls, var_type: str, annotations: list[str]) -> str:
+			"""型注釈を元に型名に不変型の付与を試行
+
+			Args:
+				var_type: 型名
+				annotations: アノテーションリスト
+				immutable_types: 暗黙的不変型リスト
+			Returns:
+				注釈適用後の型名
+			"""
+			if len(var_type) == 0:
+				return var_type
+			elif cls.AnnoImmutable in annotations and not var_type.startswith('const'):
+				return cls.to_immutable(var_type)
+			elif cls.AnnoReference in annotations and not (var_type.endswith('*') or var_type.endswith('&')):
+				return f'{var_type}&'
+			else:
+				return var_type
 
 		@classmethod
 		def to_immutable(cls, var_type: str) -> str:
@@ -175,9 +196,14 @@ def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.P
 	return lambda parameter: CppViewHelper.Param.parse(parameter)
 
 
+def param_type_annotated(setting: RendererSetting) -> Callable[[str, list[str], list[str]], str]:
+	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.ParamType.annotated"""
+	return lambda var_type, annotations, immutable_types: CppViewHelper.ParamType.annotated(var_type, annotations, immutable_types)
+
+
 def var_type_annotated(setting: RendererSetting) -> Callable[[str, list[str]], str]:
 	"""Note: @see rogw.tranp.implements.cpp.view.cpp_view_helper.CppViewHelper.VarType.annotated"""
-	return lambda var_type, annotations, immutable_types=[]: CppViewHelper.VarType.annotated(var_type, annotations, immutable_types)
+	return lambda var_type, annotations: CppViewHelper.VarType.annotated(var_type, annotations)
 
 
 def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str, str, str]]:
@@ -187,4 +213,4 @@ def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]
 
 def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
-	return ([super_initializer_parse, initializer_parse, parameter_parse, var_type_annotated, break_iterator_list_complex], [])
+	return ([super_initializer_parse, initializer_parse, parameter_parse, param_type_annotated, var_type_annotated, break_iterator_list_complex], [])

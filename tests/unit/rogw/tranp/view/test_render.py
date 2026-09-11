@@ -253,7 +253,7 @@ class TestRenderer(TestCase):
 		self.assertRender(f'type/{spec}', vars, expected)
 
 	@data_provider([
-		({'var_type': 'Exception', 'symbol': 'e', 'statements': ['pass;']}, '} catch (Exception e) {\n\tpass;'),
+		({'var_type': 'Exception', 'symbol': 'e', 'statements': ['pass;']}, '} catch (const Exception& e) {\n\tpass;'),
 	])
 	def test_render_catch(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('flow/catch', vars, expected)

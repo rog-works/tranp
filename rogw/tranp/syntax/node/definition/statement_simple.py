@@ -143,8 +143,8 @@ class Assert(Node):
 class Throw(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def throws(self) -> FuncCall | Var | Relay:
-		return self._at(0).one_of(FuncCall, Var, Relay)
+	def throws(self) -> FuncCall | Var | Relay | Empty:
+		return self._at(0).one_of(FuncCall, Var, Relay, Empty)
 
 	@property
 	@Meta.embed(Node, expandable)

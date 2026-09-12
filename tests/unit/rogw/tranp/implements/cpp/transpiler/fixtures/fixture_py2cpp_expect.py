@@ -217,7 +217,6 @@ class Inner2 {
 };"""
 
 	ForFlows_try_catch_throw = """try {
-
 } catch (const std::runtime_error& e) {
 	throw std::exception(std::format("%d", 1));
 } catch (const std::exception& e) {

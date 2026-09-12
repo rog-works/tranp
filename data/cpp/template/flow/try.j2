@@ -1,9 +1,11 @@
 try {
-{%- filter indent('\t') %}
-{%- for statement in statements %}
+{%- filter indent('\t') -%}
+{%- for statement in statements -%}
+{%- if statement %}
 {{ statement }}
-{%- endfor %}
-{%- endfilter %}
+{%- endif -%}
+{%- endfor -%}
+{%- endfilter -%}
 {%- for catch in catches %}
 {{ catch }}
 {%- endfor %}

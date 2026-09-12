@@ -225,7 +225,7 @@ del_stmt: "del" _exprlist
 return_stmt: "return" [testlist]
 yield_stmt: "yield" testlist
 assert_stmt: "assert" expression ["," expression]
-raise_stmt: "raise" primary ["from" name]
+raise_stmt: "raise" [primary ["from" name]]
 break_stmt: "break"
 pass_stmt: "pass"
 continue_stmt: "continue"

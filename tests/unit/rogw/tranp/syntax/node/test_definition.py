@@ -751,6 +751,7 @@ class TestDefinition(TestCase):
 		('raise Exception() from e', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Var}),
 		('raise e', 'file_input.raise_stmt', {'throws': defs.Var, 'via': defs.Empty}),
 		('raise Errors.Error', 'file_input.raise_stmt', {'throws': defs.Relay, 'via': defs.Empty}),
+		('raise', 'file_input.raise_stmt', {'throws': defs.Empty, 'via': defs.Empty}),
 	])
 	def test_throw(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Throw)

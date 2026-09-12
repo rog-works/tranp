@@ -746,8 +746,10 @@ class Py2Cpp(ITranspiler):
 			format = f'"{join_format}"' if join_format else ''
 			arguments = BlockParser.break_separator(throws[end_calls + 1:-1], ',')
 			return self.render(node, f'statement/{node.classification}', vars={'calls': calls, 'via': via, 'format': format, 'formatters': formatters, 'arguments': arguments})
-		else:
+		elif not isinstance(node.throws, defs.Empty):
 			return self.render(node, f'statement/{node.classification}', vars={'throws': throws, 'via': via})
+		else:
+			return self.render(node, f'statement/{node.classification}', vars={})
 
 	def on_pass(self, node: defs.Pass) -> str:
 		return self.render(node, f'statement/{node.classification}')

@@ -428,15 +428,10 @@ class Py2Cpp(ITranspiler):
 	def make_depends(self, statements: list[str]) -> list[str]:
 		"""Args: statements: ステートメントリスト Returns: 依存パスリスト"""
 		depends = self.__stack_on_depends[-1].copy()
-		in_include = False
 		for statement in statements:
 			if not statement.startswith('#include'):
-				if in_include:
-					break
-				else:
-					continue
+				continue
 
-			in_include = True
 			include_path = statement.split(' ')[1]
 			if include_path in depends:
 				depends.remove(include_path)

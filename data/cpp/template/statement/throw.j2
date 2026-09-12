@@ -1,8 +1,8 @@
 {%- if throws -%}
 throw {{ throws }};
-{%- elif arguments -%}
+{%- elif calls and arguments -%}
 {%- import 'func_call/_str_format.j2' as block -%}
 throw {{ calls }}({{ i18n('cpp', 'string.format') }}({{ block.get_content(format, formatters, arguments, True) }}));
-{%- else -%}
+{%- elif calls -%}
 throw {{ calls }}();
 {%- endif -%}

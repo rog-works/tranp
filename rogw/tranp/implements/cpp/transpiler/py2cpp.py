@@ -34,7 +34,7 @@ from rogw.tranp.transpiler.types import Evaluator, ITranspiler, TranspilerOption
 from rogw.tranp.view.helper.block import BlockParser
 from rogw.tranp.view.render import Renderer, RendererEmitter
 
-StringFormatDict = TypedDict('StringFormatDict', {'label': str, 'tag': str, 'var_type': str, 'is_literal': bool})
+StringFormatDict = TypedDict('StringFormatDict', {'label': str, 'tag': str, 'var_type': str, 'is_literal': bool, 'is_function': bool})
 
 
 class Py2Cpp(ITranspiler):
@@ -451,6 +451,7 @@ class Py2Cpp(ITranspiler):
 				'tag': '%d' if arg_raw.types.is_a(defs.Enum) else arg_tag,
 				'var_type': arg_raw.types.domain_name,
 				'is_literal': argument.value.is_a(defs.Literal),
+				'is_function': arg_raw.types.is_a(defs.Function),
 			})
 
 		return formatters

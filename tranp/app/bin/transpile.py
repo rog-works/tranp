@@ -90,7 +90,7 @@ class Args:
 			パースしたコマンド引数
 		"""
 		args: ArgsDict = {
-			'config': 'example/config.yml',
+			'config': 'tranp/config.yml',
 			'input_globs': [],
 			'force': False,
 			'interactive': False,

@@ -1,0 +1,21 @@
+grammar: data/grammar.lark
+template_dirs:
+  - data/cpp/template
+trans_mapping: data/i18n.yml
+input_globs:
+  - example/**/*.py
+output_dirs:
+  - ./
+output_language: cpp:h
+exclude_patterns:
+  - example/FW/*
+env:
+  transpiler:
+    include_dirs:
+      - example/
+  view:
+    immutable_param_types:
+      - std::string
+      - std::vector
+      - std::map
+      - std::function

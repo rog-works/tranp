@@ -9,7 +9,7 @@ description = "A language-agnostic source-to-source transpiler framework."
 readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENCE"]
 keywords = [
   "transpiler",
   "transpilation",
@@ -22,4 +22,19 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: C++",
   "Topic :: Software Development :: Compilers",
+]
+
+[tool.setuptools.packages.find]
+include = [
+  "bin*",
+  "data*",
+  "rogw*",
+]
+
+[tool.setuptools.package-data]
+bin = ["*.sh"]
+data = [
+  "cpp/**/*.j2",
+  "grammar.lark",
+  "i18n.yml",
 ]

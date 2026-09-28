@@ -34,15 +34,14 @@ Homepage = "https://github.com/rog-works/tranp"
 
 [tool.setuptools.packages.find]
 include = [
-  "bin*",
-  "data*",
-  "rogw*",
+  "tranp*",
 ]
 
 [tool.setuptools.package-data]
-bin = ["*.sh"]
-data = [
-  "cpp/**/*.j2",
-  "grammar.lark",
-  "i18n.yml",
+tranp = [
+  "app/**/*.py",
+  "data/cpp/**/*.j2",
+  "data/grammar.lark",
+  "data/i18n.yml",
+  "example/config.yml",
 ]

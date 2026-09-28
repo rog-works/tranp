@@ -16,7 +16,6 @@ tranp (TRANspiler on Python)
 # 必須要件
 
 * Python 3.13
-* pip 26.2.1
 * Lark 1.3.1
 * Jinja2 3.1.4
 * PyYAML 6.0.2

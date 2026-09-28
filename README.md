@@ -8,8 +8,8 @@ Tranp (TRANspiler on Python)
 # Dependencies
 
 * Python 3.13
-* pip 24.3.1
-* Lark 1.2.2
+* pip 26.2.1
+* Lark 1.3.1
 * Jinja2 3.1.4
 * PyYAML 6.0.2
 

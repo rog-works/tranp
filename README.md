@@ -5,7 +5,7 @@ Tranp (TRANspiler on Python)
 [![codecov](https://codecov.io/gh/rog-works/tranp/graph/badge.svg?token=Z1EGM7KUDJ)](https://codecov.io/gh/rog-works/tranp)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-# Dependencies
+# 必須要件
 
 * Python 3.13
 * pip 26.2.1
@@ -13,40 +13,44 @@ Tranp (TRANspiler on Python)
 * Jinja2 3.1.4
 * PyYAML 6.0.2
 
-# Usage
-
-## Install
+# インストール
 
 ```
 $ pip install -r requirements.txt -t vendor/
 ```
 
-## Grammar Analyzer Tool
+# 使用方法
 
-```
-$ bash bin/gram.sh
-```
-
-## AST Analyzer Tool
-
-```
-$ bash bin/ast.sh
-```
-
-## Symbol Analyzer Tool
-
-```
-$ bash bin/analyze.sh
-```
-
-## Transpile from Python to C++
+## トランスパイラー (Python to C++)
 
 ```
 $ bash bin/transpile.sh
 ```
 
-## Testing via tests/
+## ソースコード解析ツール
+
+```
+$ bash bin/analyze.sh
+```
+
+## グラマー解析ツール
+
+```
+$ bash bin/gram.sh
+```
+
+## AST解析ツール
+
+```
+$ bash bin/ast.sh
+```
+
+# テスト
 
 ```
 $ bash bin/test.sh
 ```
+
+# ライセンス
+
+[MIT](LICENCE)

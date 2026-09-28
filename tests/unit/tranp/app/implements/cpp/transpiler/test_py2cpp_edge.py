@@ -28,7 +28,7 @@ def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
 
 
 def make_renderer_setting(i18n: I18n, emitter: RendererEmitter) -> RendererSetting:
-	template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
+	template_dirs = [os.path.join(tranp_dir(), 'data', 'cpp', 'template')]
 	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 	return RendererSetting(template_dirs, i18n.t, emitter, env)
 

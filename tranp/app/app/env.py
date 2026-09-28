@@ -48,5 +48,5 @@ class SourceEnvPath(list[str]):
 		Returns:
 			インスタンス
 		"""
-		default_dirs = [os.getcwd(), tranp_dir(), os.path.join(tranp_dir(), 'tranp/app/compatible/libralies')]
+		default_dirs = [os.getcwd(), tranp_dir(), os.path.join(tranp_dir(), 'app', 'compatible', 'libralies')]
 		return cls([*default_dirs, *input_dirs])

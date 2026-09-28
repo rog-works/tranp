@@ -7,7 +7,7 @@ from typing import Any, TypedDict
 
 import tranp.app.syntax.node.definition as defs
 from tranp.app.app.app import App
-from tranp.app.app.dir import tranp_dir
+from tranp.app.app.dir import repository_dir, tranp_dir
 from tranp.app.app.dummy import WrapSourceProvider
 from tranp.app.bin.io import readline, tty
 from tranp.app.errors import Errors
@@ -48,7 +48,7 @@ class Args:
 			コマンドライン引数のデータ
 		"""
 		args: ArgsDict = {
-			'grammar': os.path.join(tranp_dir(), 'data/grammar.lark'),
+			'grammar': os.path.join(tranp_dir(), 'data', 'grammar.lark'),
 			'input': '',
 			'command': '',
 			'options': {},
@@ -280,7 +280,7 @@ class AnalyzeApp(App):
 		if not os.path.isabs(filepath):
 			filepath = os.path.abspath(filepath)
 
-		module_path = filepath_to_module_path(filepath, tranp_dir())
+		module_path = filepath_to_module_path(filepath, repository_dir())
 		self.resolve(Modules).load(module_path)
 		print('--------------')
 		print('Module load completed!')

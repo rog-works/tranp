@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from tranp.app.app.dir import tranp_dir
+from tranp.app.app.dir import repository_dir
 
 
 def readline(prompt: str = '') -> str:
@@ -17,7 +17,7 @@ def readline(prompt: str = '') -> str:
 	if prompt:
 		print(prompt)
 
-	input_filepath = os.path.join(tranp_dir(), 'bin/_input.sh')
+	input_filepath = os.path.join(repository_dir(), 'bin', '_input.sh')
 	res = subprocess.run(['bash', input_filepath], stdout=subprocess.PIPE)
 	return res.stdout.decode('utf-8').rstrip()
 

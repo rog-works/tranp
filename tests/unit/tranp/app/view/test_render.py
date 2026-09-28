@@ -143,13 +143,13 @@ class Expects:
 class Fixture:
 	def __init__(self) -> None:
 		# 効率化のためexampleのマッピングデータを利用
-		trans_mapping = self.__load_trans_mapping(os.path.join(tranp_dir(), 'data/i18n.yml'))
+		trans_mapping = self.__load_trans_mapping(os.path.join(tranp_dir(), 'data', 'i18n.yml'))
 
 		@duck_typed(Translator)
 		def translator(key: str, fallback: str = '') -> str:
 			return trans_mapping.get(key, key)
 
-		template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
+		template_dirs = [os.path.join(tranp_dir(), 'data', 'cpp', 'template')]
 		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 		setting = RendererSetting(template_dirs, translator, Middleware(), env)
 		provider = renderer_helper_provider_cpp(setting)

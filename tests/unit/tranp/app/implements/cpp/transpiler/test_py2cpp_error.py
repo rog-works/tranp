@@ -18,7 +18,7 @@ from tranp.app.view.render import Renderer, RendererEmitter, RendererHelperProvi
 
 
 def make_renderer_setting(i18n: I18n, emitter: RendererEmitter) -> RendererSetting:
-	template_dir = [os.path.join(tranp_dir(), 'data/cpp/template')]
+	template_dir = [os.path.join(tranp_dir(), 'data', 'cpp', 'template')]
 	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 	return RendererSetting(template_dir, i18n.t, emitter, env)
 

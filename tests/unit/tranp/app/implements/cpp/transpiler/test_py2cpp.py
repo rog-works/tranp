@@ -1,10 +1,9 @@
 import os
 from unittest import TestCase
 
-from tests.unit.tranp.app.implements.cpp.transpiler.fixtures.fixture_py2cpp_expect import BlockExpects
-
 import tranp.app.syntax.node.definition as defs
 from tests.test.fixture import Fixture
+from tests.unit.tranp.app.implements.cpp.transpiler.fixtures.fixture_py2cpp_expect import BlockExpects
 from tranp.app.app.dir import tranp_dir
 from tranp.app.dsn.module import ModuleDSN
 from tranp.app.dsn.translation import alias_dsn
@@ -41,7 +40,7 @@ def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
 
 
 def make_renderer_setting(i18n: I18n, emitter: RendererEmitter) -> RendererSetting:
-	template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
+	template_dirs = [os.path.join(tranp_dir(), 'data', 'cpp', 'template')]
 	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 	return RendererSetting(template_dirs, i18n.t, emitter, env)
 

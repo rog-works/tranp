@@ -4,11 +4,11 @@ from collections.abc import Callable
 from importlib import import_module
 from typing import TypeAlias, TypedDict
 
+from data.syntax.gram_rules import gram_rules
+from data.syntax.gram_tokenizer import gram_tokenizer
 from lark import Lark
 from lark.indenter import PythonIndenter
 
-from data.syntax.gram_rules import gram_rules
-from data.syntax.gram_tokenizer import gram_tokenizer
 from tranp.app.app.dir import tranp_dir
 from tranp.app.bin.io import tty
 from tranp.app.implements.syntax.tranp.ast import ASTNormalizer
@@ -48,7 +48,7 @@ class Args:
 		args: DictArgs = {
 			'input': '',
 			'parser': 'lark',
-			'grammar': os.path.join(tranp_dir(), 'data/grammar.lark'),
+			'grammar': os.path.join(tranp_dir(), 'data', 'grammar.lark'),
 			'normalizer': '',
 			'help': False,
 		}

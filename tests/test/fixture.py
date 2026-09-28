@@ -1,5 +1,7 @@
+import os
+
 from tranp.app.app.app import App
-from tranp.app.app.dir import tranp_dir
+from tranp.app.app.dir import repository_dir
 from tranp.app.lang.annotation import duck_typed
 from tranp.app.lang.di import ModuleDefinitions
 from tranp.app.lang.locator import Invoker, T_Inst
@@ -26,7 +28,7 @@ class Fixture:
 		Returns:
 			フィクスチャーのモジュールパス
 		"""
-		module_path = filepath_to_module_path(filepath, tranp_dir())
+		module_path = filepath_to_module_path(filepath, repository_dir())
 		elems = module_path.split('.')
 		dirpath, testname = '.'.join(elems[:-1]), elems[-1]
 		filename = testname.replace('test_', 'fixture_')

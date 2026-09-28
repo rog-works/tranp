@@ -1,51 +1,65 @@
-Tranp (TRANspiler on Python)
+tranp (TRANspiler on Python)
 ===
 
 [![test](https://github.com/rog-works/tranp/actions/workflows/test.yml/badge.svg)](https://github.com/rog-works/tranp/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/rog-works/tranp/graph/badge.svg?token=Z1EGM7KUDJ)](https://codecov.io/gh/rog-works/tranp)
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-# Dependencies
+# 概要
+
+* 言語非依存(※1)のトランスパイルフレームワーク
+* 入力言語のAST(※2)を元に、出力言語のソースコードをレンダリング
+* トランスパイルのリアルタイム変換や変換時のシンボル解析、グラマー・ASTの解析ツールを付属
+* ※1: 現状はPythonからC++への変換のみ実装
+* ※2: ASTの生成は外部ツールを利用(自由に変更可能)
+
+# 必須要件
 
 * Python 3.13
-* pip 24.3.1
-* Lark 1.2.2
+* pip 26.2.1
+* Lark 1.3.1
 * Jinja2 3.1.4
 * PyYAML 6.0.2
 
-# Usage
-
-## Install
+# インストール
 
 ```
-$ pip install -r requirements.txt -t vendor/
+$ pip install tranp
 ```
 
-## Grammar Analyzer Tool
+# 使用方法
 
-```
-$ bash bin/gram.sh
-```
-
-## AST Analyzer Tool
-
-```
-$ bash bin/ast.sh
-```
-
-## Symbol Analyzer Tool
-
-```
-$ bash bin/analyze.sh
-```
-
-## Transpile from Python to C++
+## トランスパイラー (Python to C++)
 
 ```
 $ bash bin/transpile.sh
 ```
 
-## Testing via tests/
+## ソースコード解析ツール
+
+```
+$ bash bin/analyze.sh
+```
+
+## グラマー解析ツール
+
+```
+$ bash bin/gram.sh
+```
+
+## AST解析ツール
+
+```
+$ bash bin/ast.sh
+```
+
+# テスト
 
 ```
 $ bash bin/test.sh
 ```
+
+# ライセンス
+
+[MIT](LICENCE)
+* tranpを用いて生成したトランスパイル後のソースコードに関してはライセンスに含まれません

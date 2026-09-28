@@ -29,6 +29,9 @@ classifiers = [
   "Topic :: Software Development :: Compilers",
 ]
 
+[project.urls]
+Homepage = "https://github.com/rog-works/tranp"
+
 [tool.setuptools.packages.find]
 include = [
   "bin*",

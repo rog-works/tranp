@@ -24,7 +24,7 @@ tranp (TRANspiler on Python)
 # インストール
 
 ```
-$ pip install -r requirements.txt -t vendor/
+$ pip install tranp
 ```
 
 # 使用方法

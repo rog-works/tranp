@@ -4,9 +4,45 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tranp"
-version = "0.9.0"
+version = "0.9.1"
 description = "A language-agnostic source-to-source transpiler framework."
 readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENCE"]
+dependencies = [
+  "lark>=1.3.1,<2",
+  "jinja2>=3.1.4,<4",
+  "pyyaml>=6.0.2,<7",
+]
+keywords = [
+  "transpiler",
+  "transpilation",
+  "source-to-source",
+  "compiler",
+  "code generation",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: C++",
+  "Topic :: Software Development :: Compilers",
+]
+
+[project.urls]
+Homepage = "https://github.com/rog-works/tranp"
+
+[tool.setuptools.packages.find]
+include = [
+  "bin*",
+  "data*",
+  "rogw*",
+]
+
+[tool.setuptools.package-data]
+bin = ["*.sh"]
+data = [
+  "cpp/**/*.j2",
+  "grammar.lark",
+  "i18n.yml",
+]

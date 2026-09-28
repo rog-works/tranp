@@ -1,12 +1,12 @@
 from unittest import TestCase
 
-from data.syntax.gram_rules import gram_rules
-from data.syntax.gram_tokenizer import gram_tokenizer
-from data.syntax.py_rules import py_rules
 from tranp.app.implements.syntax.tranp.rule import Rules
 from tranp.app.implements.syntax.tranp.syntax import ErrorCollector, SyntaxParser
 from tranp.app.implements.syntax.tranp.tokenizer import Tokenizer
 from tranp.app.test.helper import data_provider
+from tranp.data.syntax.gram_rules import gram_rules
+from tranp.data.syntax.gram_tokenizer import gram_tokenizer
+from tranp.data.syntax.py_rules import py_rules
 
 
 class TestSyntaxParser(TestCase):
@@ -165,7 +165,7 @@ class TestSyntaxParser(TestCase):
 	@data_provider([
 		(
 			'a',
-			'data/syntax/py_gram.lark',
+			'tranp/data/syntax/py_gram.lark',
 			('entry', [
 				('var', [
 					('name', 'a'),

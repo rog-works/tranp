@@ -4,8 +4,6 @@ from collections.abc import Callable
 from importlib import import_module
 from typing import TypeAlias, TypedDict
 
-from data.syntax.gram_rules import gram_rules
-from data.syntax.gram_tokenizer import gram_tokenizer
 from lark import Lark
 from lark.indenter import PythonIndenter
 
@@ -16,6 +14,8 @@ from tranp.app.implements.syntax.tranp.rule import Rules
 from tranp.app.implements.syntax.tranp.syntax import SyntaxParser
 from tranp.app.lang.error import stacktrace
 from tranp.app.lang.module import filepath_to_module_path, load_module, load_module_path
+from tranp.data.syntax.gram_rules import gram_rules
+from tranp.data.syntax.gram_tokenizer import gram_tokenizer
 
 DictArgs = TypedDict('DictArgs', {'input': str, 'parser': str, 'grammar': str, 'normalizer': str, 'help': bool})
 Parser: TypeAlias = Callable[[str], str]

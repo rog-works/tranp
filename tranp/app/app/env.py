@@ -22,7 +22,7 @@ class DataEnvPath(list[str]):
 		Returns:
 			インスタンス
 		"""
-		return cls([os.getcwd()])
+		return cls([os.getcwd(), tranp_dir()])
 
 
 class SourceEnvPath(list[str]):

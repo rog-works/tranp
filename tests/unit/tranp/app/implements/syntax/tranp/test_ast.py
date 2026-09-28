@@ -1,9 +1,9 @@
 from unittest import TestCase
 
-from data.syntax.py_rules import py_rules
 from tranp.app.implements.syntax.tranp.ast import ASTNormal
 from tranp.app.implements.syntax.tranp.syntax import SyntaxParser
 from tranp.app.test.helper import data_provider
+from tranp.data.syntax.py_rules import py_rules
 
 
 class TestASTTree(TestCase):

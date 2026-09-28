@@ -2,13 +2,13 @@ import os
 import sys
 from typing import TypedDict
 
-from data.syntax.gram_rules import gram_rules
-from data.syntax.gram_tokenizer import gram_tokenizer
 from tranp.app.bin.io import tty
 from tranp.app.implements.syntax.tranp.ast import ASTTree
 from tranp.app.implements.syntax.tranp.rule import Rules
 from tranp.app.implements.syntax.tranp.syntax import SyntaxParser
 from tranp.app.lang.error import stacktrace
+from tranp.data.syntax.gram_rules import gram_rules
+from tranp.data.syntax.gram_tokenizer import gram_tokenizer
 
 DictArgs = TypedDict('DictArgs', {'input': str, 'output': str, 'help': bool})
 

@@ -10,13 +10,3 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 license-files = ["LICENSE"]
-
-[tool.ruff]
-line-length = 320
-
-[tool.ruff.lint]
-select = ["I"]
-ignore = ["ALL"]
-
-[tool.ruff.format]
-exclude = ["**/*.py"]

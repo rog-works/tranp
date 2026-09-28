@@ -1,5 +1,6 @@
 /.cache/
 /.example/
 /.venv/
-/target/
+/dist/
+/tranp.egg-info/
 /vendor/

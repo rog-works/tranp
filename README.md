@@ -1,4 +1,4 @@
-Tranp (TRANspiler on Python)
+tranp (TRANspiler on Python)
 ===
 
 [![test](https://github.com/rog-works/tranp/actions/workflows/test.yml/badge.svg)](https://github.com/rog-works/tranp/actions/workflows/test.yml)
@@ -62,3 +62,4 @@ $ bash bin/test.sh
 # ライセンス
 
 [MIT](LICENCE)
+* tranpを用いて生成したトランスパイル後のソースコードに関してはライセンスに含まれません

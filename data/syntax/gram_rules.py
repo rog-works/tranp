@@ -1,4 +1,4 @@
-from rogw.tranp.implements.syntax.tranp.rule import Rules
+from tranp.app.implements.syntax.tranp.rule import Rules
 
 
 def gram_rules() -> Rules:

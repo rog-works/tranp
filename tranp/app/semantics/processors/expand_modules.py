@@ -1,0 +1,197 @@
+import tranp.app.syntax.node.definition as defs
+from tranp.app.compatible.python.types import Unknown
+from tranp.app.dsn.module import ModuleDSN
+from tranp.app.errors import Errors
+from tranp.app.lang.annotation import duck_typed, injectable
+from tranp.app.lang.trait import Traits
+from tranp.app.module.modules import Module
+from tranp.app.semantics.finder import SymbolFinder
+from tranp.app.semantics.processor import Preprocessor
+from tranp.app.semantics.reflection.base import IReflection
+from tranp.app.semantics.reflection.db import SymbolDB
+from tranp.app.semantics.reflection.reflection import Symbol
+
+
+class Expanded:
+	"""展開時のテンポラリーデータ"""
+
+	def __init__(self, classes: dict[str, str], decl_vars: dict[str, str], imports: dict[str, str], import_paths: list[str]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			classes: クラス定義マップ
+			decl_vars: 変数宣言マップ
+			imports: インポートマップ
+			import_paths: インポートパスリスト
+		"""
+		self.classes = classes
+		self.decl_vars = decl_vars
+		self.imports = imports
+		self.import_paths = import_paths
+
+
+class ExpandModules:
+	"""モジュール内のシンボルをシンボルテーブルに展開"""
+
+	@injectable
+	def __init__(self, finder: SymbolFinder, traits: Traits[IReflection]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			finder: シンボル検索 @inject
+			traits: トレイトマネージャー @inject
+		"""
+		self.finder = finder
+		self.traits = traits
+
+	@duck_typed(Preprocessor)
+	def __call__(self, module: Module, db: SymbolDB) -> bool:
+		"""シンボルテーブルを編集
+
+		Args:
+			module: モジュール
+			db: シンボルテーブル
+		"""
+		self.expanded_to_db(module, db, self.expand_module(module))
+		return True
+
+	def expanded_to_db(self, module: Module, db: SymbolDB, expanded: Expanded) -> None:
+		"""展開データを基にシンボルテーブルを更新
+
+		Args:
+			module: モジュール
+			db: シンボルテーブル
+			expanded: 展開データ
+		"""
+		# クラス定義シンボルの展開
+		for fullyname, full_path in expanded.classes.items():
+			if fullyname not in db:
+				types = module.entrypoint.whole_by(full_path).as_a(defs.ClassDef)
+				db[fullyname] = Symbol.instantiate(self.traits, types).stack()
+
+		# インポートシンボルの展開
+		for fullyname, full_path in expanded.imports.items():
+			if fullyname not in db:
+				import_name = module.entrypoint.whole_by(full_path).as_a(defs.ImportAsName)
+				import_node = import_name.declare.as_a(defs.Import)
+				raw = db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_symbol.tokens)]
+				db[fullyname] = raw.stack(import_name)
+
+		# 変数宣言シンボルの展開
+		for fullyname, full_path in expanded.decl_vars.items():
+			var = module.entrypoint.whole_by(full_path).one_of(*defs.DeclVarsTs)
+			if var.symbol.fullyname not in db:
+				raw = self.resolve_type_symbol(db, var)
+				db[var.symbol.fullyname] = raw.declare(var)
+
+	def expand_module(self, module: Module) -> Expanded:
+		"""モジュールのシンボル・インポートパスを展開
+
+		Args:
+			module: モジュール
+		Returns:
+			展開データ
+		"""
+		nodes = module.entrypoint.procedural()
+		nodes.append(module.entrypoint)
+
+		classes: dict[str, str] = {}
+		decl_vars: dict[str, str] = {}
+		imports: dict[str, str] = {}
+		import_paths: list[str] = []
+		for node in nodes:
+			if isinstance(node, defs.ClassDef):
+				classes[node.fullyname] = node.full_path
+
+			if isinstance(node, defs.Entrypoint):
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
+			elif isinstance(node, defs.Function):
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
+			elif isinstance(node, defs.Enum):
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.vars}}
+			elif isinstance(node, defs.Class):
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.class_vars}}
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.this_vars}}
+			elif isinstance(node, defs.Generator):
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
+			elif isinstance(node, defs.Lambda):
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
+
+			if isinstance(node, defs.Import):
+				imports = {**imports, **{symbol.fullyname: symbol.full_path for symbol in node.symbols}}
+				import_paths.append(node.import_path.tokens)
+
+		return Expanded(classes, decl_vars, imports, import_paths)
+
+	def resolve_type_symbol(self, db: SymbolDB, var: defs.DeclVars) -> IReflection:
+		"""シンボルテーブルから変数の型のシンボルを解決
+
+		Args:
+			db: シンボルテーブル
+			var: 変数宣言ノード
+		Returns:
+			シンボル
+		Raises:
+			Errors.SymbolNotDefined: シンボルの解決に失敗
+		"""
+		decl_type = self.fetch_decl_type(var)
+		if decl_type is not None:
+			symbol = self.finder.find_by_symbolic(db, decl_type)
+			if symbol:
+				return symbol
+
+			fallback = self._fallback_type_symbol(db, decl_type)
+			if fallback:
+				return fallback
+
+			raise Errors.SymbolNotDefined(var)
+		else:
+			return self.finder.by_standard(db, Unknown)
+
+	def fetch_decl_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
+		"""変数の型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
+
+		Args:
+			var: 変数宣言ノード
+		Returns:
+			タイプ/クラス定義ノード。不明な場合はNone
+		"""
+		if isinstance(var.declare, defs.Parameter):
+			if isinstance(var.declare.symbol, defs.DeclClassParam) and isinstance(var.declare.var_type, defs.Empty):
+				return var.declare.symbol.class_types.as_a(defs.ClassDef)
+			elif isinstance(var.declare.symbol, defs.DeclThisParam) and isinstance(var.declare.var_type, defs.Empty):
+				return var.declare.symbol.class_types.as_a(defs.ClassDef)
+			else:
+				return var.declare.var_type.as_a(defs.Type)
+		elif isinstance(var.declare, (defs.AnnoAssign, defs.Catch)):
+			return var.declare.var_type
+		elif isinstance(var.declare, defs.MoveAssign) and isinstance(var.declare.var_type, defs.Type):
+			return var.declare.var_type
+
+		# その他は型指定が無いため全てUnknown
+		# 対象: For, CompFor, Lambda, WithEntry, MoveAssign(インスタンス変数宣言以外)
+		return None
+
+	def _fallback_type_symbol(self, db: SymbolDB, decl_type: defs.Type | defs.ClassDef) -> IReflection | None:
+		"""変数の型からシンボルを解決(フォールバック)
+
+		Args:
+			db: シンボルテーブル
+			decl_type: タイプ/クラス定義ノード
+		Returns:
+			シンボル
+		Note:
+			```
+			### 解決対象
+			* ParamSpecのargs/kwargs
+			```
+		"""
+		if not isinstance(decl_type, defs.RelayOfType):
+			return None
+
+		receiver_type = self.finder.by_symbolic(db, decl_type.receiver)
+		if not isinstance(receiver_type.types, defs.TemplateClass):
+			return None
+
+		def_class = self.finder.by_symbolic(db, receiver_type.types.definition_type)
+		return self.finder.find_by_symbolic(db, def_class.types, decl_type.prop.tokens)

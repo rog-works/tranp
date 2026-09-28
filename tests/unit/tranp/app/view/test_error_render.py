@@ -1,0 +1,53 @@
+import re
+from collections.abc import Callable
+from unittest import TestCase
+
+from tranp.app.test.helper import data_provider
+from tranp.app.view.error_render import ErrorRender
+
+
+def hoge() -> None:
+	try:
+		'abc'[5]
+	except Exception as e:
+		raise ValueError('hoge') from e
+
+
+class TestErrorRender(TestCase):
+	@data_provider([
+		(hoge, [
+			r'Stacktrace:',
+			r'  [^:]+:\d+ hoge',
+			r'    >>> \'abc\'\[5\]',
+			r'  IndexError: string index out of range',
+			r'  [^:]+:\d+ test_usage',
+			r'  [^:]+:\d+ hoge',
+			r'    >>> raise ValueError\(\'hoge\'\) from e',
+			r'ValueError: \("hoge"\)',
+		]),
+	])
+	def test_usage(self, fail: Callable[[], None], expected: list[re.Pattern]) -> None:
+		try:
+			fail()
+			self.fail()
+		except AssertionError:
+			pass
+		except Exception as e:
+			actual = str(ErrorRender(e))
+			for index, line in enumerate(actual.split('\n')):
+				self.assertRegex(line, expected[index])
+
+	@data_provider([
+		(__file__, (2, 5, 2, 13), [
+			r'via Node:',
+			r'.+:3',
+			r'    >>> from unittest import TestCase',
+			r'             ^^^^^^^^',
+		]),
+	])
+	def test_quatation(self, filepath: str, source_map: tuple[int, int, int, int], expected: list[re.Pattern]) -> None:
+		actual = ErrorRender.Quotation(filepath, source_map).build()
+		self.assertEqual(actual[0], expected[0])
+		self.assertRegex(actual[1], expected[1])
+		self.assertEqual(actual[2], expected[2])
+		self.assertEqual(actual[3], expected[3])

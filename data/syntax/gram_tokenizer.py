@@ -1,5 +1,5 @@
-from rogw.tranp.implements.syntax.tranp.token import TokenDefinition
-from rogw.tranp.implements.syntax.tranp.tokenizer import Tokenizer
+from tranp.app.implements.syntax.tranp.token import TokenDefinition
+from tranp.app.implements.syntax.tranp.tokenizer import Tokenizer
 
 
 def gram_tokenizer() -> Tokenizer:

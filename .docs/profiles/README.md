@@ -53,7 +53,7 @@ $ bin/transpile.sh -f -p > profile_tottime.log
 ### プロファイラーの設定例
 
 ```python
-# tests/unit/rogw/tranp/implements/cpp/transpiler/test_py2cpp.py
+# tests/unit/tranp/app/implements/cpp/transpiler/test_py2cpp.py
 
 # フラグによって切り替え
 @profiler(on=profiler_on)

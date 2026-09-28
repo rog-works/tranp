@@ -10,4 +10,4 @@ for arg in "$@"; do
 done
 
 source ${cwd}/.env.sh
-python ${appdir}/rogw/tranp/bin/ast_check.py $*
+python ${appdir}/tranp/app/bin/ast_check.py $*

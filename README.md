@@ -5,6 +5,14 @@ Tranp (TRANspiler on Python)
 [![codecov](https://codecov.io/gh/rog-works/tranp/graph/badge.svg?token=Z1EGM7KUDJ)](https://codecov.io/gh/rog-works/tranp)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
+# 概要
+
+* 言語非依存(※1)のトランスパイルフレームワーク
+* 入力言語のAST(※2)を元に、出力言語のソースコードをレンダリング
+* トランスパイルのリアルタイム変換や変換時のシンボル解析、グラマー・ASTの解析ツールを付属
+* ※1: 現状はPythonからC++への変換のみ実装
+* ※2: ASTの生成は外部ツールを利用(自由に変更可能)
+
 # 必須要件
 
 * Python 3.13

@@ -44,7 +44,7 @@ Python code here. Type `exit` to quit:
 a = 1
 Result:
 ---------------
-// @tranp.meta: {"version":"0.9.7","module":{"hash":"dummy","path":"__main__"},"transpiler":{"version":"0.9.0","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"0.9.n","module":{"hash":"dummy","path":"__main__"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 int a = 1;
 ```
@@ -58,7 +58,7 @@ def main() -> int:
   return 1
 Result:
 ---------------
-// @tranp.meta: {"version":"0.9.7","module":{"hash":"dummy","path":"__main__"},"transpiler":{"version":"0.9.0","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"0.9.n","module":{"hash":"dummy","path":"__main__"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 /** main */
 int main() {
@@ -154,7 +154,7 @@ config.yml
 
 ```cpp
 // app/main.h
-// @tranp.meta: {"version":"0.9.7","module":{"hash":"6012cab9fec85852b56d7b7b8deb6bd9","path":"app.main"},"transpiler":{"version":"0.9.0","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"0.9.n","module":{"hash":"6012cab9fec85852b56d7b7b8deb6bd9","path":"app.main"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include "sub.h"
 /** main */
@@ -166,7 +166,7 @@ int main() {
 
 ```cpp
 // app/sub.py
-// @tranp.meta: {"version":"0.9.7","module":{"hash":"96178f75f71ca63c3102afc3e041a5af","path":"app.sub"},"transpiler":{"version":"0.9.0","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"0.9.n","module":{"hash":"96178f75f71ca63c3102afc3e041a5af","path":"app.sub"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 /** hello */
 void hello() {

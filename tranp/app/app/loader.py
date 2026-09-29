@@ -12,7 +12,7 @@ class FileLoader(IFileLoader):
 		"""インスタンスを生成
 
 		Args:
-			env_paths: 環境パスリスト @inject
+			env_paths: 環境パスリスト
 		"""
 		self.__env_paths = env_paths
 		self.__hashs: dict[str, str] = {}

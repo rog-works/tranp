@@ -154,20 +154,25 @@ config.yml
 
 ```cpp
 // app/main.h
-#include "app/sub.h"
+// @tranp.meta: {"version":"0.9.7","module":{"hash":"6012cab9fec85852b56d7b7b8deb6bd9","path":"app.main"},"transpiler":{"version":"0.9.0","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+#pragma once
+#include "sub.h"
 /** main */
 int main() {
-  hello();
-  return 1;
+	hello();
+	return 1;
 }
 ```
 
 ```cpp
 // app/sub.py
+// @tranp.meta: {"version":"0.9.7","module":{"hash":"96178f75f71ca63c3102afc3e041a5af","path":"app.sub"},"transpiler":{"version":"0.9.0","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+#pragma once
 /** hello */
 void hello() {
-  printf("hello world!");
+	printf("hello world!");
 }
+
 ```
 
 # 解析ツール

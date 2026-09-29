@@ -43,5 +43,5 @@ tranp = [
   "data/cpp/**/*.j2",
   "data/grammar.lark",
   "data/i18n.yml",
-  "example/config.yml",
+  "config.yml",
 ]

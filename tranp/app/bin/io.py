@@ -14,7 +14,7 @@ def readline(prompt: str = '') -> str:
 	if prompt:
 		print(prompt)
 
-	return subprocess.run(['bash', '-c', 'read -e input; echo "${input}"'], stdout=subprocess.PIPE, text=True).stdout.rstrip()
+	return subprocess.run(['bash', '-c', 'IFS= read -e input; echo "${input}"'], stdout=subprocess.PIPE, text=True).stdout.rstrip()
 
 
 def tty(prompt: str = '') -> list[str]:

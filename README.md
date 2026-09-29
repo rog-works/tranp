@@ -9,7 +9,7 @@ tranp (TRANspiler on Python)
 
 * 言語非依存(※1)のトランスパイルフレームワーク
 * 入力言語のAST(※2)を元に、出力言語のソースコードをレンダリング
-* トランスパイルのリアルタイム変換や変換時のシンボル解析、グラマー・ASTの解析ツールを付属
+* トランスパイルのリアルタイム変換やシンボル解析、ASTの解析ツールを付属
 * ※1: 現状はPythonからC++への変換のみ実装
 * ※2: ASTの生成は外部ツールを利用(自由に変更可能)
 
@@ -22,34 +22,191 @@ tranp (TRANspiler on Python)
 
 # インストール
 
-```
+```bash
 $ pip install tranp
 ```
 
-# 使用方法
+# トランスパイル (Python to C++)
 
-## トランスパイラー (Python to C++)
+## リアルタイム変換
 
+* `-it`オプションを指定して実行することでREPLが起動
+
+```bash
+$ tranp -it
 ```
+
+* Pythonコードを入力した後、空行を入力するとトランスパイル結果がレンダリング
+
+```bash
+===============
+Python code here. Type `exit` to quit:
+a = 1
+Result:
+---------------
+// @tranp.meta: {"version":"0.9.n","module":{"hash":"dummy","path":"__main__"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+#pragma once
+int a = 1;
+```
+
+* 再びPythonコードを入力することで、繰り返し結果を確認することが可能
+
+```bash
+===============
+Python code here. Type `exit` to quit:
+def main() -> int:
+  return 1
+Result:
+---------------
+// @tranp.meta: {"version":"0.9.n","module":{"hash":"dummy","path":"__main__"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+#pragma once
+/** main */
+int main() {
+  return 1;
+}
+```
+
+* `exit`のみ入力するとREPLが終了
+
+```bash
+===============
+Python code here. Type `exit` to quit:
+exit
+Quit
+```
+
+## 一括変換
+
+* `-c`オプションでコンフィグを指定することで、設定に従って一括変換を行う
+* [チュートリアル](#チュートリアル)で順を追って解説
+
+```bash
 $ tranp -c path/to/config.yml
 ```
 
-## ソースコード解析ツール
+# チュートリアル
+
+* 以下の様な構成のプロジェクトを用意
 
 ```
-$ tranp analyze
+app/
+  sub.py
+  main.py
+config.yml
 ```
 
-## グラマー解析ツール
+```python
+# app/main.py
+from app.sub import hello
+def main() -> int:
+  hello()
+  return 1
+```
+
+```python
+# app/sub.py
+def hello() -> None:
+  print('hello world!')
+```
+
+```yaml
+# config.yml
+grammar: data/grammar.lark
+template_dirs:
+  - data/cpp/template
+trans_mapping: data/i18n.yml
+input_globs:
+  - app/**/*.py
+output_dirs:
+  - ./
+output_language: cpp:h
+exclude_patterns: []
+env:
+  transpiler:
+    include_dirs:
+      - app/
+  view:
+    immutable_param_types:
+      - std::string
+      - std::vector
+      - std::map
+      - std::function
+```
+
+* トランスパイルを実行
+
+```bash
+$ tranp -c config.yml
+```
+
+* トランスパイル後の配置
 
 ```
-$ tranp gram
+app/
+  sub.py
+  sub.h <- NEW!
+  main.py
+  main.h <- NEW!
+config.yml
 ```
+
+* トランスパイル結果
+
+```cpp
+// app/main.h
+// @tranp.meta: {"version":"0.9.n","module":{"hash":"6012cab9fec85852b56d7b7b8deb6bd9","path":"app.main"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+#pragma once
+#include "sub.h"
+/** main */
+int main() {
+	hello();
+	return 1;
+}
+```
+
+```cpp
+// app/sub.py
+// @tranp.meta: {"version":"0.9.n","module":{"hash":"96178f75f71ca63c3102afc3e041a5af","path":"app.sub"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+#pragma once
+/** hello */
+void hello() {
+	printf("hello world!");
+}
+
+```
+
+# 解析ツール
 
 ## AST解析ツール
 
-```
+* `ast`コマンドを指定して実行するとREPLが起動
+* ※終了方法はトランスパイラーと同様
+
+```bash
 $ tranp ast
+```
+
+* Pythonコードを入力することでASTがレンダリング
+
+```bash
+==========
+Code here. Type `exit` to quit:
+a = 1
+==========
+AST
+----------
+file_input
+  assign
+    assign_namelist
+      var
+        name  2
+    number    1
+```
+
+## シンボル解析ツール
+
+```bash
+$ tranp analyze
 ```
 
 # ライセンス

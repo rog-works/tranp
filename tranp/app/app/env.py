@@ -50,5 +50,5 @@ class SourceEnvPath(list[str]):
 		Returns:
 			インスタンス
 		"""
-		dirs = {path: True for path in [os.getcwd(), os.path.join(tranp_dir(), 'app', 'compatible', 'libralies'), *input_dirs]}
+		dirs = {path: True for path in [*input_dirs, os.getcwd(), os.path.join(tranp_dir(), 'app', 'compatible', 'libralies'), repository_dir()]}
 		return cls(list(dirs.keys()))

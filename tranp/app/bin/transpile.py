@@ -479,8 +479,13 @@ $ bin/transpile.sh -v
 		)
 
 
-if __name__ == '__main__':
+def main() -> None:
+	"""エントリーポイント"""
 	try:
 		App(TranspileApp.definitions(Args(sys.argv[1:]))).run(TranspileApp.run)
 	except Exception as e:
 		print(ErrorRender(e))
+
+
+if __name__ == '__main__':
+	main()

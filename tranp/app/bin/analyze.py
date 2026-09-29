@@ -463,7 +463,7 @@ class AnalyzeApp(App):
 		action()
 
 
-if __name__ == '__main__':
+def main() -> None:
 	app = AnalyzeApp({
 		to_fullyname(Args): Args,
 		to_fullyname(ModulePaths): AnalyzeApp.make_module_paths,
@@ -478,3 +478,7 @@ if __name__ == '__main__':
 		print(ErrorRender(e))
 	finally:
 		print('Quit')
+
+
+if __name__ == '__main__':
+	main()

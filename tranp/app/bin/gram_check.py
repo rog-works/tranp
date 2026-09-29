@@ -163,7 +163,7 @@ def {filename}() -> {Rules.__name__}:
 			return f.read().decode('utf-8')
 
 
-if __name__ == '__main__':
+def main() -> None:
 	app = App(Args(sys.argv[1:]))
 	try:
 		app.run()
@@ -174,3 +174,7 @@ if __name__ == '__main__':
 	finally:
 		if not app.quiet:
 			print('Quit')
+
+
+if __name__ == '__main__':
+	main()

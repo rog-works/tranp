@@ -7,6 +7,7 @@ from typing import Any, TypedDict, cast
 import yaml
 
 from tranp.app.app.app import App
+from tranp.app.app.dir import tranp_dir
 from tranp.app.app.dummy import WrapSourceProvider, make_dummy_module_meta_factory
 from tranp.app.bin.io import tty
 from tranp.app.data.meta.header import MetaHeader
@@ -90,7 +91,7 @@ class Args:
 			パースしたコマンド引数
 		"""
 		args: ArgsDict = {
-			'config': 'tranp/config.yml',
+			'config': 'config.yml',
 			'input_globs': [],
 			'force': False,
 			'interactive': False,
@@ -155,9 +156,16 @@ class Config:
 			filepath: コンフィグファイルのパス
 		Returns:
 			コンフィグデータ
+		Raises:
+			FileNotFound: コンフィグが存在しない
 		"""
-		with open(os.path.join(filepath)) as f:
-			return cast(ConfigDict, yaml.safe_load(f))
+		for root_dir in [os.getcwd(), tranp_dir()]:
+			abs_filepath = os.path.abspath(os.path.join(root_dir, filepath))
+			if os.path.isfile(abs_filepath):
+				with open(abs_filepath) as f:
+					return cast(ConfigDict, yaml.safe_load(f))
+
+		raise FileNotFoundError(filepath)
 
 
 class TranspileApp:

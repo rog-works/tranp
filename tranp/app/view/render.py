@@ -64,7 +64,14 @@ class Renderer:
 		Returns:
 			入力ディレクトリーリスト
 		"""
-		return [os.path.abspath(os.path.join(env_path, template_dir)) for env_path in env_paths for template_dir in setting.template_dirs]
+		template_dirs: list[str] = []
+		for env_path in env_paths:
+			for template_dir in setting.template_dirs:
+				in_template_dir = os.path.abspath(os.path.join(env_path, template_dir))
+				if os.path.exists(in_template_dir):
+					template_dirs.append(in_template_dir)
+
+		return template_dirs
 
 	def __apply_helpers(self, helper_provider: RendererHelperProvider) -> None:
 		"""テンプレートヘルパーを適用

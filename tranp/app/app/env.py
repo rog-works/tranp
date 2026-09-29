@@ -1,6 +1,6 @@
 import os
 
-from tranp.app.app.dir import tranp_dir
+from tranp.app.app.dir import repository_dir, tranp_dir
 
 
 class DataEnvPath(list[str]):
@@ -22,7 +22,9 @@ class DataEnvPath(list[str]):
 		Returns:
 			インスタンス
 		"""
-		return cls([os.getcwd(), tranp_dir()])
+		dirs = {path: True for path in [os.getcwd(), tranp_dir()]}
+		a = cls(list(dirs.keys()))
+		return a
 
 
 class SourceEnvPath(list[str]):
@@ -48,5 +50,5 @@ class SourceEnvPath(list[str]):
 		Returns:
 			インスタンス
 		"""
-		default_dirs = [os.getcwd(), tranp_dir(), os.path.join(tranp_dir(), 'app', 'compatible', 'libralies')]
-		return cls([*default_dirs, *input_dirs])
+		dirs = {path: True for path in [os.getcwd(), os.path.join(tranp_dir(), 'app', 'compatible', 'libralies'), *input_dirs]}
+		return cls(list(dirs.keys()))

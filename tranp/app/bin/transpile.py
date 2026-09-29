@@ -91,7 +91,7 @@ class Args:
 			パースしたコマンド引数
 		"""
 		args: ArgsDict = {
-			'config': 'config.yml',
+			'config': os.path.join(tranp_dir(), 'config.yml'),
 			'input_globs': [],
 			'force': False,
 			'interactive': False,
@@ -156,16 +156,9 @@ class Config:
 			filepath: コンフィグファイルのパス
 		Returns:
 			コンフィグデータ
-		Raises:
-			FileNotFound: コンフィグが存在しない
 		"""
-		for root_dir in [os.getcwd(), tranp_dir()]:
-			abs_filepath = os.path.abspath(os.path.join(root_dir, filepath))
-			if os.path.isfile(abs_filepath):
-				with open(abs_filepath) as f:
-					return cast(ConfigDict, yaml.safe_load(f))
-
-		raise FileNotFoundError(filepath)
+		with open(filepath) as f:
+			return cast(ConfigDict, yaml.safe_load(f))
 
 
 class TranspileApp:

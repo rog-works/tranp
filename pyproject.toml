@@ -34,7 +34,7 @@ classifiers = [
 Homepage = "https://github.com/rog-works/tranp"
 
 [project.scripts]
-tranp = "tranp.app.bin.lancher:main"
+tranp = "tranp.app.bin.launcher:main"
 
 [tool.setuptools.packages.find]
 include = [

@@ -1,0 +1,233 @@
+import os
+import sys
+from collections.abc import Callable
+from importlib import import_module
+from typing import TypeAlias, TypedDict
+
+from lark import Lark
+from lark.indenter import PythonIndenter
+
+from tranp.app.app.dir import tranp_dir
+from tranp.app.bin.io import tty
+from tranp.app.implements.syntax.tranp.ast import ASTNormalizer
+from tranp.app.implements.syntax.tranp.rule import Rules
+from tranp.app.implements.syntax.tranp.syntax import SyntaxParser
+from tranp.app.lang.error import stacktrace
+from tranp.app.lang.module import filepath_to_module_path, load_module, load_module_path
+from tranp.data.syntax.gram_rules import gram_rules
+from tranp.data.syntax.gram_tokenizer import gram_tokenizer
+
+DictArgs = TypedDict('DictArgs', {'input': str, 'parser': str, 'grammar': str, 'normalizer': str, 'help': bool})
+Parser: TypeAlias = Callable[[str], str]
+
+
+class Args:
+	"""アプリケーション引数"""
+
+	def __init__(self, argv: list[str]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			argv: コマンドライン引数
+		"""
+		args = self.parse(argv)
+		self.input = args['input']
+		self.parser = args['parser']
+		self.grammar = args['grammar']
+		self.normalizer = args['normalizer']
+		self.help = args['help']
+
+	def parse(self, argv: list[str]) -> DictArgs:
+		"""コマンドライン引数を解析
+
+		Args:
+			argv: コマンドライン引数
+		Returns:
+			引数一覧
+		"""
+		args: DictArgs = {
+			'input': '',
+			'parser': 'lark',
+			'grammar': os.path.join(tranp_dir(), 'data', 'grammar.lark'),
+			'normalizer': '',
+			'help': False,
+		}
+		while len(argv) != 0:
+			arg = argv.pop(0)
+			if arg == '-i':
+				args['input'] = argv.pop(0)
+			elif arg == '-p':
+				args['parser'] = argv.pop(0)
+			elif arg == '-g':
+				args['grammar'] = argv.pop(0)
+			elif arg == '-n':
+				args['normalizer'] = argv.pop(0)
+			elif arg == '-h':
+				args['help'] = True
+
+		return args
+
+
+class App:
+	"""アプリケーション"""
+
+	def __init__(self, args: Args) -> None:
+		"""インスタンスを生成
+
+		Args:
+			args: 引数
+		"""
+		self.args = args
+
+	@property
+	def quiet(self) -> bool:
+		"""Returns: True = 実行ログなし"""
+		return len(self.args.input) > 0
+
+	def run(self) -> None:
+		"""実行処理"""
+		if self.args.help:
+			self.run_help()
+		elif self.args.input:
+			self.run_parse()
+		else:
+			self.run_interactive()
+
+	def run_help(self) -> None:
+		"""実行処理(ヘルプ)"""
+		print("""# Usage
+$ bin/ast.sh [-i source_path] [-g grammar_path] [-p parser_name] [-n normalizer_path or "default"] [-h]
+# Options
+-i: Input source file
+-g: Input grammar file
+-p: Usage parser name (default="lark")
+-n: Normalizer file path
+-h: Show help
+# Examples
+## Interactive mode
+$ bin/ast.sh
+$ bin/ast.sh -g path/to/grammar.lark
+$ bin/ast.sh -g path/to/grammar.lark -p other
+$ bin/ast.sh -g path/to/grammar.lark -p other -n default
+## Command line mode
+$ bin/ast.sh -i path/to/source.py
+$ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark
+$ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
+$ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other -n path/to/normalizer.py
+""")
+
+	def run_parse(self) -> None:
+		"""実行処理(既存ファイルを解析)"""
+		source = self.load_file(self.args.input)
+		parser = self.build_parser(self.args.parser)
+		print(parser(source))
+
+	def run_interactive(self) -> None:
+		"""実行処理(インタラクティブモード)"""
+		parser = self.build_parser(self.args.parser)
+		while True:
+			prompt = '\n'.join([
+				'==========',
+				'Code here. Type `exit` to quit:',
+			])
+			lines = tty(prompt)
+			if len(lines) == 1 and lines[0] == 'exit':
+				break
+
+			try:
+				text = '\n'.join(lines)
+				ast = parser(f'{text}\n')
+				print('==========')
+				print('AST')
+				print('----------')
+				print(ast)
+			except Exception as e:
+				print(''.join(stacktrace(e)))
+
+	def load_file(self, filepath: str) -> str:
+		"""ファイルを読み込み
+
+		Args:
+			args: 引数
+		Returns:
+			テキスト
+		"""
+		fullpath = os.path.abspath(os.path.join(os.getcwd(), filepath))
+		with open(fullpath, mode='rb') as f:
+			return f.read().decode('utf-8')
+
+	def build_parser(self, name: str) -> Parser:
+		"""パーサーを生成
+
+		Args:
+			name: パーサーの名前
+		Returns:
+			パーサー
+		"""
+		return self.build_for_lark() if name == 'lark' else self.build_for_other()
+
+	def build_for_lark(self) -> Parser:
+		"""Returns: パーサー(Lark)"""
+		grammar = self.load_file(self.args.grammar)
+		parser = Lark(grammar, start='file_input', postlex=PythonIndenter(), parser='lalr')
+		return lambda source: parser.parse(source).pretty()
+
+	def build_for_other(self) -> Parser:
+		"""Returns: パーサー(Other)"""
+		grammar = self.load_file(self.args.grammar)
+		gram_parser = SyntaxParser(gram_rules(), gram_tokenizer())
+		gram_ast = gram_parser.parse(grammar, 'entry')
+		rules = Rules.from_ast(gram_ast.simplify())
+		parser = SyntaxParser(rules)
+		normalizer_type = self.resolve_normalizer(self.args.normalizer)
+
+		def callback(source: str) -> str:
+			tree = parser.parse(source, 'entry')
+			if not self.args.normalizer:
+				return tree.pretty()
+
+			normalized = tree.normalize(normalizer_type)
+			return '\n'.join([
+				tree.pretty(),
+				'----------',
+				'Normalized',
+				'----------',
+				'\n'.join(str(normal) for normal in normalized),
+			])
+
+		return callback
+	
+	def resolve_normalizer(self, filepath: str) -> type[ASTNormalizer] | None:
+		"""AST正規化ミドルウェアを解決
+
+		Args:
+			filepath: ミドルウェアのファイルパス
+		Returns:
+			AST正規化ミドルウェアの型 | None
+		Raises:
+			ValueError: ミドルウェアの解決に失敗
+		"""
+		abs_filepath = os.path.abspath(filepath)
+		if not os.path.exists(filepath):
+			return None
+
+		module = import_module(filepath_to_module_path(abs_filepath, os.getcwd()))
+		for value in module.__dict__.values():
+			if isinstance(value, type) and value != ASTNormalizer and issubclass(value, ASTNormalizer):
+				return value
+
+		raise ValueError(f'Unresolve ASTNormalizer. filepath: {filepath}')
+
+
+if __name__ == '__main__':
+	args = Args(sys.argv[1:])
+	app = App(args)
+	try:
+		app.run()
+	except KeyboardInterrupt:
+		pass
+	except Exception as e:
+		print(''.join(stacktrace(e)))
+	finally:
+		if not app.quiet:
+			print('Quit')

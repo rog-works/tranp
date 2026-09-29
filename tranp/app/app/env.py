@@ -1,0 +1,54 @@
+import os
+
+from tranp.app.app.dir import repository_dir, tranp_dir
+
+
+class DataEnvPath(list[str]):
+	"""環境パスリスト(データ用)
+
+	Note:
+		```
+		### デフォルトのパス
+		* 実行ディレクトリー
+		### パスの追加の必要性
+		* 追加する必要性はほぼ無いため、デフォルトの設定を使うことを推奨
+		```
+	"""
+
+	@classmethod
+	def instantiate(cls) -> 'DataEnvPath':
+		"""インスタンスを生成
+
+		Returns:
+			インスタンス
+		"""
+		dirs = {path: True for path in [os.getcwd(), tranp_dir()]}
+		a = cls(list(dirs.keys()))
+		return a
+
+
+class SourceEnvPath(list[str]):
+	"""環境パスリスト(ソースコード用)
+
+	Note:
+		```
+		### デフォルトのパス
+		* 実行ディレクトリー
+		* tranpのルートディレクトリー
+		* Pythonライブラリーのディレクトリー
+		### パスの追加の必要性
+		* 追加する必要性はほぼ無いため、デフォルトの設定を使うことを推奨
+		```
+	"""
+
+	@classmethod
+	def instantiate(cls, input_dirs: list[str]) -> 'SourceEnvPath':
+		"""インスタンスを生成
+
+		Args:
+			input_dirs: 入力ディレクトリーリスト
+		Returns:
+			インスタンス
+		"""
+		dirs = {path: True for path in [*input_dirs, os.getcwd(), os.path.join(tranp_dir(), 'app', 'compatible', 'libralies'), repository_dir()]}
+		return cls(list(dirs.keys()))

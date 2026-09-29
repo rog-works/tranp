@@ -1,17 +1,19 @@
-from rogw.tranp.app.app import App
-from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.lang.annotation import duck_typed
-from rogw.tranp.lang.di import ModuleDefinitions
-from rogw.tranp.lang.locator import Invoker, T_Inst
-from rogw.tranp.lang.module import filepath_to_module_path, to_fullyname
-from rogw.tranp.module.module import Module
-from rogw.tranp.module.modules import Modules
-from rogw.tranp.module.types import ModulePath, ModulePaths
-from rogw.tranp.providers.module import module_path_dummy
-from rogw.tranp.providers.syntax.ast import source_provider
-from rogw.tranp.syntax.ast.entrypoints import Entrypoints
-from rogw.tranp.syntax.ast.parser import SourceProvider
-from rogw.tranp.syntax.node.node import Node
+import os
+
+from tranp.app.app.app import App
+from tranp.app.app.dir import repository_dir
+from tranp.app.lang.annotation import duck_typed
+from tranp.app.lang.di import ModuleDefinitions
+from tranp.app.lang.locator import Invoker, T_Inst
+from tranp.app.lang.module import filepath_to_module_path, to_fullyname
+from tranp.app.module.module import Module
+from tranp.app.module.modules import Modules
+from tranp.app.module.types import ModulePath, ModulePaths
+from tranp.app.providers.module import module_path_dummy
+from tranp.app.providers.syntax.ast import source_provider
+from tranp.app.syntax.ast.entrypoints import Entrypoints
+from tranp.app.syntax.ast.parser import SourceProvider
+from tranp.app.syntax.node.node import Node
 
 
 class Fixture:
@@ -26,7 +28,7 @@ class Fixture:
 		Returns:
 			フィクスチャーのモジュールパス
 		"""
-		module_path = filepath_to_module_path(filepath, tranp_dir())
+		module_path = filepath_to_module_path(filepath, repository_dir())
 		elems = module_path.split('.')
 		dirpath, testname = '.'.join(elems[:-1]), elems[-1]
 		filename = testname.replace('test_', 'fixture_')

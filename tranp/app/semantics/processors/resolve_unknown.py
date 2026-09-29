@@ -1,0 +1,180 @@
+import tranp.app.semantics.reflection.definition as refs
+import tranp.app.syntax.node.definition as defs
+from tranp.app.lang.annotation import duck_typed, injectable
+from tranp.app.lang.convertion import as_a
+from tranp.app.lang.locator import Invoker
+from tranp.app.module.module import Module
+from tranp.app.semantics.processor import Preprocessor
+from tranp.app.semantics.reflection.base import IReflection, Mod
+from tranp.app.semantics.reflection.db import SymbolDB
+from tranp.app.semantics.reflections import Reflections
+from tranp.app.syntax.node.interface import IDeclaration
+from tranp.app.syntax.node.node import Node
+
+
+class ResolveUnknown:
+	"""Unknownのシンボルを解決
+
+	Note:
+		```
+		### Unknownになる条件
+		* MoveAssignの代入変数
+		* For/CompForの展開変数
+		* WithEntryの展開変数
+		```
+	"""
+	@injectable
+	def __init__(self, invoker: Invoker) -> None:
+		"""インスタンスを生成
+
+		Args:
+			invoker: ファクトリー関数 @inject
+		"""
+		self.invoker = invoker
+
+	@duck_typed(Preprocessor)
+	def __call__(self, module: Module, db: SymbolDB) -> bool:
+		"""シンボルテーブルを編集
+
+		Args:
+			module: モジュール
+			db: シンボルテーブル
+		Returns:
+			True = 後続処理を実行
+		"""
+		for _, raw in db.items(module.path):
+			if not isinstance(raw.decl, defs.Declable):
+				continue
+
+			if isinstance(raw.decl.declare, defs.MoveAssign) and isinstance(raw.decl.declare.var_type, defs.Empty):
+				raw.mod_on('origin', self.make_mod_right_to_left(raw, raw.decl.declare.value))
+			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
+				raw.mod_on('origin', self.make_mod_right_to_left(raw, raw.decl.declare.for_in))
+			elif isinstance(raw.decl.declare, defs.WithEntry):
+				raw.mod_on('origin', self.make_mod_with_entry(raw, raw.decl.declare))
+			elif isinstance(raw.decl.declare, defs.Lambda):
+				raw.mod_on('origin', self.make_mod_lambda_param(raw, raw.decl.declare))
+
+		return True
+
+	def make_mod_right_to_left(self, var_raw: IReflection, value_node: Node) -> Mod:
+		"""モッドを生成(右辺値解決用)
+
+		Args:
+			var_raw: 変数宣言シンボル
+			value_node: 右辺値ノード
+		Returns:
+			モッド
+		"""
+		return lambda: [self.invoker(self.resolve_right_to_left, var_raw, value_node)]
+
+	def make_mod_with_entry(self, var_raw: IReflection, with_entry: defs.WithEntry) -> Mod:
+		"""モッドを生成(コンテキストマネージャー解決用)
+
+		Args:
+			var_raw: 変数宣言シンボル
+			with_entry: コンテキストマネージャー
+		Returns:
+			モッド
+		"""
+		return lambda: [self.invoker(self.resolve_with_entry, var_raw, with_entry)]
+
+	def make_mod_lambda_param(self, var_raw: IReflection, declare: defs.Lambda) -> Mod:
+		"""モッドを生成(ラムダ引数用)
+
+		Args:
+			var_raw: 変数宣言シンボル
+			declare: ラムダ
+		Returns:
+			モッド
+		"""
+		return lambda: [self.invoker(self.resolve_lambda_param, var_raw, declare)]
+
+	@injectable
+	def resolve_right_to_left(self, reflections: Reflections, var_raw: IReflection, value_node: Node) -> IReflection:
+		"""右辺値の型を解決し、変数宣言シンボルを生成
+
+		Args:
+			reflections: シンボルリゾルバー @inject
+			var_raw: 変数宣言シンボル
+			value_node: 右辺値ノード
+		Returns:
+			シンボル
+		"""
+		value_raw = reflections.type_of(value_node)
+		decl_vars = as_a(IDeclaration, var_raw.decl.declare).symbols
+		if len(decl_vars) == 1:
+			return var_raw.declare(var_raw.node.as_a(defs.Declable), value_raw)
+
+		index = decl_vars.index(var_raw.decl)
+		actual_value_raw = value_raw.attrs[0] if value_raw.types.is_a(defs.AltClass) else value_raw
+		return var_raw.declare(var_raw.node.as_a(defs.Declable), actual_value_raw.attrs[index])
+
+	@injectable
+	def resolve_with_entry(self, reflections: Reflections, var_raw: IReflection, with_entry: defs.WithEntry) -> IReflection:
+		"""コンテキストマネージャーの値の型を解決し、変数宣言シンボルを生成
+
+		Args:
+			reflections: シンボルリゾルバー @inject
+			var_raw: 変数宣言シンボル
+			with_entry: コンテキストマネージャー
+		Returns:
+			シンボル
+		"""
+		# FIXME traitで処理するべきでは？
+		enter_raw = reflections.type_of(with_entry.enter)
+		enter_method_raw = reflections.resolve(enter_raw.types, enter_raw.types.operations.enter)
+		method_raw = enter_raw.to(enter_raw.types, enter_method_raw)
+		return method_raw.impl(refs.Function).returns()
+
+	@injectable
+	def resolve_lambda_param(self, reflections: Reflections, var_raw: IReflection, declare: defs.Lambda) -> IReflection:
+		"""依存する型を解決し、引数宣言シンボルを生成
+
+		Args:
+			reflections: シンボルリゾルバー @inject
+			var_raw: 変数宣言シンボル
+			lambda: ラムダ
+		Returns:
+			シンボル
+		"""
+		decl_vars = as_a(IDeclaration, declare).symbols
+		index = decl_vars.index(var_raw.decl)
+		parent = declare.parent
+		if isinstance(parent, defs.AnnoAssign):
+			# 期待値: var: Callable[[A, B]: ...] = lambda a, b: ...
+			type_raw = reflections.type_of(parent).impl(refs.Object).actualize('alt')
+			return var_raw.declare(var_raw.node.as_a(defs.Declable), type_raw.attrs[index])
+		elif isinstance(parent, defs.Argument):
+			# 期待値: func(lambda a, b: ...)
+			func_call = parent.parent.as_a(defs.FuncCall)
+			org_calls = reflections.type_of(func_call.calls).impl(refs.Object)
+			# クラスシンボルはコンストラクターから解決 @see Reflections.on_func_call
+			if org_calls.type_is(type):
+				# 実体コールをコンストラクターの定義に反映
+				actual_calls = org_calls.actualize()
+				method_raw = actual_calls.constructor().impl(refs.Function).signature(actual_calls)
+				# コンストラクター内のラムダの引数を解決
+				arg_index = func_call.arguments.index(parent)
+				decl_arg_raw = method_raw.attrs[arg_index + 1]
+				resolve_arg_raw = method_raw.impl(refs.Function).parameter_at(arg_index, decl_arg_raw)
+				actual_arg_raw = resolve_arg_raw.impl(refs.Object).actualize('nullable', 'alt')
+				return var_raw.declare(var_raw.node.as_a(defs.Declable), actual_arg_raw.attrs[index])
+			elif org_calls.types.is_a(defs.Constructor, defs.Method, defs.ClassMethod):
+				method_raw = org_calls.impl(refs.Function).signature(org_calls.context)
+				arg_index = func_call.arguments.index(parent) + 1
+				arg_raw = method_raw.attrs[arg_index].impl(refs.Object).actualize('nullable', 'alt')
+				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
+			else:
+				arg_index = func_call.arguments.index(parent)
+				arg_raw = org_calls.attrs[arg_index].impl(refs.Object).actualize('nullable', 'alt')
+				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
+		elif isinstance(parent, defs.Return):
+			# 期待値: return lambda a, b: ...
+			returns_raw = reflections.type_of(parent.function).attrs[-1]
+			return returns_raw.attrs[index]
+		else:
+			# 期待値: (lambda a, b: ...)(a_value, b_value)
+			arg = as_a(defs.Group, parent).parent.as_a(defs.FuncCall).arguments[index]
+			arg_raw = reflections.type_of(arg)
+			return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw)

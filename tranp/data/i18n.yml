@@ -1,0 +1,86 @@
+# @see dsn.translation.alias_dsn
+# prefix
+aliases.classes: aliases.tranp.app.compatible.libralies.classes
+aliases.collections.abc: aliases.collections.abc
+aliases.cpp: aliases.tranp.app.compatible.cpp.classes
+aliases.lang: aliases.tranp.app.compatible.lang
+aliases.typing: aliases.typing
+# collection.abc
+aliases.collections.abc#Callable: std::function
+# typing
+aliases.typing#Any: void
+aliases.typing#cast: static_cast
+# lang
+aliases.tranp.app.compatible.lang#accessor.public: public
+aliases.tranp.app.compatible.lang#accessor.protected: protected
+aliases.tranp.app.compatible.lang#accessor.private: private
+aliases.tranp.app.compatible.lang#cast.as_a: dynamic_cast
+# classes
+aliases.tranp.app.compatible.libralies.classes#Exception: std::exception
+aliases.tranp.app.compatible.libralies.classes#None: void
+aliases.tranp.app.compatible.libralies.classes#RuntimeError: std::runtime_error
+aliases.tranp.app.compatible.libralies.classes#dict: std::map
+aliases.tranp.app.compatible.libralies.classes#dict.in: contains
+aliases.tranp.app.compatible.libralies.classes#dict.clear: clear
+aliases.tranp.app.compatible.libralies.classes#dict.update: update # FIXME 暫定対処
+aliases.tranp.app.compatible.libralies.classes#hash: hash # FIXME 暫定対処
+aliases.tranp.app.compatible.libralies.classes#list: std::vector
+aliases.tranp.app.compatible.libralies.classes#list.index: find # FIXME 暫定対処
+aliases.tranp.app.compatible.libralies.classes#list.append: push_back
+aliases.tranp.app.compatible.libralies.classes#list.insert: insert
+aliases.tranp.app.compatible.libralies.classes#list.extend: insert
+aliases.tranp.app.compatible.libralies.classes#list.remove: erase
+aliases.tranp.app.compatible.libralies.classes#list.sort: sort # FIXME 暫定対処
+aliases.tranp.app.compatible.libralies.classes#list.reverse: reverse # FIXME 暫定対処
+aliases.tranp.app.compatible.libralies.classes#list.clear: clear
+aliases.tranp.app.compatible.libralies.classes#abs: std::abs
+aliases.tranp.app.compatible.libralies.classes#min: std::min
+aliases.tranp.app.compatible.libralies.classes#max: std::max
+aliases.tranp.app.compatible.libralies.classes#print: printf
+aliases.tranp.app.compatible.libralies.classes#str: std::string
+aliases.tranp.app.compatible.libralies.classes#str.endswith: ends_with
+aliases.tranp.app.compatible.libralies.classes#str.find: find
+aliases.tranp.app.compatible.libralies.classes#str.lower: lower # FIXME 暫定対処
+aliases.tranp.app.compatible.libralies.classes#str.rfind: find_last_of
+aliases.tranp.app.compatible.libralies.classes#str.startswith: starts_with
+aliases.tranp.app.compatible.libralies.classes#str.upper: upper # FIXME 暫定対処
+aliases.tranp.app.compatible.libralies.classes#tuple: std::tuple
+# cpp
+aliases.tranp.app.compatible.cpp.classes#PluckMethod: PluckMethod
+aliases.tranp.app.compatible.cpp.classes#cast.as_a: std::dynamic_pointer_cast
+aliases.tranp.app.compatible.cpp.classes#cast.down: std::static_pointer_cast
+aliases.tranp.app.compatible.cpp.classes#char: char
+aliases.tranp.app.compatible.cpp.classes#container.size: size
+aliases.tranp.app.compatible.cpp.classes#float.mod: fmod
+aliases.tranp.app.compatible.cpp.classes#map.begin: begin
+aliases.tranp.app.compatible.cpp.classes#map.end: end
+aliases.tranp.app.compatible.cpp.classes#map.erase: erase
+aliases.tranp.app.compatible.cpp.classes#map.iterator: iterator
+aliases.tranp.app.compatible.cpp.classes#make_shared: std::make_shared
+aliases.tranp.app.compatible.cpp.classes#make_unique: std::make_unique
+aliases.tranp.app.compatible.cpp.classes#move: std::move
+aliases.tranp.app.compatible.cpp.classes#shared_ptr: std::shared_ptr
+aliases.tranp.app.compatible.cpp.classes#shared_ptr.to_weak: to_weak # FIXME 暫定対処
+aliases.tranp.app.compatible.cpp.classes#smart_ptr.get: get
+aliases.tranp.app.compatible.cpp.classes#string.stod: std::stod
+aliases.tranp.app.compatible.cpp.classes#string.stoi: std::stoi
+aliases.tranp.app.compatible.cpp.classes#string.format: std::format
+aliases.tranp.app.compatible.cpp.classes#string.ftoa: std::to_string
+aliases.tranp.app.compatible.cpp.classes#string.itoa: std::to_string
+aliases.tranp.app.compatible.cpp.classes#string.size: size
+aliases.tranp.app.compatible.cpp.classes#string.slice: substr
+aliases.tranp.app.compatible.cpp.classes#unique_ptr: std::unique_ptr
+aliases.tranp.app.compatible.cpp.classes#vector.begin: begin
+aliases.tranp.app.compatible.cpp.classes#vector.end: end
+aliases.tranp.app.compatible.cpp.classes#vector.iterator: iterator
+aliases.tranp.app.compatible.cpp.classes#wchar_t: wchar_t
+aliases.tranp.app.compatible.cpp.classes#weak_ptr: std::weak_ptr
+aliases.tranp.app.compatible.cpp.classes#weak_ptr.lock: lock
+aliases.tranp.app.compatible.cpp.cvar#CSP.release: release
+aliases.tranp.app.compatible.cpp.cvar#CUP.release: release
+aliases.tranp.app.compatible.cpp.cvar#CWP.available: expired # FIXME 暫定対処
+aliases.tranp.app.compatible.cpp.cvar#CWP.inavailable: expired
+# example
+# @see dsn.translation.import_dsn
+# lang
+imports.collections.abc: '#include <functional>'

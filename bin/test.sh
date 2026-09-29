@@ -38,7 +38,7 @@ if [ "$1" == "-l" ]; then
 			shift
 		fi
 
-		case=$(python ${appdir}/rogw/tranp/test/case_discovery.py ${module} | cat - | peco ${peco_opt})
+		case=$(python ${appdir}/tranp/app/test/case_discovery.py ${module} | cat - | peco ${peco_opt})
 		target="${target}.${case}"
 	fi
 fi

@@ -1,4 +1,4 @@
-from rogw.tranp.compatible.cpp.classes import char
+from tranp.app.compatible.cpp.classes import char
 
 
 class String:

@@ -2,6 +2,9 @@
 	"files.exclude": {
 		"**/.git": true,
 	},
+	"search.exclude": {
+		"**/.cache": true,
+	},
 	"python.analysis.extraPaths": [
 		"./vendor",
 	],

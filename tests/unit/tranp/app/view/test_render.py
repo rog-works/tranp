@@ -1,0 +1,1680 @@
+import os
+from typing import Any, cast
+from unittest import TestCase
+
+import yaml
+
+from tranp.app.app.dir import tranp_dir
+from tranp.app.app.env import DataEnvPath
+from tranp.app.implements.cpp.providers.view import renderer_helper_provider_cpp
+from tranp.app.lang.annotation import duck_typed
+from tranp.app.lang.middleware import Middleware
+from tranp.app.lang.translator import Translator
+from tranp.app.test.helper import data_provider
+from tranp.app.view.render import Renderer, RendererSetting
+
+
+class Expects:
+	@classmethod
+	def function(cls, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False) -> dict[str, Any]:
+		return {
+			'symbol': symbol,
+			'parameters': parameters,
+			'return_type': return_type,
+			'decorators': decorators,
+			'template_types': template_types,
+			'statements': statements,
+			'comment': comment,
+			'is_pure': is_pure,
+		}
+
+	@classmethod
+	def closure(cls, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], statements: list[str] = [], binds: list[str] = []) -> dict[str, Any]:
+		return {
+			'symbol': symbol,
+			'parameters': parameters,
+			'return_type': return_type,
+			'decorators': decorators,
+			'statements': statements,
+			# closure only
+			'binds': binds,
+		}
+
+	@classmethod
+	def constructor(cls, accessor: str, class_symbol: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, initializer_indexs: list[int] = [], initializer_index_of_super: int = -1) -> dict[str, Any]:
+		return {
+			'symbol': '__init__',
+			'parameters': parameters,
+			'return_type': 'void',
+			'decorators': decorators,
+			'template_types': template_types,
+			'statements': statements,
+			'comment': comment,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+			# constructor only
+			'initializer_indexs': initializer_indexs,
+			'initializer_index_of_super': initializer_index_of_super,
+		}
+
+	@classmethod
+	def destructor(cls, accessor: str, class_symbol: str, decorators: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False) -> dict[str, Any]:
+		return {
+			'symbol': '__py_destroy__',
+			'parameters': [],
+			'return_type': 'void',
+			'decorators': decorators,
+			'template_types': [],
+			'statements': statements,
+			'comment': comment,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+		}
+
+	@classmethod
+	def copy_constructor(cls, accessor: str, class_symbol: str, parameters: list[str], decorators: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False) -> dict[str, Any]:
+		return {
+			'symbol': '__py_copy__',
+			'parameters': parameters,
+			'return_type': 'void',
+			'decorators': decorators,
+			'template_types': [],
+			'statements': statements,
+			'comment': comment,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+		}
+
+	@classmethod
+	def class_method(cls, accessor: str, class_symbol: str, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False, is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, return_type_annotations: list[str] = []) -> dict[str, Any]:
+		return {
+			'symbol': symbol,
+			'parameters': parameters,
+			'return_type': return_type,
+			'decorators': decorators,
+			'template_types': template_types,
+			'statements': statements,
+			'comment': comment,
+			'is_pure': is_pure,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+			# method only
+			'return_type_annotations': return_type_annotations,
+		}
+
+	@classmethod
+	def method(cls, accessor: str, class_symbol: str, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False, is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, is_property: bool = False, return_type_annotations: list[str] = []) -> dict[str, Any]:
+		return {
+			'symbol': symbol,
+			'parameters': parameters,
+			'return_type': return_type,
+			'decorators': decorators,
+			'template_types': template_types,
+			'statements': statements,
+			'comment': comment,
+			'is_pure': is_pure,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+			# method only
+			'is_property': is_property,
+			'return_type_annotations': return_type_annotations,
+		}
+
+
+class Fixture:
+	def __init__(self) -> None:
+		# 効率化のためexampleのマッピングデータを利用
+		trans_mapping = self.__load_trans_mapping(os.path.join(tranp_dir(), 'data', 'i18n.yml'))
+
+		@duck_typed(Translator)
+		def translator(key: str, fallback: str = '') -> str:
+			return trans_mapping.get(key, key)
+
+		template_dirs = [os.path.join(tranp_dir(), 'data', 'cpp', 'template')]
+		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
+		setting = RendererSetting(template_dirs, translator, Middleware(), env)
+		provider = renderer_helper_provider_cpp(setting)
+		self.renderer = Renderer(DataEnvPath.instantiate(), setting, provider)
+
+	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:
+		with open(filepath) as f:
+			return cast(dict[str, str], yaml.safe_load(f))
+
+
+class TestRenderer(TestCase):
+	__fixture = Fixture()
+
+	def assertRender(self, template: str, vars: dict[str, Any], expected: str) -> None:
+		"""Note: 文字列の比較は通例と逆配置にした方が見やすいため逆で利用"""
+		actual = self.__fixture.renderer.render(template, vars=vars)
+		try:
+			self.assertEqual(expected, actual)
+		except AssertionError:
+			print(actual)
+			raise
+
+	@data_provider([
+		({'accessor': '', 'symbol': 'B', 'actual_type': 'A'}, 'using B = A;'),
+		({'accessor': 'public', 'symbol': 'B', 'actual_type': 'A'}, 'public: using B = A;'),
+	])
+	def test_render_alt_class(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('class/alt_class', vars, expected)
+
+	@data_provider([
+		({'label': '', 'value': 1}, '1'),
+		({'label': 'a', 'value': 1}, '1'),
+	])
+	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('expression/argument', vars, expected)
+
+	@data_provider([
+		({'condition': 'n == 1', 'assert_body': ''}, 'assert(n == 1);'),
+		({'condition': 'a.ok', 'assert_body': 'std::exception'}, 'assert(a.ok); // std::exception'),
+	])
+	def test_render_assert(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('statement/assert', vars, expected)
+
+	@data_provider([
+		('move_assign', {'receiver': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
+		('move_assign_dict', {'receiver': 'hoge[0]', 'value': '1234'}, 'hoge[0] = 1234;'),
+		('move_assign_declare', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
+		('move_assign_declare', {'receiver': 'hoge', 'value': 'Embed::static(A::f).decl([]() -> int { return 1234; })', 'var_type': 'int', 'is_static': True}, 'static int hoge = 1234;'),
+		('move_assign_declare', {'receiver': 'hoge', 'value': 'A(1)', 'var_type': 'A', 'is_initializer': True}, 'A hoge{1};'),
+		('move_assign_destruction', {'receivers': ['hoge', 'fuga'], 'value': '{1234, 2345}'}, 'auto [hoge, fuga] = {1234, 2345};'),
+		('anno_assign', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'annotations': []}, 'int hoge = 1234;'),
+		('anno_assign', {'receiver': 'hoge', 'var_type': 'int', 'value': '', 'annotations': []}, 'int hoge;'),
+		('anno_assign', {'receiver': 'hoge', 'value': 'A(1)', 'var_type': 'A', 'annotations': [], 'is_initializer': True}, 'A hoge{1};'),
+		('anno_assign', {'receiver': 'm', 'var_type': 'std::map<int, int>', 'value': '{{0, 0}, {1, 10}}', 'annotations': ['Embed::static']}, 'static std::map<int, int> m = {{0, 0}, {1, 10}};'),
+		('aug_assign', {'receiver': 'hoge', 'value': '1234', 'operator': '+='}, 'hoge += 1234;'),
+	])
+	def test_render_assign(self, template: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'assign/{template}', vars, expected)
+
+	@data_provider([
+		({'value_type': 'float', 'size': '10', 'default': '{100.0}', 'default_is_list': True}, 'std::vector<float>(10, 100.0)'),
+		({'value_type': 'float', 'size': '10', 'default': 'std::vector<float>()', 'default_is_list': False}, 'std::vector<float>(10)'),
+	])
+	def test_render_binary_operator_fill_list(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('operation/binary_fill_list', vars, expected)
+
+	@data_provider([
+		({'left': 'key', 'operator': 'in', 'right': 'items', 'right_is_dict': True}, 'items.contains(key)'),
+		({'left': 'key', 'operator': 'not.in', 'right': 'items', 'right_is_dict': True}, '(!items.contains(key))'),
+		({'left': 'value', 'operator': 'in', 'right': 'values', 'right_is_dict': False}, '(std::find(values.begin(), values.end(), value) != values.end())'),
+		({'left': 'value', 'operator': 'not.in', 'right': 'values', 'right_is_dict': False}, '(std::find(values.begin(), values.end(), value) == values.end())'),
+	])
+	def test_render_binary_operator_in(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('operation/binary_in', vars, expected)
+
+	@data_provider([
+		({'left': 'a', 'operator': 'is', 'right': 'b', 'left_var_type': 'int'}, 'a == b'),
+		({'left': 'a', 'operator': 'is.not', 'right': 'b', 'left_var_type': 'int'}, 'a != b'),
+		({'left': 'a', 'operator': 'and', 'right': 'b', 'left_var_type': 'int'}, 'a && b'),
+		({'left': 'a', 'operator': 'or', 'right': 'b', 'left_var_type': 'int'}, 'a || b'),
+		({'left': 'a', 'operator': '+', 'right': 'b', 'left_var_type': 'int'}, 'a + b'),
+		({'left': 'a', 'operator': '-', 'right': 'b', 'left_var_type': 'int'}, 'a - b'),
+		({'left': 'a', 'operator': '*', 'right': 'b', 'left_var_type': 'int'}, 'a * b'),
+		({'left': 'a', 'operator': '/', 'right': 'b', 'left_var_type': 'int'}, 'a / b'),
+		({'left': 'a', 'operator': '%', 'right': 'b', 'left_var_type': 'int'}, 'a % b'),
+		({'left': 'a', 'operator': '%', 'right': 'b', 'left_var_type': 'float'}, 'fmod(a, b)'),
+		({'left': 'a', 'operator': '%', 'right': 'b', 'left_var_type': 'double'}, 'fmod(a, b)'),
+	])
+	def test_render_binary_operator(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('operation/binary_operator', vars, expected)
+
+	@data_provider([
+		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool', 'annotations': []}, 'std::function<bool(int, float)>'),
+		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool', 'annotations': ['Embed::immutable']}, 'const std::function<bool(int, float)>&'),
+		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool', 'annotations': ['Embed::reference']}, 'std::function<bool(int, float)>&'),
+		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void', 'annotations': []}, 'typename PluckMethod<T, void, T_Args...>::method'),
+		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void', 'annotations': ['Embed::immutable']}, 'const typename PluckMethod<T, void, T_Args...>::method&'),
+		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void', 'annotations': ['Embed::reference']}, 'typename PluckMethod<T, void, T_Args...>::method&'),
+	])
+	def test_render_callable_type(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'type/{spec}', vars, expected)
+
+	@data_provider([
+		({'var_type': 'Exception', 'symbol': 'e', 'statements': ['pass;']}, '} catch (const Exception& e) {\n\tpass;'),
+	])
+	def test_render_catch(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('flow/catch', vars, expected)
+
+	@data_provider([
+		({'accessor': 'public', 'decl_class_var': 'float a;'}, 'public: inline static float a;'),
+	])
+	def test_render_class_decl_class_var(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('class/_decl_class_var', vars, expected)
+
+	@data_provider([
+		({'accessor': 'public', 'decl_this_var': 'float a;', 'annotations': []}, 'public: float a;'),
+	])
+	def test_render_class_decl_this_var(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('class/_decl_this_var', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'symbol': 'Hoge',
+				'accessor': '',
+				'decorators': ['deco(A, A.B)'],
+				'inherits': ['Base', 'C<int>'],
+				'template_types': [],
+				'comment': '',
+				'statements': [
+					'\n'.join([
+						'private: int __value;',
+						'private: std::string __text;',
+						'public: Hoge() {',
+						'	int hoge = 1234;',
+						'	int fuga = 2345;',
+						'}',
+					]),
+				],
+				'module_path': 'module.path.to',
+			},
+			'\n'.join([
+				'/** Hoge */',
+				'class Hoge : public Base, public C<int> {',
+				'	using Base::Base;',
+				'	using C::C;',
+				'	private: int __value;',
+				'	private: std::string __text;',
+				'	public: Hoge() {',
+				'		int hoge = 1234;',
+				'		int fuga = 2345;',
+				'	}',
+				'};',
+			]),
+		),
+		(
+			{
+				'symbol': 'Hoge',
+				'accessor': '',
+				'decorators': ['Embed.ignore(A)'],
+				'inherits': ['A', 'AB'],
+				'template_types': [],
+				'comment': '',
+				'statements': [
+					'\n'.join([
+						'public: Hoge() {',
+						'}',
+					]),
+				],
+				'module_path': 'module.path.to',
+			},
+			'\n'.join([
+				'/** Hoge */',
+				'class Hoge : public AB {',
+				'	using AB::AB;',
+				'	public: Hoge() {',
+				'	}',
+				'};',
+			]),
+		),
+		(
+			{
+				'symbol': 'Hoge',
+				'accessor': '',
+				'decorators': [],
+				'inherits': [],
+				'template_types': [],
+				'comment': '',
+				'statements': [
+					'\n'.join([
+						'public: Hoge() {',
+						'}',
+					]),
+				],
+				'module_path': 'module.path.to',
+			},
+			'\n'.join([
+				'/** Hoge */',
+				'class Hoge {',
+				'	public: Hoge() {',
+				'	}',
+				'};',
+			]),
+		),
+		(
+			{
+				'symbol': 'Hoge',
+				'accessor': '',
+				'decorators': [],
+				'inherits': [],
+				'template_types': [],
+				'comment': '\n'.join([
+					'/**',
+					' * Description',
+					' */',
+				]),
+				'statements': [
+					'\n'.join([
+						'public: Hoge() {',
+						'}',
+					]),
+				],
+				'module_path': 'module.path.to',
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' */',
+				'class Hoge {',
+				'	public: Hoge() {',
+				'	}',
+				'};',
+			]),
+		),
+		(
+			{
+				'symbol': 'Hoge',
+				'accessor': '',
+				'decorators': ['deco(A, A.B)'],
+				'inherits': [],
+				'template_types': [],
+				'comment': '\n'.join([
+					'/**',
+					' * Description',
+					' */',
+				]),
+				'statements': [
+					'\n'.join([
+						'public: Hoge() {',
+						'}',
+					]),
+				],
+				'module_path': 'module.path.to',
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' */',
+				'class Hoge {',
+				'	public: Hoge() {',
+				'	}',
+				'};',
+			]),
+		),
+		(
+			{
+				'symbol': 'Struct',
+				'accessor': '',
+				'decorators': ['Embed.struct'],
+				'inherits': [],
+				'template_types': [],
+				'comment': '',
+				'statements': [],
+				'module_path': 'module.path.to',
+			},
+			'\n'.join([
+				'/** Struct */',
+				'struct Struct {',
+				'};',
+			]),
+		),
+		(
+			{
+				'symbol': 'Union',
+				'accessor': '',
+				'decorators': ['Embed.union'],
+				'inherits': [],
+				'template_types': [],
+				'comment': '',
+				'statements': [],
+				'module_path': 'module.path.to',
+			},
+			'\n'.join([
+				'/** Union */',
+				'union Union {',
+				'};',
+			]),
+		),
+	])
+	def test_render_class(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('class/class', vars, expected)
+
+	@data_provider([
+		(
+			'list_comp',
+			{
+				'projection': 'value',
+				'comp_for': 'auto& value : values',
+				'condition': '',
+				'projection_types': ['int'],
+			},
+			'\n'.join([
+				'[&]() -> std::vector<int> {',
+				'	std::vector<int> __ret;',
+				'	for (auto& value : values) {',
+				'		__ret.push_back(value);',
+				'	}',
+				'	return __ret;',
+				'}()',
+			]),
+		),
+		(
+			'list_comp',
+			{
+				'projection': 'value',
+				'comp_for': 'auto& value : values',
+				'condition': 'value == 1',
+				'projection_types': ['int'],
+			},
+			'\n'.join([
+				'[&]() -> std::vector<int> {',
+				'	std::vector<int> __ret;',
+				'	for (auto& value : values) {',
+				'		if (value == 1) {',
+				'			__ret.push_back(value);',
+				'		}',
+				'	}',
+				'	return __ret;',
+				'}()',
+			]),
+		),
+		(
+			'dict_comp',
+			{
+				'projection_key': 'key',
+				'projection_value': 'value',
+				'comp_for': 'auto& [key, value] : items',
+				'condition': '',
+				'projection_types': ['int', 'float'],
+			},
+			'\n'.join([
+				'[&]() -> std::map<int, float> {',
+				'	std::map<int, float> __ret;',
+				'	for (auto& [key, value] : items) {',
+				'		__ret[key] = value;',
+				'	}',
+				'	return __ret;',
+				'}()',
+			]),
+		),
+		(
+			'dict_comp',
+			{
+				'projection_key': 'key',
+				'projection_value': 'value',
+				'comp_for': 'auto& [key, value] : items',
+				'condition': 'key == 1',
+				'projection_types': ['int', 'float'],
+			},
+			'\n'.join([
+				'[&]() -> std::map<int, float> {',
+				'	std::map<int, float> __ret;',
+				'	for (auto& [key, value] : items) {',
+				'		if (key == 1) {',
+				'			__ret[key] = value;',
+				'		}',
+				'	}',
+				'	return __ret;',
+				'}()',
+			]),
+		),
+	])
+	def test_render_comp(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'comp/{spec}', vars, expected)
+
+	@data_provider([
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_raw': False}, 'auto& value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_raw': False}, 'const auto& value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_raw': True}, 'auto value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_raw': True}, 'const auto value : values'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': False, 'is_addr_raw': False}, 'auto& [key, value] : items'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True, 'is_addr_raw': False}, 'const auto& [key, value] : items'),
+	])
+	def test_render_comp_for(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('comp/comp_for', vars, expected)
+
+	@data_provider([
+		({'initializer_indexs': [], 'initializer_index_of_super': -1, 'statements': ['this->a += 2;']}, ''),
+		({'initializer_indexs': [0, 1], 'initializer_index_of_super': -1, 'statements': ['int this->a = 1;', 'int this->b{};', 'this->a += 2;']}, ' : a(1), b{}'),
+		({'initializer_indexs': [], 'initializer_index_of_super': 0, 'statements': ['NS::A::__init__(a, b);', 'this->a += 2;']}, ' : A(a, b)'),
+		({'initializer_indexs': [1], 'initializer_index_of_super': 0, 'statements': ['NS::A::__init__(a, b);', 'int this->a = 1;', 'this->a += 2;']}, ' : A(a, b), a(1)'),
+	])
+	def test_render_constructor_initializer(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('function/_initializer', vars, expected)
+
+	@data_provider([
+		({'var_type': 'CP<int>', 'annotations': []}, 'int*'),
+		({'var_type': 'CW<int>', 'annotations': []}, 'int*'),
+		({'var_type': 'CSP<int>', 'annotations': []}, 'std::shared_ptr<int>'),
+		({'var_type': 'CWP<int>', 'annotations': []}, 'std::weak_ptr<int>'),
+		({'var_type': 'CUP<int>', 'annotations': []}, 'std::unique_ptr<int>'),
+		({'var_type': 'CRef<int>', 'annotations': []}, 'int&'),
+		({'var_type': 'CPConst<int>', 'annotations': []}, 'const int*'),
+		({'var_type': 'CSPConst<int>', 'annotations': []}, 'const std::shared_ptr<int>'),
+		({'var_type': 'CUPConst<int>', 'annotations': []}, 'const std::unique_ptr<int>'),
+		({'var_type': 'CRefConst<int>', 'annotations': []}, 'const int&'),
+		({'var_type': 'std::vector<int>', 'annotations': []}, 'std::vector<int>'),
+		({'var_type': 'std::map<std::string, int>', 'annotations': []}, 'std::map<std::string, int>'),
+		# immutable
+		({'var_type': 'CP<int>', 'annotations': ['Embed::immutable']}, 'const int*'),
+		({'var_type': 'CW<int>', 'annotations': ['Embed::immutable']}, 'const int*'),
+		({'var_type': 'CSP<int>', 'annotations': ['Embed::immutable']}, 'const std::shared_ptr<int>&'),
+		({'var_type': 'CWP<int>', 'annotations': ['Embed::immutable']}, 'const std::weak_ptr<int>&'),
+		({'var_type': 'CUP<int>', 'annotations': ['Embed::immutable']}, 'const std::unique_ptr<int>&'),
+		({'var_type': 'CRef<int>', 'annotations': ['Embed::immutable']}, 'const int&'),
+		({'var_type': 'CPConst<int>', 'annotations': ['Embed::immutable']}, 'const int*'),
+		({'var_type': 'CSPConst<int>', 'annotations': ['Embed::immutable']}, 'const std::shared_ptr<int>'),
+		({'var_type': 'CUPConst<int>', 'annotations': ['Embed::immutable']}, 'const std::unique_ptr<int>'),
+		({'var_type': 'CRefConst<int>', 'annotations': ['Embed::immutable']}, 'const int&'),
+		({'var_type': 'std::tuple<int, float>', 'annotations': ['Embed::immutable']}, 'const std::tuple<int, float>&'),
+		({'var_type': 'std::variant<std::string, int>', 'annotations': ['Embed::immutable']}, 'const std::variant<std::string, int>&'),
+		# reference
+		({'var_type': 'CP<int>', 'annotations': ['Embed::reference']}, 'int*'),
+		({'var_type': 'CW<int>', 'annotations': ['Embed::reference']}, 'int*'),
+		({'var_type': 'CSP<int>', 'annotations': ['Embed::reference']}, 'std::shared_ptr<int>&'),
+		({'var_type': 'CWP<int>', 'annotations': ['Embed::reference']}, 'std::weak_ptr<int>&'),
+		({'var_type': 'CUP<int>', 'annotations': ['Embed::reference']}, 'std::unique_ptr<int>&'),
+		({'var_type': 'CRef<int>', 'annotations': ['Embed::reference']}, 'int&'),
+		({'var_type': 'CPConst<int>', 'annotations': ['Embed::reference']}, 'const int*'),
+		({'var_type': 'CSPConst<int>', 'annotations': ['Embed::reference']}, 'const std::shared_ptr<int>&'),
+		({'var_type': 'CUPConst<int>', 'annotations': ['Embed::reference']}, 'const std::unique_ptr<int>&'),
+		({'var_type': 'CRefConst<int>', 'annotations': ['Embed::reference']}, 'const int&'),
+		({'var_type': 'std::tuple<int, float>', 'annotations': ['Embed::reference']}, 'std::tuple<int, float>&'),
+		({'var_type': 'std::variant<std::string, int>', 'annotations': ['Embed::reference']}, 'std::variant<std::string, int>&'),
+	])
+	def test_render_custom_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('type/custom_type', vars, expected)
+
+	@data_provider([
+		({'path': 'deco', 'arguments': ['a', 'b']}, 'deco(a, b)'),
+	])
+	def test_render_decorator(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('element/decorator', vars, expected)
+
+	@data_provider([
+		({'targets': [{'receiver': 'obj', 'type': 'otherwise'}]}, 'delete obj;'),
+		({'targets': [{'receiver': 'l', 'type': 'list', 'key': '1'}]}, 'l.erase(l.begin() + 1);'),
+		({'targets': [{'receiver': 'd', 'type': 'dict', 'key': '"a"'}]}, 'd.erase("a");'),
+		({'targets': [{'receiver': 'l', 'type': 'list', 'key': '1'}, {'receiver': 'd', 'type': 'dict', 'key': '"a"'}]}, 'l.erase(l.begin() + 1);\nd.erase("a");'),
+	])
+	def test_render_delete(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'statement/delete', vars, expected)
+
+	@data_provider([
+		({'type_name': 'std::map', 'key_type': 'std::string', 'value_type': 'int', 'annotations': []}, 'std::map<std::string, int>'),
+		({'type_name': 'std::map', 'key_type': 'std::string', 'value_type': 'int', 'annotations': ['Embed::immutable']}, 'const std::map<std::string, int>&'),
+		({'type_name': 'std::map', 'key_type': 'std::string', 'value_type': 'int', 'annotations': ['Embed::reference']}, 'std::map<std::string, int>&'),
+	])
+	def test_render_dict_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'type/dict_type', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'data': {
+					'description': 'Description',
+					'attributes': [],
+					'args': [
+						{'name': 'a', 'type': 'A', 'description': 'A desc'},
+						{'name': 'b', 'type': 'B', 'description': 'B desc'},
+					],
+					'returns': {'type': 'R', 'description': 'R desc'},
+					'raises': [
+						{'type': 'E1', 'description': 'E1 desc'},
+						{'type': 'E2', 'description': 'E2 desc'},
+					],
+					'note': 'Some note',
+					'examples': 'Some example',
+				},
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' * @param a A desc',
+				' * @param b B desc',
+				' * @return R desc',
+				' * @throw E1 E1 desc',
+				' * @throw E2 E2 desc',
+				' * @note Some note',
+				' * @example Some example',
+				' */',
+			]),
+		),
+		(
+			{
+				'data': {
+					'description': 'Description',
+					'attributes': [
+						{'name': 'a', 'type': 'A', 'description': 'A desc'},
+						{'name': 'b', 'type': 'B', 'description': 'B desc'},
+					],
+					'args': [],
+					'returns': {'type': '', 'description': ''},
+					'raises': [],
+					'note': '',
+					'examples': '',
+				},
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' */',
+			]),
+		),
+		(
+			{
+				'data': {
+					'description': 'Description',
+					'attributes': [
+						{'name': 'a', 'type': 'A', 'description': 'A desc'},
+						{'name': 'b', 'type': 'B', 'description': 'B desc'},
+					],
+					'args': [],
+					'returns': {'type': '', 'description': ''},
+					'raises': [],
+					'note': '\n'.join([
+						'note1',
+						'note2',
+					]),
+					'examples': '\n'.join([
+						'example1',
+						'example2',
+					]),
+				},
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' * @note',
+				' * note1',
+				' * note2',
+				' * @example',
+				' * example1',
+				' * example2',
+				' */',
+			]),
+		),
+	])
+	def test_render_doc_string(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('literal/doc_string', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'statements': ['int x = 0;'],
+				'meta_header': '@tranp.meta: {"version":"1.0.0"}',
+				'module_path': 'path.to',
+				'depends': [],
+			},
+			'\n'.join([
+				'// @tranp.meta: {"version":"1.0.0"}',
+				'#pragma once',
+				'int x = 0;\n',
+			]),
+		),
+		(
+			{
+				'statements': ['int x = 0;'],
+				'meta_header': '@tranp.meta: {"version":"1.0.0"}',
+				'module_path': 'path.to',
+				'depends': ['<functional>', '"path/to/name.h"'],
+			},
+			'\n'.join([
+				'// @tranp.meta: {"version":"1.0.0"}',
+				'#pragma once',
+				'#include <functional>',
+				'#include "path/to/name.h"',
+				'int x = 0;\n',
+			]),
+		),
+	])
+	def test_render_entrypoint(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('block/entrypoint', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'symbol': 'Values',
+				'accessor': '',
+				'decorators': ['deco(A, B)'],
+				'comment': '',
+				'statements': [
+					'int A = 0;',
+					'int B = 1;',
+				],
+			},
+			'\n'.join([
+				'/** Values */',
+				'enum class Values {',
+				'	A = 0,',
+				'	B = 1,',
+				'};',
+			]),
+		),
+		(
+			{
+				'symbol': 'Values',
+				'accessor': 'public',
+				'decorators': [],
+				'comment': '',
+				'statements': [
+					'int A = "a";',
+					'int B = "b";',
+				],
+			},
+			'\n'.join([
+				'/** Values */',
+				'public: enum class Values {',
+				'	A,',
+				'	B,',
+				'};',
+			]),
+		),
+	])
+	def test_render_enum(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('class/enum', vars, expected)
+
+	@data_provider([
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': [], 'is_const': False, 'is_addr_raw': False}, 'for (auto& [key, value] : items) {\n}'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': [], 'is_const': True, 'is_addr_raw': False}, 'for (const auto& [key, value] : items) {\n}'),
+	])
+	def test_render_for_dict(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('flow/for/dict', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'symbols': ['index', 'value'],
+				'iterates': 'items',
+				'statements': [],
+			},
+			'\n'.join([
+				'int index = 0;',
+				'for (auto& value : items) {',
+				'	index++;',
+				'}',
+			]),
+		)
+	])
+	def test_render_for_enumerate(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('flow/for/enumerate', vars, expected)
+
+	@data_provider([
+		({'symbol': 'index', 'begin': '0', 'size': 'limit', 'step': '1', 'statements': ['pass;']}, 'for (auto index = 0; index < limit; index += 1) {\n\tpass;\n}'),
+		({'symbol': 'index', 'begin': 'begin', 'size': 'limit', 'step': 'step', 'statements': ['pass;']}, 'for (auto index = begin; index < limit; index += step) {\n\tpass;\n}'),
+	])
+	def test_render_for_range(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('flow/for/range', vars, expected)
+
+	@data_provider([
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False, 'is_addr_raw': False}, 'for (auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True, 'is_addr_raw': False}, 'for (const auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False, 'is_addr_raw': True}, 'for (auto value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True, 'is_addr_raw': True}, 'for (const auto value : values) {\n\tpass;\n}'),
+	])
+	def test_render_for(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('flow/for/default', vars, expected)
+
+	@data_provider([
+		({'arguments': ['*this', 'method_name', 'arg1', 'arg2'], 'operator': '->'}, '(this->*(method_name))(arg1, arg2)'),
+		({'arguments': ['this->a', 'method_name', 'arg1', 'arg2'], 'operator': '.'}, '(this->a.*(method_name))(arg1, arg2)'),
+	])
+	def test_render_func_call_c_func_invoke(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/c_func_invoke', vars, expected)
+
+	@data_provider([
+		({'arguments': ['"<string>"']}, '#include <string>'),
+		({'arguments': ['"' '"path/to/module.h"' '"']}, '#include "path/to/module.h"'),
+	])
+	def test_render_func_call_c_include(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/c_include', vars, expected)
+
+	@data_provider([
+		({'arguments': ['"MACRO()"']}, 'MACRO()'),
+	])
+	def test_render_func_call_c_macro(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/c_macro', vars, expected)
+
+	@data_provider([
+		({'arguments': ['"once"']}, '#pragma once'),
+	])
+	def test_render_func_call_c_pragma(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/c_pragma', vars, expected)
+
+	@data_provider([
+		({'from_type': 'bool', 'calls': 'byte', 'arguments': ['true'], 'is_statement': True}, '(byte(true));'),
+		({'from_type': 'bool', 'calls': 'int', 'arguments': ['true'], 'is_statement': True}, '(int(true));'),
+		({'from_type': 'bool', 'calls': 'uint32', 'arguments': ['true'], 'is_statement': True}, '(uint32(true));'),
+		({'from_type': 'bool', 'calls': 'int64', 'arguments': ['true'], 'is_statement': True}, '(int64(true));'),
+		({'from_type': 'bool', 'calls': 'uint64', 'arguments': ['true'], 'is_statement': True}, '(uint64(true));'),
+		({'from_type': 'bool', 'calls': 'float', 'arguments': ['true'], 'is_statement': True}, '(float(true));'),
+		({'from_type': 'bool', 'calls': 'double', 'arguments': ['true'], 'is_statement': True}, '(double(true));'),
+		({'from_type': 'byte', 'calls': 'bool', 'arguments': ['1'], 'is_statement': True}, '(bool(1));'),
+		({'from_type': 'byte', 'calls': 'int', 'arguments': ['1'], 'is_statement': True}, '(int(1));'),
+		({'from_type': 'byte', 'calls': 'uint32', 'arguments': ['1'], 'is_statement': True}, '(uint32(1));'),
+		({'from_type': 'byte', 'calls': 'int64', 'arguments': ['1'], 'is_statement': True}, '(int64(1));'),
+		({'from_type': 'byte', 'calls': 'uint64', 'arguments': ['1'], 'is_statement': True}, '(uint64(1));'),
+		({'from_type': 'byte', 'calls': 'float', 'arguments': ['1'], 'is_statement': True}, '(float(1));'),
+		({'from_type': 'byte', 'calls': 'double', 'arguments': ['1'], 'is_statement': True}, '(double(1));'),
+		({'from_type': 'int', 'calls': 'bool', 'arguments': ['1'], 'is_statement': True}, 'static_cast<bool>(1);'),
+		({'from_type': 'int', 'calls': 'byte', 'arguments': ['1'], 'is_statement': True}, 'static_cast<byte>(1);'),
+		({'from_type': 'int', 'calls': 'uint32', 'arguments': ['1'], 'is_statement': True}, 'static_cast<uint32>(1);'),
+		({'from_type': 'int', 'calls': 'int64', 'arguments': ['1'], 'is_statement': True}, '(int64(1));'),
+		({'from_type': 'int', 'calls': 'uint64', 'arguments': ['1'], 'is_statement': True}, '(uint64(1));'),
+		({'from_type': 'int', 'calls': 'float', 'arguments': ['1'], 'is_statement': True}, '(float(1));'),
+		({'from_type': 'int', 'calls': 'double', 'arguments': ['1'], 'is_statement': True}, '(double(1));'),
+		({'from_type': 'uint64', 'calls': 'bool', 'arguments': ['1'], 'is_statement': True}, 'static_cast<bool>(1);'),
+		({'from_type': 'uint64', 'calls': 'byte', 'arguments': ['1'], 'is_statement': True}, 'static_cast<byte>(1);'),
+		({'from_type': 'uint64', 'calls': 'int', 'arguments': ['1'], 'is_statement': True}, 'static_cast<int>(1);'),
+		({'from_type': 'uint64', 'calls': 'uint32', 'arguments': ['1'], 'is_statement': True}, 'static_cast<uint32>(1);'),
+		({'from_type': 'uint64', 'calls': 'int64', 'arguments': ['1'], 'is_statement': True}, 'static_cast<int64>(1);'),
+		({'from_type': 'uint64', 'calls': 'float', 'arguments': ['1'], 'is_statement': True}, '(float(1));'),
+		({'from_type': 'uint64', 'calls': 'double', 'arguments': ['1'], 'is_statement': True}, '(double(1));'),
+		({'from_type': 'float', 'calls': 'bool', 'arguments': ['1.0f'], 'is_statement': True}, '(bool(1.0f));'),
+		({'from_type': 'float', 'calls': 'byte', 'arguments': ['1.0f'], 'is_statement': True}, '(byte(1.0f));'),
+		({'from_type': 'float', 'calls': 'int', 'arguments': ['1.0f'], 'is_statement': True}, '(int(1.0f));'),
+		({'from_type': 'float', 'calls': 'uint32', 'arguments': ['1.0f'], 'is_statement': True}, '(uint32(1.0f));'),
+		({'from_type': 'float', 'calls': 'int64', 'arguments': ['1.0f'], 'is_statement': True}, '(int64(1.0f));'),
+		({'from_type': 'float', 'calls': 'uint64', 'arguments': ['1.0f'], 'is_statement': True}, '(uint64(1.0f));'),
+		({'from_type': 'float', 'calls': 'double', 'arguments': ['1.0f'], 'is_statement': True}, '(double(1.0f));'),
+		({'from_type': 'double', 'calls': 'bool', 'arguments': ['1.0'], 'is_statement': True}, '(bool(1.0));'),
+		({'from_type': 'double', 'calls': 'byte', 'arguments': ['1.0'], 'is_statement': True}, '(byte(1.0));'),
+		({'from_type': 'double', 'calls': 'int', 'arguments': ['1.0'], 'is_statement': True}, '(int(1.0));'),
+		({'from_type': 'double', 'calls': 'uint32', 'arguments': ['1.0'], 'is_statement': True}, '(uint32(1.0));'),
+		({'from_type': 'double', 'calls': 'int64', 'arguments': ['1.0'], 'is_statement': True}, '(int64(1.0));'),
+		({'from_type': 'double', 'calls': 'uint64', 'arguments': ['1.0'], 'is_statement': True}, '(uint64(1.0));'),
+		({'from_type': 'double', 'calls': 'float', 'arguments': ['1.0'], 'is_statement': True}, 'static_cast<float>(1.0);'),
+	])
+	def test_render_func_call_cast_bin_to_bin(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_bin_to_bin', vars, expected)
+
+	@data_provider([
+		({'calls': 'int', 'arguments': ['1.0f'], 'is_statement': True, 'from_type': 'float'}, 'std::to_string(1.0f);'),
+	])
+	def test_render_func_call_cast_bin_to_str(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_bin_to_str', vars, expected)
+
+	@data_provider([
+		({'arguments': ['"A"'], 'is_statement': True}, "'A';"),
+		({'arguments': ['string[0]'], 'is_statement': True}, "string[0];"),
+	])
+	def test_render_func_call_cast_char(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_char', vars, expected)
+
+	@data_provider([
+		({'calls': 'A::Values', 'arguments': ['0'], 'is_statement': True}, '(A::Values(0));'),
+	])
+	def test_render_func_call_cast_enum(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_enum', vars, expected)
+
+	@data_provider([
+		({'arguments': ['iterates'], 'is_statement': True}, 'iterates;'),
+	])
+	def test_render_func_call_cast_list(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_list', vars, expected)
+
+	@data_provider([
+		({'calls': 'int', 'arguments': ['"1"'], 'is_statement': True}, 'std::stoi("1");'),
+		({'calls': 'int', 'arguments': ['"ff"', '16'], 'is_statement': True}, 'std::stoi("ff", 0, 16);'),
+		({'calls': 'float', 'arguments': ['"1.0"'], 'is_statement': True}, 'std::stod("1.0");'),
+	])
+	def test_render_func_call_cast_str_to_bin(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_str_to_bin', vars, expected)
+
+	@data_provider([
+		({'calls': 'std::string', 'arguments': ['"1"'], 'is_statement': True}, 'std::string("1");'),
+	])
+	def test_render_func_call_cast_str_to_str(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_str_to_str', vars, expected)
+
+	@data_provider([
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CP', 'is_statement': True}, 'dynamic_cast<int*>(p);'),
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CW', 'is_statement': True}, 'dynamic_cast<int*>(p);'),
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CSP', 'is_statement': True}, 'std::dynamic_pointer_cast<int>(p);'),
+	])
+	def test_render_func_call_cvar_as_a(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_as_a', vars, expected)
+
+	@data_provider([
+		({'arguments': ['from'], 'receiver': 'to', 'is_statement': True}, 'to = from;'),
+	])
+	def test_render_func_call_cvar_copy(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_copy', vars, expected)
+
+	@data_provider([
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CP', 'is_statement': True}, 'static_cast<int*>(p);'),
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CW', 'is_statement': True}, 'static_cast<int*>(p);'),
+		({'receiver': 'p', 'arguments': ['int'], 'cvar_type': 'CSP', 'is_statement': True}, 'std::static_pointer_cast<int>(p);'),
+	])
+	def test_render_func_call_cvar_down(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_down', vars, expected)
+
+	@data_provider([
+		({'receiver': 'up', 'is_statement': True}, 'std::move(up);'),
+	])
+	def test_render_func_call_cvar_move(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_move', vars, expected)
+
+	@data_provider([
+		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),
+	])
+	def test_render_func_call_cvar_new_addr(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_addr', vars, expected)
+
+	@data_provider([
+		({'cvar_type': 'CSP', 'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
+	])
+	def test_render_func_call_cvar_new_smart_list(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_smart_list', vars, expected)
+
+	@data_provider([
+		({'cvar_type': 'CSP', 'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
+	])
+	def test_render_func_call_cvar_new_smart(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_smart', vars, expected)
+
+	@data_provider([
+		({'cvar_type': 'CSP', 'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
+	])
+	def test_render_func_call_cvar_smart_empty(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_smart_empty', vars, expected)
+
+	@data_provider([
+		({'cvar_type': 'CP', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
+		({'cvar_type': 'CPConst', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
+		({'cvar_type': 'CP', 'arguments': ['*this'], 'is_statement': True}, '(this);'),
+		({'cvar_type': 'CPConst', 'arguments': ['*this'], 'is_statement': True}, '(this);'),
+		({'cvar_type': 'CP', 'arguments': ['this->n'], 'is_statement': True}, '(&(this->n));'),
+		({'cvar_type': 'CPConst', 'arguments': ['this->n'], 'is_statement': True}, '(&(this->n));'),
+		({'cvar_type': 'CSP', 'arguments': ['n'], 'is_statement': True}, 'n;'),
+		({'cvar_type': 'CSPConst', 'arguments': ['n'], 'is_statement': True}, 'n;'),
+		({'cvar_type': 'CRef', 'arguments': ['n'], 'is_statement': True}, 'n;'),
+		({'cvar_type': 'CRefConst', 'arguments': ['n'], 'is_statement': True}, 'n;'),
+	])
+	def test_render_func_call_cvar_to(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_to', vars, expected)
+
+	@data_provider([
+		({'arguments': ['"s"', '-1'], 'receiver': 'items', 'operator': '.', 'is_statement': True}, 'items.contains("s") ? items["s"] : -1;'),
+	])
+	def test_render_func_call_dict_get(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/dict_get', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'var_type': 'int',
+				'receiver': 'items',
+				'operator': '.',
+				'is_statement': True,
+			},
+			'\n'.join([
+				'[&]() -> std::vector<int> {',
+				'	std::vector<int> __ret;',
+				'	for (auto& [__key, _] : items) {',
+				'		__ret.push_back(__key);',
+				'	}',
+				'	return __ret;',
+				'}();',
+			]),
+		),
+	])
+	def test_render_func_call_dict_keys(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/dict_keys', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'var_type': 'int',
+				'receiver': 'items',
+				'operator': '.',
+				'arguments': ['key'],
+				'is_statement': True,
+			},
+			'\n'.join([
+				'[&]() -> int {',
+				'	auto __copy = items[key];',
+				'	items.erase(key);',
+				'	return __copy;',
+				'}();',
+			]),
+		),
+	])
+	def test_render_func_call_dict_pop(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/dict_pop', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'var_type': 'int',
+				'receiver': 'items',
+				'operator': '.',
+				'is_statement': True,
+			},
+			'\n'.join([
+				'[&]() -> std::vector<int> {',
+				'	std::vector<int> __ret;',
+				'	for (auto& [_, __value] : items) {',
+				'		__ret.push_back(__value);',
+				'	}',
+				'	return __ret;',
+				'}();',
+			]),
+		),
+	])
+	def test_render_func_call_dict_values(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/dict_values', vars, expected)
+
+	@data_provider([
+		({'calls': 'static_cast', 'arguments': ['Class*', 'p'], 'begin_index': 1, 'is_statement': True}, 'static_cast<Class*>(p);'),
+		({'calls': 'number', 'arguments': ['int', 'float'], 'begin_index': 2, 'is_statement': True}, 'number<int, float>();'),
+		({'calls': 'number', 'arguments': ['int', 'float', '1'], 'begin_index': 2, 'is_statement': True}, 'number<int, float>(1);'),
+	])
+	def test_render_func_call_generic_call(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/generic_call', vars, expected)
+
+	@data_provider([
+		({'arguments': ['values'], 'is_statement': True}, 'values.size();'),
+	])
+	def test_render_func_call_len(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/len', vars, expected)
+
+	@data_provider([
+		({'receiver': 'values', 'operator': '.', 'arguments': ['1', 'value']}, 'values.insert(values.begin() + 1, value)'),
+	])
+	def test_render_func_call_list_insert(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/list_insert', vars, expected)
+
+	@data_provider([
+		({'receiver': 'values', 'operator': '.', 'arguments': ['values2']}, 'values.insert(values.end(), values2)'),
+	])
+	def test_render_func_call_list_extend(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/list_extend', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'var_type': 'int',
+				'receiver': 'values',
+				'operator': '.',
+				'arguments': ['0'],
+				'is_statement': True,
+			},
+			'\n'.join([
+				'[&]() -> int {',
+				'	auto __iter = values.begin() + 0;',
+				'	auto __copy = *__iter;',
+				'	values.erase(__iter);',
+				'	return __copy;',
+				'}();',
+			]),
+		),
+		(
+			{
+				'var_type': 'int',
+				'receiver': 'values',
+				'operator': '.',
+				'arguments': [],
+				'is_statement': True,
+			},
+			'\n'.join([
+				'[&]() -> int {',
+				'	auto __iter = values.end() - 1;',
+				'	auto __copy = *__iter;',
+				'	values.erase(__iter);',
+				'	return __copy;',
+				'}();',
+			]),
+		),
+	])
+	def test_render_func_call_list_pop(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/list_pop', vars, expected)
+
+	@data_provider([
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'entry.value', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return a.value < b.value; });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a) < order(b); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry.value)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a.value) < order(b.value); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry.value, false)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a.value, false) < order(b.value, false); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'entry->value', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return a.value < b.value; });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(&a) < order(&b); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry->value)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a.value) < order(b.value); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry, false)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(&a, false) < order(&b, false); });'),
+	])
+	def test_render_func_call_list_sort(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/list_sort', vars, expected)
+
+	@data_provider([
+		({'arguments': ['"%d, %f"', '1', '1.0f'], 'is_statement': True}, 'printf("%d, %f", 1, 1.0f);'),
+	])
+	def test_render_func_call_print(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/print', vars, expected)
+
+	@data_provider([
+		({'arguments': ['this->b', 'this->n', '1.0', 'this->s'], 'is_statement': True, 'format': '"b: {b}, n: {n}, f: {f}, s: {s}"', 'is_literal': True, 'formatters': [
+			{'label': 'b', 'tag': '%d', 'var_type': 'bool', 'is_literal': False},
+			{'label': 'n', 'tag': '%d', 'var_type': 'int', 'is_literal': False},
+			{'label': 'f', 'tag': '%f', 'var_type': 'float', 'is_literal': True},
+			{'label': 's', 'tag': '%s', 'var_type': 'std::string', 'is_literal': False},
+		]}, 'std::format("b: %d, n: %d, f: %f, s: %s", this->b, this->n, 1.0, (this->s).c_str());'),
+	])
+	def test_render_func_call_str_format(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/str_format', vars, expected)
+
+	@data_provider([
+		({'class_symbol': 'A'}, 'A'),
+		({'class_symbol': 'A<T>'}, 'A'),
+		({'class_symbol': 'A<int>::B<T>'}, 'A<int>::B'),
+	])
+	def test_render_func_call_super(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/super', vars, expected)
+
+	@data_provider([
+		({'calls': 'A.func', 'arguments': ['1 + 2', 'A.value']}, 'A.func(1 + 2, A.value)'),
+	])
+	def test_render_func_call(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/default', vars, expected)
+
+	@data_provider([
+		(
+			{
+				'symbol': 'keys',
+				'return_type': 'Iterator<std::string>',
+				'iterates_type': 'std::vector<DSN>>',
+				'statements': [
+					'\n'.join([
+						'for (auto index = 0; index < this->entries.size(); index += 1) {',
+						'	return this->entries[index].key();',
+						'}',
+					]),
+				],
+			},
+			'\n'.join([
+				'struct Iterator_keys {',
+				'	const std::vector<DSN>>& entries;',
+				'	int index;',
+				'	Iterator_keys(const std::vector<DSN>>& entries, int index) : entries(entries), index(index) {}',
+				'	bool operator!=(const Iterator_keys& other) const { return this->index != other.index; }',
+				'	void operator++() { index += 1; }',
+				'	const std::string& operator*() const { return this->entries[index].key(); }',
+				'	Iterator_keys begin() const { return {this->entries, 0}; }',
+				'	Iterator_keys end() const { return {this->entries, this->entries.size()}; }',
+				'};',
+				'Iterator_keys keys() {',
+				'	return {this->entries, 0};',
+				'}',
+			]),
+		),
+	])
+	def test_render_function_iterator_list_complex(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('function/_iterator_list_complex', vars, expected)
+
+	@data_provider([
+		({'parameters': ['A self'], 'decorators': []}, ''),
+		({'parameters': ['A self', 'bool b'], 'decorators': []}, 'bool b'),
+		({'parameters': ['type<A> cls'], 'decorators': []}, ''),
+		({'parameters': ['type<A> cls', 'bool b'], 'decorators': []}, 'bool b'),
+		({'parameters': ['bool b', 'int n'], 'decorators': []}, 'bool b, int n'),
+	])
+	def test_render_function_params(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('function/_params', vars, expected)
+
+	@data_provider([
+		(
+			'function',
+			Expects.function(symbol='func', parameters=['const std::string& text', 'int value = 1'], return_type='int', decorators=['deco(A, B)'], template_types=['T'], statements=['return value + 1;']),
+			'\n'.join([
+				'/** func */',
+				'template<typename T>',
+				'int func(const std::string& text, int value = 1) {',
+				'	return value + 1;',
+				'}',
+			]),
+		),
+		(
+			'closure',
+			Expects.closure(symbol='closure', parameters=['const std::string& text', 'int value = 1'], return_type='int', statements=['return value + 1;']),
+			'\n'.join([
+				'auto closure = [](const std::string& text, int value = 1) -> int {',
+				'	return value + 1;',
+				'};',
+			]),
+		),
+		(
+			'closure',
+			Expects.closure(symbol='closure_bind', parameters=['const std::string& text', 'int value = 1'], return_type='int', statements=['return value + 1;'], binds=['this', 'a', 'b']),
+			'\n'.join([
+				'auto closure_bind = [this, a, b](const std::string& text, int value = 1) mutable -> int {',
+				'	return value + 1;',
+				'};',
+			]),
+		),
+		(
+			'constructor',
+			Expects.constructor(accessor='public', class_symbol='Hoge', parameters=['int base_n = 1', 'int value = 2'], statements=['Base::__init__(base_n);', 'int this->a = 1;', 'int this->b{2};', 'int this->c;', 'this->x = value;'], initializer_indexs=[1, 2, 3], initializer_index_of_super=0),
+			'\n'.join([
+				'public:',
+				'/** __init__ */',
+				'Hoge(int base_n = 1, int value = 2) : Base(base_n), a(1), b{2}, c{} {',
+				'	this->x = value;',
+				'}',
+			]),
+		),
+		(
+			'constructor',
+			Expects.constructor(accessor='public', class_symbol='Hoge', decorators=['deco(A, B)'], template_types=['T'], is_abstract=True),
+			'\n'.join([
+				'public:',
+				'/** __init__ */',
+				'template<typename T>',
+				'virtual Hoge() = 0;',
+			]),
+		),
+		(
+			'class_method',
+			Expects.class_method(accessor='public', class_symbol='Hoge', symbol='static_method', return_type='int', statements=['return 1;']),
+			'\n'.join([
+				'public:',
+				'/** static_method */',
+				'static int static_method() {',
+				'	return 1;',
+				'}',
+			]),
+		),
+		(
+			'class_method',
+			Expects.class_method(accessor='public', class_symbol='Hoge', symbol='static_method', return_type='void', decorators=['deco(A, B)'], template_types=['T']),
+			'\n'.join([
+				'public:',
+				'/** static_method */',
+				'template<typename T>',
+				'static void static_method() {}',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='method', return_type='void', parameters=['int value = 1'], statements=['this->x = value;'], is_property=True),
+			'\n'.join([
+				'public:',
+				'/** method */',
+				'void method(int value = 1) {',
+				'	this->x = value;',
+				'}',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='pure_virtual_method', return_type='void', parameters=['int value = 1'], is_abstract=True),
+			'\n'.join([
+				'public:',
+				'/** pure_virtual_method */',
+				'virtual void pure_virtual_method(int value = 1) = 0;',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='allow_override_method', return_type='void', parameters=['int value = 1'], statements=['this->x = value;'], allow_override=True),
+			'\n'.join([
+				'public:',
+				'/** allow_override_method */',
+				'virtual void allow_override_method(int value = 1) {',
+				'	this->x = value;',
+				'}',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='overrided_method', return_type='void', parameters=['int value = 1'], statements=['this->x = value;'], is_override=True),
+			'\n'.join([
+				'public:',
+				'/** overrided_method */',
+				'void overrided_method(int value = 1) override {',
+				'	this->x = value;',
+				'}',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='template_method', return_type='void', parameters=['int value = 1'], template_types=['T', 'T2', 'T_Args...'], statements=['this->x = value;']),
+			'\n'.join([
+				'public:',
+				'/** template_method */',
+				'template<typename T, typename T2, typename ...T_Args>',
+				'void template_method(int value = 1) {',
+				'	this->x = value;',
+				'}',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='decorated_method', return_type='void', parameters=['int value = 1'], decorators=['deco(A, B)', 'Embed.private()', 'Embed.pure()'], statements=['this->x = value;']),
+			'\n'.join([
+				'private:',
+				'/** decorated_method */',
+				'void decorated_method(int value = 1) {',
+				'	this->x = value;',
+				'}',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='method_anno_returns', return_type='std::string', statements=['return this->s;'], return_type_annotations=['Embed::immutable']),
+			'\n'.join([
+				'public:',
+				'/** method_anno_returns */',
+				'const std::string& method_anno_returns() {',
+				'	return this->s;',
+				'}',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='values', return_type='Iterator<std::string>', statements=['// XXX', 'return this->_arr;']),
+			'\n'.join([
+				'public:',
+				'/** values */',
+				'std::vector<std::string>::iterator values() {',
+				'	// XXX',
+				'	return this->_arr;',
+				'}',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='items', return_type='ItemsView<std::string, int>', statements=['// XXX', 'return this->_map;']),
+			'\n'.join([
+				'public:',
+				'/** items */',
+				'struct Iterator_items {',
+				'	std::map<std::string, int>* __iterates;',
+				'	Iterator_items(std::map<std::string, int>* iterates) : __iterates(iterates) {}',
+				'	std::map<std::string, int>::iterator begin() { return {this->__iterates->begin()}; }',
+				'	std::map<std::string, int>::iterator end() { return {this->__iterates->end()}; }',
+				'};',
+				'Iterator_items items() {',
+				'	// XXX',
+				'	return {&(this->_map)};',
+				'}',
+			]),
+		),
+		(
+			'destructor',
+			Expects.destructor(accessor='public', class_symbol='Hoge', statements=['this->release();']),
+			'\n'.join([
+				'public:',
+				'/** __py_destroy__ */',
+				'~Hoge() {',
+				'	this->release();',
+				'}',
+			]),
+		),
+		(
+			'destructor',
+			Expects.destructor(accessor='public', class_symbol='Hoge', is_abstract=True),
+			'\n'.join([
+				'public:',
+				'/** __py_destroy__ */',
+				'virtual ~Hoge() = default;',
+			]),
+		),
+		(
+			'copy_constructor',
+			Expects.copy_constructor(accessor='public', class_symbol='Hoge', parameters=['const Hoge& other'], decorators=['Embed.ignore']),
+			'\n'.join([
+				'public:',
+				'/** __py_copy__ */',
+				'Hoge(const Hoge& other) = delete;',
+			]),
+		),
+	])
+	def test_render_function(self, template: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'function/{template}', vars, expected)
+
+	@data_provider([
+		('if', {'condition': 'value == 1', 'statements': ['pass;'], 'else_ifs': [], 'else_clause': ''}, 'if (value == 1) {\n\tpass;\n}'),
+		('if', {'condition': 'value == 1', 'statements': ['pass;'], 'else_ifs': ['} else if (value == 2) {\n\tpass;'], 'else_clause': ''}, 'if (value == 1) {\n\tpass;\n} else if (value == 2) {\n\tpass;\n}'),
+		('if', {'condition': 'value == 1', 'statements': ['pass;'], 'else_ifs': [], 'else_clause': '} else {\n\tpass;'}, 'if (value == 1) {\n\tpass;\n} else {\n\tpass;\n}'),
+		('else_if', {'condition': 'value == 1', 'statements': ['pass;']}, '} else if (value == 1) {\n\tpass;'),
+		('else_if', {'condition': 'std::is_same_v<T, int>', 'statements': ['pass;']}, '} else if constexpr (std::is_same_v<T, int>) {\n\tpass;'),
+		('else', {'statements': ['pass;']}, '} else {\n\tpass;'),
+	])
+	def test_render_if_elif_else(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'flow/if/{spec}', vars, expected)
+
+	@data_provider([
+		({'module_path': 'module.path.to', 'import_dir': '', 'replace_dir': ''}, '// #include "module/path/to.h"'),
+		({'module_path': 'module.path.to', 'import_dir': 'module/path/', 'replace_dir': 'path/'}, '#include "path/to.h"'),
+	])
+	def test_render_import(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('statement/import', vars, expected)
+
+	@data_provider([
+		({'import_path': '#include <functional>'}, '#include <functional>'),
+	])
+	def test_render_import_i18n(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('statement/import_i18n', vars, expected)
+
+	@data_provider([
+		('class', {'var_type': 'int*'}, 'int*'),
+		('class', {'var_type': 'int'}, 'int'),
+		('cvar', {'receiver': 'p_arr', 'keys': ['0']}, '(*(p_arr))[0]'),
+		('default', {'receiver': 'n', 'key': '0'}, 'n[0]'),
+		('default', {'receiver': 'n', 'key': '0', 'is_statement': True}, 'n[0];'),
+		('slice_string', {'receiver': 's', 'keys': ['0', '1']}, 's.substr(0, 1)'),
+		('slice_string', {'receiver': 's', 'keys': ['1', '2']}, 's.substr(1, 2 - (1))'),
+		('slice_string', {'receiver': 's', 'keys': ['1']}, 's.substr(1, s.size() - (1))'),
+		('tuple', {'receiver': 't', 'key': '0'}, 'std::get<0>(t)'),
+	])
+	def test_render_indexer(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'indexer/{spec}', vars, expected)
+
+	@data_provider([
+		({'params': {}, 'expression': '1', 'return_type': 'int', 'binds': []}, '[]() -> int { return 1; }'),
+		({'params': {'a': 'int'}, 'expression': '', 'return_type': 'void', 'binds': []}, '[](int a) -> void {}'),
+		({'params': {'a': 'int', 's': 'std::string'}, 'expression': 'this->ok()', 'return_type': 'void', 'binds': ['this']}, '[this](int a, const std::string& s) mutable -> void { this->ok(); }'),
+	])
+	def test_render_lambda(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('lambda/default', vars, expected)
+
+	@data_provider([
+		({'type_name': 'std::vector', 'value_type': 'int', 'annotations': []}, 'std::vector<int>'),
+		({'type_name': 'std::vector', 'value_type': 'int', 'annotations': ['Embed::immutable']}, 'const std::vector<int>&'),
+		({'type_name': 'std::vector', 'value_type': 'int', 'annotations': ['Embed::reference']}, 'std::vector<int>&'),
+	])
+	def test_render_list_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'type/list_type', vars, expected)
+
+	@data_provider([
+		('dict', {'items': []}, '{}'),
+		('dict', {'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
+		('falsy', {}, 'false'),
+		('float', {'value': 1.0}, '1.0f'),
+		('integer', {'value': 1}, '1'),
+		('list', {'values': []}, '{}'),
+		('list', {'values': ['1234', '2345']}, '{\n\t{1234},\n\t{2345},\n}'),
+		('list', {'values': ['{1, 2}', '{3, 4}']}, '{\n\t{1, 2},\n\t{3, 4},\n}'),
+		('null', {}, 'nullptr'),
+		('pair', {'first': '"a"', 'second': '1'}, '{"a", 1}'),
+		('string', {'value': "'a'"}, '"a"'),
+		('string', {'value': '"a"'}, '"a"'),
+		('truthy', {}, 'true'),
+	])
+	def test_render_literal(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'literal/{spec}', vars, expected)
+
+	@data_provider([
+		({'type_name': 'int'}, 'int'),
+	])
+	def test_render_literal_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('type/literal_type', vars, expected)
+
+	@data_provider([
+		({'type_name': 'dict', 'key_type': 'std::string', 'value_type': 'int'}, 'std::map<std::string, int>'),
+	])
+	def test_render_literal_dict_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('type/literal_dict_type', vars, expected)
+
+	@data_provider([
+		# 明示変換系
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotations': []}, 'int n'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotations': ['Embed::mutable']}, 'int n'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotations': []}, 'int n = 1'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotations': ['Embed::mutable']}, 'int n = 1'),
+		# 暗黙変換系
+		({'var_type': 'std::string', 'symbol': 's', 'annotations': []}, 'const std::string& s'),
+		({'var_type': 'std::string', 'symbol': 's', 'annotations': ['Embed::mutable']}, 'std::string s'),
+		({'var_type': 'std::string*', 'symbol': 'p', 'annotations': []}, 'const std::string* p'),
+		({'var_type': 'std::string*', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'std::string* p'),
+		({'var_type': 'std::string&', 'symbol': 'p', 'annotations': []}, 'const std::string& p'),
+		({'var_type': 'std::string&', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'std::string& p'),
+		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotations': []}, 'const std::vector<int>& ns'),
+		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotations': ['Embed::mutable']}, 'std::vector<int> ns'),
+		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotations': []}, 'const std::map<std::string, int>& dns'),
+		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotations': ['Embed::mutable']}, 'std::map<std::string, int> dns'),
+		# 変換不可系
+		({'var_type': 'const std::string', 'symbol': 'p', 'annotations': []}, 'const std::string p'),
+		({'var_type': 'const std::string', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'const std::string p'),
+		({'var_type': 'const std::string&', 'symbol': 'p', 'annotations': []}, 'const std::string& p'),
+		({'var_type': 'const std::string&', 'symbol': 'p', 'annotations': ['Embed::mutable']}, 'const std::string& p'),
+	])
+	def test_render_parameter(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('element/parameter', vars, expected)
+
+	@data_provider([
+		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),
+		({'receiver': 'addr', 'move': 'ToActual'}, '(*(addr))'),
+		({'receiver': 'sp', 'move': 'UnpackSmart'}, '(sp).get()'),
+		({'receiver': 'sp', 'move': 'ToWeak'}, 'sp'),
+		({'receiver': 'wp', 'move': 'ToShared'}, '(wp).lock()'),
+		({'receiver': 'raw', 'move': 'Copy'}, 'raw'),
+	])
+	def test_render_relay_cvar_to(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('relay/cvar_to', vars, expected)
+
+	@data_provider([
+		({'receiver': 'a', 'operator': 'Raw', 'prop': 'b', 'is_statement': True, 'is_property': False}, 'a.b;'),
+		({'receiver': 'a', 'operator': 'Raw', 'prop': 'b', 'is_statement': False, 'is_property': True}, 'a.b()'),
+		({'receiver': 'a', 'operator': 'Address', 'prop': 'b', 'is_statement': False, 'is_property': False}, 'a->b'),
+		({'receiver': 'a', 'operator': 'Address', 'prop': 'b', 'is_statement': False, 'is_property': True}, 'a->b()'),
+		({'receiver': 'A', 'operator': 'Static', 'prop': 'B', 'is_statement': False, 'is_property': False}, 'A::B'),
+	])
+	def test_render_relay_default(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('relay/default', vars, expected)
+
+	@data_provider([
+		# XXX `std::string`にならないのは不統一な印象を受ける
+		({'prop': '__name__', 'var_type': 'str', 'literal': 'A'}, '"A"'),
+		({'prop': '__module_path__', 'var_type': 'str', 'literal': 'module.path.to.A'}, '"module.path.to.A"'),
+		({'prop': '__qualname__', 'var_type': 'str', 'literal': 'A.func'}, '"A.func"'),
+		({'prop': 'E.value', 'var_type': 'int', 'literal': '1'}, '1'),
+		({'prop': 'E.value', 'var_type': 'float', 'literal': '1.0'}, '1.0'),
+		({'prop': 'E.value', 'var_type': 'str', 'literal': 'a'}, '"a"'),
+	])
+	def test_render_relay_literalize(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('relay/literalize', vars, expected)
+
+	@data_provider([
+		({'return_value': '(1 + 2)', 'return_self': False}, 'return (1 + 2);'),
+		({'return_value': '', 'return_self': False}, 'return;'),
+		({'return_value': 'this', 'return_self': False}, 'return this;'),
+		({'return_value': 'this', 'return_self': True}, 'return *this;'),
+	])
+	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('statement/return', vars, expected)
+
+	@data_provider([
+		('break', {}, 'break;'),
+		('comment', {'text': ' hoge'}, '// hoge'),
+		('continue', {}, 'continue;'),
+		('pass', {}, ''),
+	])
+	def test_render_statement_simple(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'statement/{spec}', vars, expected)
+
+	@data_provider([
+		({'symbol': 'T', 'is_declare': False}, 'T'),
+		({'symbol': 'T', 'is_declare': True}, '// template<typename T>'),
+	])
+	def test_render_template_class(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('class/template_class', vars, expected)
+
+	@data_provider([
+		({}, 'this'),
+	])
+	def test_render_this_ref(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('reference/this_ref', vars, expected)
+
+	@data_provider([
+		({'throws': 'e', 'via': '', 'formatters': []}, 'throw e;'),
+		({'calls': 'std::exception', 'via': '', 'arguments': [], 'format': '', 'formatters': []}, 'throw std::exception();'),
+		({'calls': 'std::exception', 'via': '', 'arguments': ['this->n'], 'format': '"n: {n}"', 'formatters': [{'label': 'n', 'tag': '%d', 'var_type': 'int', 'is_literal': True}]}, 'throw std::exception(std::format("n: %d", this->n));'),
+	])
+	def test_render_throw(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('statement/throw', vars, expected)
+
+	@data_provider([
+		({'statements': ['pass;'], 'catches': []}, 'try {\n\tpass;\n}'),
+		({'statements': ['pass;'], 'catches': ['} catch (std::exception e) {\n\tthrow e;']}, 'try {\n\tpass;\n} catch (std::exception e) {\n\tthrow e;\n}'),
+	])
+	def test_render_try(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('flow/try', vars, expected)
+
+	@data_provider([
+		({'symbol': 'var'}, 'var'),
+		({'symbol': 'var', 'class_symbol': 'A'}, 'A'),
+	])
+	def test_render_var(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('reference/var', vars, expected)
+
+	@data_provider([
+		({'receiver': 'A', 'type_name': 'B', 'annotations': []}, 'A::B'),
+		({'receiver': 'A', 'type_name': 'B', 'annotations': ['Embed::immutable']}, 'const A::B&'),
+		({'receiver': 'A', 'type_name': 'B', 'annotations': ['Embed::reference']}, 'A::B&'),
+	])
+	def test_render_relay_of_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'type/relay_of_type', vars, expected)
+
+	@data_provider([
+		('var_of_type', {'type_name': 'int', 'annotations': []}, 'int'),
+		('var_of_type', {'type_name': 'std::string', 'annotations': []}, 'std::string'),
+		('var_of_type', {'type_name': 'std::string', 'annotations': ['Embed::immutable']}, 'const std::string&'),
+		('var_of_type', {'type_name': 'std::string', 'annotations': ['Embed::reference']}, 'std::string&'),
+		('template', {'type_name': 'T', 'annotations': [], 'definition_type': 'TypeVar'}, 'T'),
+		('template', {'type_name': 'T_Args', 'annotations': [], 'definition_type': 'TypeVarTuple'}, 'T_Args...'),
+		('template', {'type_name': 'P', 'annotations': [], 'definition_type': 'ParamSpec'}, 'P'),
+		('template', {'type_name': 'T', 'annotations': ['Embed::immutable'], 'definition_type': 'TypeVar'}, 'const T&'),
+		('template', {'type_name': 'T', 'annotations': ['Embed::reference'], 'definition_type': 'TypeVar'}, 'T&'),
+	])
+	def test_render_var_of_type(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'type/{spec}', vars, expected)
+
+	@data_provider([
+		({'statements': [], 'entries': []}, 'Not supported for \'with\''),
+	])
+	def test_render_with(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('flow/with', vars, expected)
+
+	@data_provider([
+		({'enter': '', 'symbol': ''}, 'Not supported for \'with_entry\''),
+	])
+	def test_render_with_entry(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('flow/with_entry', vars, expected)
+
+	@data_provider([
+		({'yield_value': 'entry'}, 'return entry;'),
+	])
+	def test_render_yield(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('statement/yield', vars, expected)

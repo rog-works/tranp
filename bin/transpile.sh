@@ -4,4 +4,4 @@ cwd=$(cd $(dirname $0); pwd)
 appdir=${cwd}/..
 
 source ${cwd}/.env.sh
-python ${appdir}/rogw/tranp/bin/transpile.py $*
+python ${appdir}/tranp/app/bin/transpile.py $*

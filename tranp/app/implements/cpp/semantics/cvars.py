@@ -1,0 +1,278 @@
+from collections.abc import Iterator
+from enum import Enum
+from typing import ClassVar
+
+import tranp.app.compatible.cpp.cvar as cpp
+import tranp.app.semantics.reflection.definition as refs
+from tranp.app.errors import Errors
+from tranp.app.semantics.reflection.base import IReflection
+
+
+class CVars:
+	"""C++型変数の操作ユーティリティー"""
+
+	class Moves(Enum):
+		"""移動操作の種別
+
+		Attributes:
+			Copy: 同種のコピー(実体 = 実体、アドレス = アドレス)
+			New: メモリ確保(生ポインター)
+			MakeSmart: メモリ確保(スマートポインター)
+			ToActual: アドレス変数を実体参照
+			ToAddress: 実体/参照から生ポインターに変換
+			ToWeak: 共有から弱参照に変換
+			ToShared: 弱参照から共有に変換
+			UnpackSmart: スマートポインターから生ポインターに変換
+			Deny: 不正な移動操作
+		"""
+		Copy = 0
+		New = 1
+		MakeSmart = 2
+		ToActual = 3
+		ToAddress = 4
+		ToWeak = 5
+		ToShared = 6
+		UnpackSmart = 7
+		Deny = 8
+
+	class RelayOperators(Enum):
+		"""リレー演算子の種別
+
+		Attributes:
+			Raw: 実体/参照
+			Address: ポインター/スマートポインター
+			Static: クラス
+		"""
+		Raw = 0
+		Address = 1
+		Static = 2
+
+	class Verbs(Enum):
+		"""操作メソッド Note: @see tranp.app.compatible.cpp.cvar"""
+		AsA = 'as_a'
+		CopyProxy = 'copy_proxy'
+		Emtpy = 'empty'
+		Down = 'down'
+		Move = 'move'
+		New = 'new'
+		On = 'on'
+		ToAddrHex = 'to_addr_hex'
+		ToAddrId = 'to_addr_id'
+
+	class Casts(Enum):
+		"""参照変換メソッド Note: @see tranp.app.compatible.cpp.cvar"""
+		Raw = 'raw'
+		Ref = 'ref'
+		Addr = 'addr'
+		Weak = 'weak'
+		Shared = 'shared'
+		Const = 'const'
+
+		@classmethod
+		def in_value(cls, key: str) -> bool:
+			"""Args: key: キー Returns: True = 存在"""
+			for value in cls:
+				if value.value == key:
+					return True
+
+			return False
+
+		@classmethod
+		def values(cls) -> Iterator[str]:
+			"""Returns: 型変換メソッドのイテレーター"""
+			for value in cls:
+				yield value.value
+
+	class Types:
+		"""C++型変数種別"""
+		CRaw: ClassVar = 0x0001
+		CRef: ClassVar = 0x0002
+		CP: ClassVar = 0x0004
+		CW: ClassVar = 0x0008
+		CSP: ClassVar = 0x0010
+		CWP: ClassVar = 0x0020
+		CUP: ClassVar = 0x0040
+		# 修飾子
+		Const: ClassVar = 0x1000
+		# 不変型
+		CRawConst: ClassVar = Const | CRaw
+		CRefConst: ClassVar = Const | CRef
+		CPConst: ClassVar = Const | CP
+		CSPConst: ClassVar = Const | CSP
+		CUPConst: ClassVar = Const | CUP
+		# マスク
+		RawMask: ClassVar = CRaw | CRef
+		AddrMask: ClassVar = CP | CW | CSP | CWP | CUP
+		AddrRawMask: ClassVar = CP | CW
+		AddrSmartMask: ClassVar = CUP | CSP
+		AddrDownableMask: ClassVar = CP | CW | CSP
+
+	TypeToOperator: ClassVar[dict[int, RelayOperators]] = {
+		Types.CP: RelayOperators.Address,
+		Types.CW: RelayOperators.Address,
+		Types.CSP: RelayOperators.Address,
+		Types.CWP: RelayOperators.Address,
+		Types.CUP: RelayOperators.Address,
+		Types.CRef: RelayOperators.Raw,
+		Types.CPConst: RelayOperators.Address,
+		Types.CSPConst: RelayOperators.Address,
+		Types.CUPConst: RelayOperators.Address,
+		Types.CRefConst: RelayOperators.Raw,
+		Types.CRawConst: RelayOperators.Raw,
+		Types.CRaw: RelayOperators.Raw,
+	}
+	CastToMove: ClassVar[dict[tuple[int, str], Moves]] = {
+		(Types.CP, Casts.Raw.value): Moves.ToActual,
+		(Types.CP, Casts.Ref.value): Moves.ToActual,
+		(Types.CP, Casts.Const.value): Moves.Copy,
+		(Types.CW, Casts.Raw.value): Moves.ToActual,
+		(Types.CW, Casts.Addr.value): Moves.Copy,
+		(Types.CUP, Casts.Const.value): Moves.Copy,
+		(Types.CSP, Casts.Raw.value): Moves.ToActual,
+		(Types.CSP, Casts.Ref.value): Moves.ToActual,
+		(Types.CSP, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CSP, Casts.Weak.value): Moves.ToWeak,
+		(Types.CSP, Casts.Const.value): Moves.Copy,
+		(Types.CWP, Casts.Shared.value): Moves.ToShared,
+		(Types.CUP, Casts.Raw.value): Moves.ToActual,
+		(Types.CUP, Casts.Ref.value): Moves.ToActual,
+		(Types.CUP, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CRef, Casts.Raw.value): Moves.Copy,
+		(Types.CRef, Casts.Addr.value): Moves.ToAddress,
+		(Types.CRef, Casts.Const.value): Moves.Copy,
+		(Types.CPConst, Casts.Raw.value): Moves.ToActual,
+		(Types.CPConst, Casts.Ref.value): Moves.ToActual,
+		(Types.CSPConst, Casts.Raw.value): Moves.ToActual,
+		(Types.CSPConst, Casts.Ref.value): Moves.ToActual,
+		(Types.CSPConst, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CUPConst, Casts.Raw.value): Moves.ToActual,
+		(Types.CUPConst, Casts.Ref.value): Moves.ToActual,
+		(Types.CUPConst, Casts.Addr.value): Moves.UnpackSmart,
+		(Types.CRefConst, Casts.Raw.value): Moves.Copy,
+		(Types.CRefConst, Casts.Addr.value): Moves.ToAddress,
+		(Types.CRawConst, Casts.Raw.value): Moves.Copy,
+		(Types.CRawConst, Casts.Ref.value): Moves.Copy,
+		(Types.CRawConst, Casts.Addr.value): Moves.ToAddress,
+	}
+
+	def __init__(self, name_to_key: dict[str, str] = {}) -> None:
+		"""インスタンスを生成
+
+		Args:
+			name_to_key: 新規変数型名とC++型変数名のマップ (default = {})
+		Raises:
+			Errors.InvalieSchema: 既存の型名を指定
+		"""
+		self._name_to_type = {
+			cpp.CRaw.__name__: CVars.Types.CRaw,
+			cpp.CRef.__name__: CVars.Types.CRef,
+			cpp.CP.__name__: CVars.Types.CP,
+			cpp.CW.__name__: CVars.Types.CW,
+			cpp.CSP.__name__: CVars.Types.CSP,
+			cpp.CWP.__name__: CVars.Types.CWP,
+			cpp.CUP.__name__: CVars.Types.CUP,
+			cpp.CRawConst.__name__: CVars.Types.CRawConst,
+			cpp.CRefConst.__name__: CVars.Types.CRefConst,
+			cpp.CPConst.__name__: CVars.Types.CPConst,
+			cpp.CSPConst.__name__: CVars.Types.CSPConst,
+			cpp.CUPConst.__name__: CVars.Types.CUPConst,
+		}
+		for add_name, org_name in name_to_key.items():
+			assert add_name not in self._name_to_type, Errors.InvalidSchema(add_name, org_name)
+			self._name_to_type[add_name] = self._name_to_type[org_name]
+
+	def names(self) -> Iterator[str]:
+		"""Returns: イテレーター(C++型変数名)"""
+		for key in self._name_to_type.keys():
+			yield key
+
+	def resolve(self, symbol: IReflection) -> tuple[int, str]:
+		"""Args: symbol: シンボル Returns: (C++型変数種別, C++型変数名) Note: Noneはポインターとして扱う"""
+		if symbol.types.domain_name in self._name_to_type:
+			return self._name_to_type[symbol.types.domain_name], symbol.types.domain_name
+			return 
+		elif symbol.impl(refs.Object).type_is(None):
+			return CVars.Types.CP, cpp.CP.__name__
+		else:
+			return CVars.Types.CRaw, cpp.CRaw.__name__
+
+	def resolve_type(self, symbol: IReflection) -> int:
+		"""Args: symbol: シンボル Returns: C++型変数種別 Note: @see resolve"""
+		return self.resolve(symbol)[0]
+
+	def name_to_type(self, var_name: str) -> int:
+		"""Args: var_name: C++型変数名 Returns: C++型変数種別"""
+		return self._name_to_type[var_name]
+
+	def equals(self, var_type: int, expect_type: int) -> bool:
+		"""Args: var_type: C++型変数種別, expect_type: C++型変数種別 Returns: True = 同じ"""
+		return var_type == expect_type
+
+	def contains(self, var_type: int, mask: int) -> bool:
+		"""Args: var_type: C++型変数種別, mask: 種別マスク Returns: True = 含む"""
+		return (var_type & mask) != 0
+
+	def to_operator(self, var_type: int) -> RelayOperators:
+		"""Args: var_type: C++型変数種別 Returns: リレー演算子"""
+		return CVars.TypeToOperator[var_type]
+
+	def to_move(self, var_type: int, cast_key: str) -> Moves:
+		"""Args: var_type: C++型変数種別, cast_key: 型変換メソッド名 Returns: 移動操作の種別"""
+		key = (var_type, cast_key)
+		return CVars.CastToMove.get(key, CVars.Moves.Deny)
+
+	# @classmethod
+	# @deprecated
+	# def analyze_move(cls, accept: IReflection, value: IReflection, value_on_new: bool, declared: bool) -> Moves:
+	# 	"""移動操作を解析
+
+	# 	Args:
+	# 		accept: 受け入れ側
+	# 		value: 入力側
+	# 		value_on_new: True = インスタンス生成
+	# 		declared: True = 変数宣言時
+	# 	Returns:
+	# 		移動操作の種別
+	# 	Note:
+	# 		@deprecated 未使用のため削除を検討
+	# 	"""
+	# 	accept_key = cls.key_from(accept)
+	# 	value_key = cls.key_from(value)
+	# 	return cls.move_by(accept_key, value_key, value_on_new, declared)
+
+	# @classmethod
+	# @deprecated
+	# def move_by(cls, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
+	# 	"""移動操作を解析
+
+	# 	Args:
+	# 		accept_key: 受け入れ側
+	# 		value_key: 入力側
+	# 		value_on_new: True = インスタンス生成
+	# 		declared: True = 変数宣言時
+	# 	Returns:
+	# 		移動操作の種別
+	# 	Note:
+	# 		@deprecated 未使用のため削除を検討
+	# 	"""
+	# 	if cls.is_raw_ref(accept_key) and not declared:
+	# 		return cls.Moves.Deny
+
+	# 	if cls.is_addr_smart(accept_key) and cls.is_raw(value_key) and value_on_new:
+	# 		return cls.Moves.MakeSmart
+	# 	elif cls.is_addr_raw(accept_key) and cls.is_raw(value_key) and value_on_new:
+	# 		return cls.Moves.New
+	# 	elif cls.is_addr_raw(accept_key) and cls.is_raw(value_key):
+	# 		return cls.Moves.ToAddress
+	# 	elif cls.is_raw(accept_key) and cls.is_addr(value_key):
+	# 		return cls.Moves.ToActual
+	# 	elif cls.is_addr_raw(accept_key) and cls.is_addr_smart(value_key):
+	# 		return cls.Moves.UnpackSmart
+	# 	elif cls.is_addr_raw(accept_key) and cls.is_addr_raw(value_key):
+	# 		return cls.Moves.Copy
+	# 	elif cls.is_addr_smart(accept_key) and cls.is_addr_smart(value_key):
+	# 		return cls.Moves.Copy
+	# 	elif cls.is_raw(accept_key) and cls.is_raw(value_key):
+	# 		return cls.Moves.Copy
+	# 	else:
+	# 		return cls.Moves.Deny

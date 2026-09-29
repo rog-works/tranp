@@ -1,0 +1,224 @@
+from unittest import TestCase
+
+from tranp.app.implements.syntax.tranp.rule import Rules
+from tranp.app.implements.syntax.tranp.syntax import ErrorCollector, SyntaxParser
+from tranp.app.implements.syntax.tranp.tokenizer import Tokenizer
+from tranp.app.test.helper import data_provider
+from tranp.data.syntax.gram_rules import gram_rules
+from tranp.data.syntax.gram_tokenizer import gram_tokenizer
+from tranp.data.syntax.py_rules import py_rules
+
+
+class TestSyntaxParser(TestCase):
+	@data_provider([
+		(
+			'a.b().c + -1 == d("\\"a\\"" in b).e[0]',
+			'python',
+			('entry', [
+				('comp', [
+					('calc_sum', [
+						('relay', [
+							('invoke', [
+								('relay', [
+									('var', [
+										('name', 'a'),
+									]),
+									('name', 'b'),
+								]),
+								('__empty__', '')
+							]),
+							('name', 'c'),
+						]),
+						('op_add', '+'),
+						('unary', [
+							('op_unary', '\\OP_UNARY_MINUS'),
+							('digit', '1'),
+						]),
+					]),
+					('op_comp', [
+						('op_comp_s', '=='),
+					]),
+					('indexer', [
+						('relay', [
+							('invoke', [
+								('var', [
+									('name', 'd'),
+								]),
+								('comp', [
+									('string', '"\\"a\\""'),
+									('op_comp', [
+										('op_in', 'in'),
+									]),
+									('var', [
+										('name', 'b'),
+									]),
+								]),
+							]),
+							('name', 'e'),
+						]),
+						('digit', '0'),
+					]),
+				]),
+			]),
+		),
+		(
+			'\n'.join([
+				'entry := exp',
+				'exp[1] := atom',
+				'atom[1] := relay | invoke | indexer | atom',
+				'relay := atom "." name',
+				'invoke := atom "(" [args] ")"',
+				'indexer := atom "[" exp "]"',
+				'args := exp (exp)*',
+				'bool := /False|True/'
+			]),
+			'grammar',
+			('entry', [
+				('rule', [
+					('symbol', 'entry'),
+					('__empty__', ''),
+					('symbol', 'exp'),
+				]),
+				('rule', [
+					('symbol', 'exp'),
+					('unwrap', '1'),
+					('symbol', 'atom'),
+				]),
+				('rule', [
+					('symbol', 'atom'),
+					('unwrap', '1'),
+					('terms_or', [
+						('symbol', 'relay'),
+						('symbol', 'invoke'),
+						('symbol', 'indexer'),
+						('symbol', 'atom'),
+					]),
+				]),
+				('rule', [
+					('symbol', 'relay'),
+					('__empty__', ''),
+					('terms', [
+						('symbol', 'atom'),
+						('string', '"."'),
+						('symbol', 'name'),
+					]),
+				]),
+				('rule', [
+					('symbol', 'invoke'),
+					('__empty__', ''),
+					('terms', [
+						('symbol', 'atom'),
+						('string', '"("'),
+						('expr_opt', [
+							('symbol', 'args'),
+						]),
+						('string', '")"'),
+					]),
+				]),
+				('rule', [
+					('symbol', 'indexer'),
+					('__empty__', ''),
+					('terms', [
+						('symbol', 'atom'),
+						('string', '"["'),
+						('symbol', 'exp'),
+						('string', '"]"'),
+					]),
+				]),
+				('rule', [
+					('symbol', 'args'),
+					('__empty__', ''),
+					('terms', [
+						('symbol', 'exp'),
+						('expr_rep', [
+							('symbol', 'exp'),
+							('repeat', '*'),
+						]),
+					]),
+				]),
+				('rule', [
+					('symbol', 'bool'),
+					('__empty__', ''),
+					('regexp', '/False|True/'),
+				]),
+			]),
+		),
+	])
+	def test_parse(self, source: str, lang: str, expected: tuple) -> None:
+		rule_provider = {
+			'python': py_rules,
+			'grammar': gram_rules,
+		}
+		tokenizer_provider = {
+			'python': Tokenizer,
+			'grammar': gram_tokenizer,
+		}
+		rules = rule_provider[lang]()
+		tokenizer = tokenizer_provider[lang]()
+		actual = SyntaxParser(rules, tokenizer).parse(source, 'entry')
+		try:
+			self.assertEqual(expected, actual.simplify())
+		except AssertionError:
+			print(f'AST unmatch. actual: {actual.pretty()}')
+			raise
+
+	@data_provider([
+		(
+			'a',
+			'tranp/data/syntax/py_gram.lark',
+			('entry', [
+				('var', [
+					('name', 'a'),
+				]),
+			]),
+		),
+	])
+	def test_parse_edge(self, source: str, gram_filepath: str, expected: tuple) -> None:
+		"""Note: 解析結果の検証用"""
+		def load_grammar(filepath) -> str:
+			with open(filepath, mode='rb') as f:
+				return f.read().decode('utf-8')
+
+		gram_parser = SyntaxParser(gram_rules(), gram_tokenizer())
+		py_ast = gram_parser.parse(load_grammar(gram_filepath), 'entry')
+		py_rules = Rules.from_ast(py_ast.simplify())
+		actual = SyntaxParser(py_rules).parse(source, 'entry')
+		try:
+			self.assertEqual(expected, actual.simplify())
+		except AssertionError:
+			print(f'AST unmatch. actual: {actual.pretty()}')
+			raise
+
+
+class TestErrorCollector(TestCase):
+	@data_provider([
+		# XXX 末尾に空行があり、0ステップ(=EOF)でエラーになると表示が不自然になる
+		(
+			'\n'.join([
+				'a.b.c',
+				'',
+			]),
+			5,
+			'\n'.join([
+				"pass: 5/6, token: '\\n'",
+				'(0) >>> ',
+				'        ^',
+			]),
+		),
+		(
+			'\n'.join([
+				'a.b.c',
+				'',
+			]),
+			1,
+			'\n'.join([
+				"pass: 1/6, token: '.'",
+				'(1) >>> a.b.c',
+				'         ^',
+			]),
+		),
+	])
+	def test_summary(self, source: str, steps: int, expected: str) -> None:
+		tokens = Tokenizer().parse(source)
+		actual = ErrorCollector(source, tokens, steps).summary()
+		self.assertEqual(expected, actual)

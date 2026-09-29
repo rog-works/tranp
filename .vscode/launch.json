@@ -55,7 +55,7 @@
 			"type": "debugpy",
 			"request": "launch",
 			"module":"unittest",
-			"args": ["tests.unit.rogw.tranp.${input:testCases}"],
+			"args": ["tests.unit.tranp.app.${input:testCases}"],
 			"cwd": "${workspaceFolder}",
 			"windows": {
 				"env": {
@@ -102,7 +102,7 @@
 			"name": "Python: bin/transpile",
 			"type": "debugpy",
 			"request": "launch",
-			"module":"rogw.tranp.bin.transpile",
+			"module":"tranp.app.bin.transpile",
 			"args": [
 				"-c", "example/config.yml",
 			],
@@ -128,7 +128,7 @@
 			"name": "Python: bin/transpile - force",
 			"type": "debugpy",
 			"request": "launch",
-			"module":"rogw.tranp.bin.transpile",
+			"module":"tranp.app.bin.transpile",
 			"args": [
 				"-c", "example/config.yml",
 				"-f",
@@ -155,7 +155,7 @@
 			"name": "Python: bin/transpile - interactive",
 			"type": "debugpy",
 			"request": "launch",
-			"module":"rogw.tranp.bin.transpile",
+			"module":"tranp.app.bin.transpile",
 			"args": [
 				"-c", "example/config.yml",
 				"-it",
@@ -182,10 +182,10 @@
 			"name": "Python: bin/analyze",
 			"type": "debugpy",
 			"request": "launch",
-			"module":"rogw.tranp.bin.analyze",
+			"module":"tranp.app.bin.analyze",
 			"args": [
 				"-g", "data/grammar.lark",
-				// "-i", "tests/unit/rogw/tranp/semantics/fixtures/test_reflections.py",
+				// "-i", "tests/unit/tranp/app/semantics/fixtures/test_reflections.py",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {
@@ -207,7 +207,7 @@
 			"name": "Python: bin/ast",
 			"type": "debugpy",
 			"request": "launch",
-			"module":"rogw.tranp.bin.ast_check",
+			"module":"tranp.app.bin.ast_check",
 			"args": [
 				"-g", "data/syntax/gram_py.lark",
 				"-p", "hoge"
@@ -234,7 +234,7 @@
 			"name": "Python: bin/gram",
 			"type": "debugpy",
 			"request": "launch",
-			"module":"rogw.tranp.bin.gram_check",
+			"module":"tranp.app.bin.gram_check",
 			"args": [
 				"-i", "data/syntax/gram_lark.lark",
 			],

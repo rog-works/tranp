@@ -1,7 +1,9 @@
+import os
 from typing import Any, Callable, Literal, NamedTuple, Protocol, TypeAlias
 
 from jinja2 import Environment, FileSystemLoader
 
+from tranp.app.app.env import DataEnvPath
 from tranp.app.lang.middleware import Middleware
 from tranp.app.lang.translator import Translator
 
@@ -41,14 +43,35 @@ class RendererHelperProvider(Protocol):
 class Renderer:
 	"""テンプレートレンダー"""
 
-	def __init__(self, setting: RendererSetting, helper_provider: RendererHelperProvider) -> None:
+	def __init__(self, env_paths: DataEnvPath, setting: RendererSetting, helper_provider: RendererHelperProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
+			env_paths: 環境パス(データ用)
 			setting: テンプレートレンダー設定データ
 			helper_privider: ヘルパープロバイダー
 		"""
-		self.__renderer = Environment(loader=FileSystemLoader(setting.template_dirs, encoding='utf-8'), auto_reload=False)
+		template_dirs = self.__make_template_dirs(env_paths, setting)
+		self.__renderer = Environment(loader=FileSystemLoader(template_dirs, encoding='utf-8'), auto_reload=False)
+		self.__apply_helpers(helper_provider)
+
+	def __make_template_dirs(self, env_paths: DataEnvPath, setting: RendererSetting, ) -> list[str]:
+		"""テンプレートの入力ディレクトリーリストを生成
+
+		Args:
+			env_paths: 環境パス(データ用)
+			setting: テンプレートレンダー設定データ
+		Returns:
+			入力ディレクトリーリスト
+		"""
+		return [os.path.abspath(os.path.join(env_path, template_dir)) for env_path in env_paths for template_dir in setting.template_dirs]
+
+	def __apply_helpers(self, helper_provider: RendererHelperProvider) -> None:
+		"""テンプレートヘルパーを適用
+
+		Args:
+			helper_privider: ヘルパープロバイダー
+		"""
 		for tag, helpers in helper_provider().items():
 			for name, helper in helpers.items():
 				if tag == 'function':

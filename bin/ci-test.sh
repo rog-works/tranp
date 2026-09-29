@@ -5,4 +5,4 @@ appdir=${cwd}/..
 
 source ${cwd}/.env.sh
 
-pytest ${appdir}/tests/unit --cov rogw/ --ignore-glob=**/fixtures/*
+pytest ${appdir}/tests/unit --cov tranp/ --ignore-glob=**/fixtures/*

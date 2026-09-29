@@ -5,6 +5,7 @@ from unittest import TestCase
 import yaml
 
 from tranp.app.app.dir import tranp_dir
+from tranp.app.app.env import DataEnvPath
 from tranp.app.implements.cpp.providers.view import renderer_helper_provider_cpp
 from tranp.app.lang.annotation import duck_typed
 from tranp.app.lang.middleware import Middleware
@@ -153,7 +154,7 @@ class Fixture:
 		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 		setting = RendererSetting(template_dirs, translator, Middleware(), env)
 		provider = renderer_helper_provider_cpp(setting)
-		self.renderer = Renderer(setting, provider)
+		self.renderer = Renderer(DataEnvPath.instantiate(), setting, provider)
 
 	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:
 		with open(filepath) as f:

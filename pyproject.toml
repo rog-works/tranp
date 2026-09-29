@@ -32,6 +32,9 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/rog-works/tranp"
 
+[project.scripts]
+tranp = "rogw.tranp.bin.transpile:main"
+
 [tool.setuptools.packages.find]
 include = [
   "tranp*",

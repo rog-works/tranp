@@ -2,7 +2,6 @@ import glob
 import os
 import re
 
-from tranp.app.errors import Errors
 from tranp.app.module.types import ModulePath, ModulePaths
 
 
@@ -14,8 +13,6 @@ def include_module_paths(input_glob: str, exclude_patterns: list[str]) -> Module
 		exclude_patterns: 除外パターンリスト(正規表現)
 	Returns:
 		モジュールパスリスト
-	Raises:
-		Errors.InvalidSchema: 対象が存在しない
 	"""
 	candidate_filepaths = glob.glob(input_glob, recursive=True)
 	exclude_exps = [re.compile(rf'{exclude.replace("*", '.*')}') for exclude in exclude_patterns]
@@ -26,8 +23,5 @@ def include_module_paths(input_glob: str, exclude_patterns: list[str]) -> Module
 		if not excluded:
 			basepath, extention = os.path.splitext(filepath)
 			module_paths.append(ModulePath(basepath.replace('/', '.'), language=extention[1:]))
-
-	if len(module_paths) == 0:
-		raise Errors.InvalidSchema(input_glob, exclude_patterns, 'No target found')
 
 	return module_paths

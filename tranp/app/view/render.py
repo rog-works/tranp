@@ -55,7 +55,7 @@ class Renderer:
 		self.__renderer = Environment(loader=FileSystemLoader(template_dirs, encoding='utf-8'), auto_reload=False)
 		self.__apply_helpers(helper_provider)
 
-	def __make_template_dirs(self, env_paths: DataEnvPath, setting: RendererSetting, ) -> list[str]:
+	def __make_template_dirs(self, env_paths: DataEnvPath, setting: RendererSetting) -> list[str]:
 		"""テンプレートの入力ディレクトリーリストを生成
 
 		Args:

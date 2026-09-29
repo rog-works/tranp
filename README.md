@@ -31,31 +31,25 @@ $ pip install tranp
 ## トランスパイラー (Python to C++)
 
 ```
-$ bash bin/transpile.sh
+$ tranp -c path/to/config.yml
 ```
 
 ## ソースコード解析ツール
 
 ```
-$ bash bin/analyze.sh
+$ tranp analyze
 ```
 
 ## グラマー解析ツール
 
 ```
-$ bash bin/gram.sh
+$ tranp gram
 ```
 
 ## AST解析ツール
 
 ```
-$ bash bin/ast.sh
-```
-
-# テスト
-
-```
-$ bash bin/test.sh
+$ tranp ast
 ```
 
 # ライセンス

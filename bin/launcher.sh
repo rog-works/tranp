@@ -4,4 +4,4 @@ cwd=$(cd $(dirname $0); pwd)
 appdir=${cwd}/..
 
 source ${cwd}/.env.sh
-python ${appdir}/tranp/app/bin/lancher.py $*
+python ${appdir}/tranp/app/bin/launcher.py $*

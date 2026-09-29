@@ -219,7 +219,8 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other -n path/to/no
 		raise ValueError(f'Unresolve ASTNormalizer. filepath: {filepath}')
 
 
-if __name__ == '__main__':
+def main() -> None:
+	"""エントリーポイント"""
 	args = Args(sys.argv[1:])
 	app = App(args)
 	try:
@@ -231,3 +232,7 @@ if __name__ == '__main__':
 	finally:
 		if not app.quiet:
 			print('Quit')
+
+
+if __name__ == '__main__':
+	main()

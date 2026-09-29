@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tranp"
-version = "0.9.6"
+version = "0.9.7"
 description = "A language-agnostic source-to-source transpiler framework."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -27,13 +27,14 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: C++",
   "Topic :: Software Development :: Compilers",
+  "Topic :: Text Processing :: General",
 ]
 
 [project.urls]
 Homepage = "https://github.com/rog-works/tranp"
 
 [project.scripts]
-tranp = "tranp.app.bin.transpile:main"
+tranp = "tranp.app.bin.lancher:main"
 
 [tool.setuptools.packages.find]
 include = [

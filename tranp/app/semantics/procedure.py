@@ -80,10 +80,9 @@ class Procedure[T_Ret]:
 			Errors.Logic: スタック数が不正(1以外)
 			Errors.Error: 実行中のエラー
 		"""
+		flatted = root.procedural()
+		flatted.append(root)  # XXX 自身が含まれないので末尾に追加
 		try:
-			flatted = root.procedural()
-			flatted.append(root)  # XXX 自身が含まれないので末尾に追加
-
 			for node in flatted:
 				self.__process(node)
 
@@ -112,14 +111,6 @@ class Procedure[T_Ret]:
 
 		Args:
 			node: ノード
-		"""
-		self.__action(node)
-
-	def __action(self, node: Node) -> None:
-		"""指定のノードのプロセス処理(本体)
-
-		Args:
-			node: ノード
 		Raises:
 			Errors.MustBeImplemented: 対象ノードのハンドラーが未定義
 		Note:
@@ -127,13 +118,13 @@ class Procedure[T_Ret]:
 		"""
 		handler_name = f'on_{node.classification}'
 		if self.__emitter.usable(handler_name):
-			self.__run_action(node, handler_name)
+			self.__action(node, handler_name)
 		elif self.__emitter.usable('on_fallback'):
-			self.__run_action(node, 'on_fallback')
+			self.__action(node, 'on_fallback')
 		else:
 			raise Errors.MustBeImplemented(node, 'Handler not defined')
 
-	def __run_action(self, node: Node, handler_name: str) -> None:
+	def __action(self, node: Node, handler_name: str) -> None:
 		"""指定のノードのプロセス処理
 
 		Args:

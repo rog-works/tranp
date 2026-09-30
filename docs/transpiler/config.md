@@ -45,6 +45,27 @@ pattern: '[\w\d/.]+'
 grammar: path/to/grammar.lark
 ```
 
+# trans_mapping
+
+* 翻訳ファイルのパス
+
+## ファイルの種類
+
+* `.yml`固定
+
+## 書式
+
+```yaml
+type: string
+pattern: '[\w\d/.]+\.yml'
+```
+
+## 設定例
+
+```yaml
+trans_mapping: data/i18n.yml
+```
+
 # template_dirs
 
 * テンプレートの探索フォルダーのリスト
@@ -72,27 +93,6 @@ template_dirs:
   - data/cpp/template
 ```
 
-# trans_mapping
-
-* 翻訳ファイルのパス
-
-## ファイルの種類
-
-* `.yml`固定
-
-## 書式
-
-```yaml
-type: string
-pattern: '[\w\d/.]+\.yml'
-```
-
-## 設定例
-
-```yaml
-trans_mapping: data/i18n.yml
-```
-
 # input_globs
 
 * 入力ソースコードの探索globパターンのリスト
@@ -115,6 +115,27 @@ items:
 ```yaml
 input_globs:
   - src/**/*.py
+```
+
+# exclude_patterns
+
+* 入力ソースコードの除外パターンのリスト
+* ワイルドカードが使用可能 ※globや正規表現は不可
+
+## 書式
+
+```yaml
+type: array
+items:
+  type: string
+  pattern: '[\w\d/.]+\*?'
+```
+
+## 設定例
+
+```yaml
+exclude_patterns:
+  - external/*
 ```
 
 # output_dirs
@@ -181,27 +202,6 @@ pattern: '[\w\d]+(:[\w\d]+)?'
 
 ```yaml
 output_language: cpp:h
-```
-
-# exclude_patterns
-
-* 入力ファイルの除外パターンのリスト
-* ワイルドカードが使用可能 ※globや正規表現は不可
-
-## 書式
-
-```yaml
-type: array
-items:
-  type: string
-  pattern: '[\w\d/.]+\*?'
-```
-
-## 設定例
-
-```yaml
-exclude_patterns:
-  - external/*
 ```
 
 # di
@@ -355,19 +355,24 @@ properties:
   grammar:
     type: string
     pattern: '[\w\d/.]+'
+  trans_mapping:
+    type: string
+    pattern: '[\w\d/.]+\.yml'
   template_dirs:
     type: array
     items:
       type: string
       pattern: '[\w\d/.]+'
-  trans_mapping:
-    type: string
-    pattern: '[\w\d/.]+\.yml'
   input_globs:
     type: array
     items:
       type: string
       pattern: '[\w\d/.*]+'
+  exclude_patterns:
+    type: array
+    items:
+      type: string
+      pattern: '[\w\d/.]+\*?'
   output_dirs:
     type: array
     minItems: 1
@@ -377,11 +382,6 @@ properties:
   output_language:
     type: string
     pattern: '[\w\d]+(:[\w\d]+)'
-  exclude_patterns:
-    type: array
-    items:
-      type: string
-      pattern: '[\w\d/.]+\*?'
   di:
     type: object
     additionalProperties:

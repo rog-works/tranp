@@ -1,14 +1,14 @@
 grammar: data/grammar.lark
+trans_mapping: data/i18n.yml
 template_dirs:
   - data/cpp/template
-trans_mapping: data/i18n.yml
 input_globs:
   - example/**/*.py
+exclude_patterns:
+  - example/FW/*
 output_dirs:
   - ./
 output_language: cpp:h
-exclude_patterns:
-  - example/FW/*
 env:
   transpiler:
     include_dirs:

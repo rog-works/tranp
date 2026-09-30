@@ -7,7 +7,7 @@ tranp (TRANspiler on Python)
 
 # 概要
 
-* トランスパイルフレームワークのPython実装
+* Pythonによるトランスパイルフレームワークの実装
 * 入力言語のAST(※1)を元に、出力言語のソースコードをレンダリング
 * ※1: ASTの生成はlarkを利用(自由に変更可能)
 
@@ -15,8 +15,8 @@ tranp (TRANspiler on Python)
 
 * 入出力言語を自由に選択可能(※1)
 * テンプレート(※2)を変更することで、コア実装を改変することなく、レンダリング内容を自由に改変可能
+* オリジナルのソースコードとの対応関係を損なうことなく、可読なソースコードに変換
 * トランスパイルのリアルタイム変換・シンボル解析・AST解析ツールを付属
-
 * ※1: 現状はPythonからC++への変換のみ実装
 * ※2: テンプレートエンジンはJinja2を利用(自由に変更可能)
 
@@ -46,11 +46,12 @@ $ tranp -it
 * Pythonコードを入力した後、空行を入力するとトランスパイル結果がレンダリング
 
 ```bash
-===============
-Python code here. Type `exit` to quit:
+==========
+Code here. Type `exit` to quit:
 a = 1
+==========
 Result:
----------------
+----------
 // @tranp.meta: {"version":"0.9.n","module":{"hash":"dummy","path":"__main__"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 int a = 1;
@@ -59,12 +60,13 @@ int a = 1;
 * 再びPythonコードを入力することで、繰り返し結果を確認することが可能
 
 ```bash
-===============
-Python code here. Type `exit` to quit:
+==========
+Code here. Type `exit` to quit:
 def main() -> int:
   return 1
+==========
 Result:
----------------
+----------
 // @tranp.meta: {"version":"0.9.n","module":{"hash":"dummy","path":"__main__"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 /** main */

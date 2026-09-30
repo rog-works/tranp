@@ -7,11 +7,18 @@ tranp (TRANspiler on Python)
 
 # 概要
 
-* 言語非依存(※1)のトランスパイルフレームワーク
-* 入力言語のAST(※2)を元に、出力言語のソースコードをレンダリング
-* トランスパイルのリアルタイム変換やシンボル解析、ASTの解析ツールを付属
+* トランスパイルフレームワークのPython実装
+* 入力言語のAST(※1)を元に、出力言語のソースコードをレンダリング
+* ※1: ASTの生成はlarkを利用(自由に変更可能)
+
+# 特徴
+
+* 入出力言語を自由に選択可能(※1)
+* テンプレート(※2)を変更することで、コア実装を改変することなく、レンダリング内容を自由に改変可能
+* トランスパイルのリアルタイム変換・シンボル解析・AST解析ツールを付属
+
 * ※1: 現状はPythonからC++への変換のみ実装
-* ※2: ASTの生成は外部ツールを利用(自由に変更可能)
+* ※2: テンプレートエンジンはJinja2を利用(自由に変更可能)
 
 # 必須要件
 
@@ -153,7 +160,6 @@ config.yml
 * トランスパイル結果
 
 ```cpp
-// app/main.h
 // @tranp.meta: {"version":"0.9.n","module":{"hash":"6012cab9fec85852b56d7b7b8deb6bd9","path":"app.main"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include "sub.h"
@@ -165,7 +171,6 @@ int main() {
 ```
 
 ```cpp
-// app/sub.py
 // @tranp.meta: {"version":"0.9.n","module":{"hash":"96178f75f71ca63c3102afc3e041a5af","path":"app.sub"},"transpiler":{"version":"0.9.n","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 /** hello */
@@ -187,6 +192,7 @@ $ tranp ast
 ```
 
 * Pythonコードを入力することでASTがレンダリング
+* ※出力結果はlarkのASTに依存
 
 ```bash
 ==========
@@ -209,7 +215,11 @@ file_input
 $ tranp analyze
 ```
 
+## ドキュメント
+
+* [ドキュメント](docs/index.md)
+
 # ライセンス
 
-[MIT](LICENCE)
+* [MIT](LICENCE)
 * tranpを用いて生成したトランスパイル後のソースコードに関してはライセンスに含まれません

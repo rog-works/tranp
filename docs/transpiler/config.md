@@ -45,36 +45,6 @@ pattern: '[\w\d/.]+'
 grammar: path/to/grammar.lark
 ```
 
-# template_dirs
-
-* テンプレートの探索フォルダーのリスト
-
-## ファイルの種類
-
-* レンダラーに準拠
-* デフォルトは`.j2`
-
-## 評価順序
-
-* 上から順にファイルを探索
-
-## 書式
-
-```yaml
-type: array
-items:
-  type: string
-  pattern: '[\w\d/]+'
-```
-
-## 設定例
-
-```yaml
-template_dirs:
-  - data/template
-  - data/cpp/template
-```
-
 # trans_mapping
 
 * 翻訳ファイルのパス
@@ -94,6 +64,33 @@ pattern: '[\w\d/.]+\.yml'
 
 ```yaml
 trans_mapping: data/i18n.yml
+```
+
+# template_dirs
+
+* テンプレートの探索フォルダーのリスト
+* 定義順にファイルを探索
+
+## ファイルの種類
+
+* レンダラーに準拠
+* デフォルトは`.j2`
+
+## 書式
+
+```yaml
+type: array
+items:
+  type: string
+  pattern: '[\w\d/]+'
+```
+
+## 設定例
+
+```yaml
+template_dirs:
+  - data/template
+  - data/cpp/template
 ```
 
 # input_globs
@@ -118,6 +115,27 @@ items:
 ```yaml
 input_globs:
   - src/**/*.py
+```
+
+# exclude_patterns
+
+* 入力ソースコードの除外パターンのリスト
+* ワイルドカードが使用可能 ※globや正規表現は不可
+
+## 書式
+
+```yaml
+type: array
+items:
+  type: string
+  pattern: '[\w\d/.]+\*?'
+```
+
+## 設定例
+
+```yaml
+exclude_patterns:
+  - external/*
 ```
 
 # output_dirs
@@ -186,32 +204,11 @@ pattern: '[\w\d]+(:[\w\d]+)?'
 output_language: cpp:h
 ```
 
-# exclude_patterns
-
-* 入力ファイルの除外パターンのリスト
-* ワイルドカードが使用可能
-
-## 書式
-
-```yaml
-type: array
-items:
-  type: string
-  pattern: '[\w\d/.]+\*?'
-```
-
-## 設定例
-
-```yaml
-exclude_patterns:
-  - external/*
-```
-
 # di
 
 * DIシンボルの拡張定義
-* キーが対象のDIシンボルのモジュールパス
-* 値が注入するクラス・関数のモジュールパス
+* キー: 対象のDIシンボルのモジュールパス
+* 値: 注入するクラス・関数のモジュールパス
 
 ## 書式
 
@@ -232,8 +229,8 @@ di:
 
 # include_dirs
 
-* インクルードパスの拡張定義
-* 書式によりインクルードパスを変更
+* インクルードパスの変換パターンリスト
+* 書式により変換パターンを変更
 
 ## 書式
 
@@ -285,8 +282,8 @@ cvars:
 
 # string_formats
 
-* 文字列フォーマッターの書式設定の拡張定義
-* 登録した型を`string.format`の実引数に指定した際のマッピング先として利用
+* 文字列フォーマッターの書式設定
+* 登録した型を`string.format`の実引数に指定した際に利用
 
 ## 書式
 
@@ -308,7 +305,7 @@ string_formats:
 # view
 
 * ビュー用の環境変数
-* テンプレート内で`get_env`関数を通して参照可能
+* テンプレート内で`get_env`ヘルパーを介して参照可能
 
 ## 書式
 
@@ -358,19 +355,24 @@ properties:
   grammar:
     type: string
     pattern: '[\w\d/.]+'
+  trans_mapping:
+    type: string
+    pattern: '[\w\d/.]+\.yml'
   template_dirs:
     type: array
     items:
       type: string
       pattern: '[\w\d/.]+'
-  trans_mapping:
-    type: string
-    pattern: '[\w\d/.]+\.yml'
   input_globs:
     type: array
     items:
       type: string
       pattern: '[\w\d/.*]+'
+  exclude_patterns:
+    type: array
+    items:
+      type: string
+      pattern: '[\w\d/.]+\*?'
   output_dirs:
     type: array
     minItems: 1
@@ -380,11 +382,6 @@ properties:
   output_language:
     type: string
     pattern: '[\w\d]+(:[\w\d]+)'
-  exclude_patterns:
-    type: array
-    items:
-      type: string
-      pattern: '[\w\d/.]+\*?'
   di:
     type: object
     additionalProperties:
@@ -408,7 +405,6 @@ properties:
               '[\w\d]+':
                 type: string
                 pattern: '(CP|CW|CSP|CWP|CUP|CRef)(Const)?'
-                pattern: '[\w\d]+'
           string_formats:
             type: object
             additionalProperties:

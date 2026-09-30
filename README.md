@@ -211,6 +211,9 @@ file_input
 
 ## シンボル解析ツール
 
+* `ast`コマンドを指定して実行するとREPLが起動
+* 詳細は[シンボル解析ツール](docs/tool/analyze.md)で解説
+
 ```bash
 $ tranp analyze
 ```

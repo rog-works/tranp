@@ -788,39 +788,40 @@ class Py2Cpp(ITranspiler):
 		return self.render(node, f'expression/{node.classification}', vars={'label': label, 'value': value, 'unpacking': node.unpacking})
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
-		return class_type
+		return self.render(node, f'expression/{node.classification}', vars={'type_name': class_type})
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> str:
-		return node.tokens
+		return self.render(node, f'expression/{node.classification}', vars={'label': node.tokens})
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> str:
-		return self.i18n.t(alias_dsn(node.fullyname), node.tokens)
+		return self.render(node, f'symbol/{node.classification}', vars={'symbol': self.i18n.t(alias_dsn(node.fullyname), node.tokens)})
 
 	def on_decl_this_var_forward(self, node: defs.DeclThisVarForward) -> str:
-		return self.to_prop_name_by_decl(node)
+		return self.render(node, f'symbol/{node.classification}', vars={'symbol': self.to_prop_name_by_decl(node)})
 
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> str:
 		prop_name = self.to_prop_name_by_decl(node)
-		return self.render(node, f'reference/{node.classification}', vars={'prop_name': prop_name})
+		return self.render(node, f'symbol/{node.classification}', vars={'prop_name': prop_name})
 
 	def on_decl_local_var(self, node: defs.DeclLocalVar) -> str:
-		return node.tokens
+		return self.render(node, f'symbol/{node.classification}', vars={'symbol': node.tokens})
 
 	def on_decl_class_param(self, node: defs.DeclClassParam) -> str:
-		return node.tokens
+		return self.render(node, f'symbol/{node.classification}', vars={'symbol': node.tokens})
 
 	def on_decl_this_param(self, node: defs.DeclThisParam) -> str:
-		return node.tokens
+		return self.render(node, f'symbol/{node.classification}', vars={'symbol': node.tokens})
 
 	def on_types_name(self, node: defs.TypesName) -> str:
-		return self.to_domain_name_by_class(node.class_types.as_a(defs.ClassDef))
+		type_name = self.to_domain_name_by_class(node.class_types.as_a(defs.ClassDef))
+		return self.render(node, f'symbol/{node.classification}', vars={'type_name': type_name})
 
 	def on_import_name(self, node: defs.ImportName) -> str:
-		"""Note: @deprecated XXX ImportAsName内で利用されるだけでこのノードは展開されないためハンドラーは不要"""
-		return node.tokens
+		"""Note: XXX このノードは展開されないためハンドラーは不要"""
+		raise Errors.Never(node)
 
 	def on_import_as_name(self, node: defs.ImportAsName) -> str:
-		return node.tokens
+		return self.render(node, f'symbol/{node.classification}', {'symbol': node.tokens})
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
@@ -1030,8 +1031,7 @@ class Py2Cpp(ITranspiler):
 		return self.render(node, f'type/{node.classification}', vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
-		"""Note: XXX C++でUnion型の表現は不可能。期待値を仮定するのであればプライマリー型以外に無いので先頭要素のみ返却"""
-		return or_types[0]
+		return self.render(node, f'type/{node.classification}', vars={'or_types': or_types})
 
 	def on_null_type(self, node: defs.NullType) -> str:
 		return self.render(node, f'type/{node.classification}')
@@ -1328,10 +1328,10 @@ class Py2Cpp(ITranspiler):
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
 		parent_symbol = self.reflections.type_of(node)
-		return self.render(node, 'func_call/super', vars={'class_symbol': self.to_accessible_name(parent_symbol)})
+		return self.render(node, f'func_call/{node.classification}', vars={'class_symbol': self.to_accessible_name(parent_symbol)})
 
 	def on_for_in(self, node: defs.ForIn, iterates: str) -> str:
-		return iterates
+		return self.render(node, f'flow/for/{node.classification}', vars={'iterates': iterates})
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討

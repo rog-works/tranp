@@ -80,10 +80,9 @@ class Procedure[T_Ret]:
 			Errors.Logic: スタック数が不正(1以外)
 			Errors.Error: 実行中のエラー
 		"""
+		flatted = root.procedural()
+		flatted.append(root)  # XXX 自身が含まれないので末尾に追加
 		try:
-			flatted = root.procedural()
-			flatted.append(root)  # XXX 自身が含まれないので末尾に追加
-
 			for node in flatted:
 				self.__process(node)
 
@@ -112,14 +111,6 @@ class Procedure[T_Ret]:
 
 		Args:
 			node: ノード
-		"""
-		self.__action(node)
-
-	def __action(self, node: Node) -> None:
-		"""指定のノードのプロセス処理(本体)
-
-		Args:
-			node: ノード
 		Raises:
 			Errors.MustBeImplemented: 対象ノードのハンドラーが未定義
 		Note:
@@ -127,13 +118,13 @@ class Procedure[T_Ret]:
 		"""
 		handler_name = f'on_{node.classification}'
 		if self.__emitter.usable(handler_name):
-			self.__run_action(node, handler_name)
+			self.__action(node, handler_name)
 		elif self.__emitter.usable('on_fallback'):
-			self.__run_action(node, 'on_fallback')
+			self.__action(node, 'on_fallback')
 		else:
 			raise Errors.MustBeImplemented(node, 'Handler not defined')
 
-	def __run_action(self, node: Node, handler_name: str) -> None:
+	def __action(self, node: Node, handler_name: str) -> None:
 		"""指定のノードのプロセス処理
 
 		Args:
@@ -145,7 +136,8 @@ class Procedure[T_Ret]:
 		consumed = len(self.__stack)
 		self.__stack.append(result)
 
-		self.__put_log_action(node, handler_name, stacks=(before, consumed, len(self.__stack)), result=result)
+		if self.__verbose:
+			self.__debug_log(node, handler_name, stacks=(before, consumed, len(self.__stack)), result=result)
 
 	def __emit(self, action: str, node: Node) -> T_Ret:
 		"""イベント発火
@@ -220,7 +212,7 @@ class Procedure[T_Ret]:
 		assert self.__stack
 		return self.__stack.pop()
 
-	def __put_log_action(self, node: Node, handler_name: str, stacks: tuple[int, int, int], result: T_Ret | None) -> None:
+	def __debug_log(self, node: Node, handler_name: str, stacks: tuple[int, int, int], result: T_Ret | None) -> None:
 		"""プロセス処理のログを出力
 
 		Args:
@@ -229,11 +221,10 @@ class Procedure[T_Ret]:
 			stacks: スタック数(実行前, 実行, 実行後)
 			result: 結果
 		"""
-		if self.__verbose:
-			data = self.__make_log_data(node, handler_name, stacks, result)
-			joined_data = ', '.join([f'{key}: {value}' for key, value in data.items()])
-			indent = ' ' * DSN.elem_counts(node.full_path)
-			self.__put_log(f'{indent} {joined_data}')
+		data = self.__make_log_data(node, handler_name, stacks, result)
+		joined_data = ', '.join([f'{key}: {value}' for key, value in data.items()])
+		indent = ' ' * DSN.elem_counts(node.full_path)
+		print(f'{indent} {joined_data}')
 
 	def __make_log_data(self, node: Node, handler_name: str, stacks: tuple[int, int, int], result: T_Ret | None) -> dict[str, str]:
 		"""プロセス処理のログデータを生成
@@ -252,12 +243,3 @@ class Procedure[T_Ret]:
 			'stacks': ' -> '.join(map(str, stacks)),
 			'result': result_str if len(result_str) < 50 else f'{result_str[:50]}...',
 		}
-
-	def __put_log(self, *strs: str) -> None:
-		"""ログ出力
-
-		Args:
-			*strs: 出力メッセージ
-		"""
-		if self.__verbose:
-			print(*strs)  # FIXME impl Logger

@@ -9,5 +9,5 @@ class Versions:
 		py2cpp: Py2Cppのバージョン
 	"""
 
-	app: ClassVar = '0.9.8'
-	py2cpp: ClassVar = '0.9.0'
+	app: ClassVar = '0.9.9'
+	py2cpp: ClassVar = '0.9.1'

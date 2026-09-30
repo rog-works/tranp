@@ -41,9 +41,16 @@ from tranp.app.transpiler.middleware import RenderMiddleware
 from tranp.app.transpiler.types import Evaluator
 	
 
-class Definitions:
+class DIDefinitions:
+	"""DI定義生成モジュール"""
+
 	@classmethod
 	def app(cls) -> dict[type[Any], Any]:
+		"""DI定義を生成(アプリケーション用)
+
+		Returns:
+			DI定義
+		"""
 		return {
 			DataEnvPath: data_env_path,
 			SourceEnvPath: source_env_path,
@@ -79,6 +86,11 @@ class Definitions:
 
 	@classmethod
 	def module(cls) -> dict[type[Any], Any]:
+		"""DI定義を生成(モジュール用)
+
+		Returns:
+			DI定義
+		"""
 		return {
 			Entry: make_root_entry,
 			Query: Nodes,
@@ -88,9 +100,14 @@ class Definitions:
 
 
 def run(target: str) -> None:
+	"""エントリーポイント
+
+	Args:
+		target: 対象
+	"""
 	factories = {
-		'app': Definitions.app,
-		'module': Definitions.module,
+		'app': DIDefinitions.app,
+		'module': DIDefinitions.module,
 	}
 	defs = {to_fullyname(symbol): to_fullyname(injector) for symbol, injector in factories[target]().items()}
 	print(json.dumps(defs, indent=2, ensure_ascii=False))

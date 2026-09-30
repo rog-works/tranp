@@ -452,7 +452,7 @@ class Help:
 """# Usage
 $ bin/transpile.sh [-c config_path] [-i source_path] [-f] [-it] [-h] [-p] [-v]
 # Options
--c: Config YAML filepath. default to './example/config.yml'
+-c: Config YAML filepath. default to 'path/to/tranp/config.yml'
 -i: Input source filepath
 -f: Force re-output
 -it: Interactive mode
@@ -460,14 +460,11 @@ $ bin/transpile.sh [-c config_path] [-i source_path] [-f] [-it] [-h] [-p] [-v]
 -p: Show profiling
 -v: Output Detailed logs
 # Examples
-$ bin/transpile.sh
-$ bin/transpile.sh -c ./path/to/config.yml
-$ bin/transpile.sh -i ./path/to/source.py
-$ bin/transpile.sh -f
-$ bin/transpile.sh -it
 $ bin/transpile.sh -h
-$ bin/transpile.sh -p
-$ bin/transpile.sh -v
+$ bin/transpile.sh -it
+$ bin/transpile.sh -c path/to/config.yml
+$ bin/transpile.sh -c path/to/config.yml -i path/to/source.py
+$ bin/transpile.sh -c path/to/config.yml -f -p -v
 """
 		)
 

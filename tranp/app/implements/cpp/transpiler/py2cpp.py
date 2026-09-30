@@ -806,6 +806,9 @@ class Py2Cpp(ITranspiler):
 	def on_decl_local_var(self, node: defs.DeclLocalVar) -> str:
 		return self.render(node, f'symbol/{node.classification}', vars={'symbol': node.tokens})
 
+	def on_decl_param(self, node: defs.DeclClassParam) -> str:
+		return self.render(node, f'symbol/{node.classification}', vars={'symbol': node.tokens})
+
 	def on_decl_class_param(self, node: defs.DeclClassParam) -> str:
 		return self.render(node, f'symbol/{node.classification}', vars={'symbol': node.tokens})
 
@@ -815,6 +818,9 @@ class Py2Cpp(ITranspiler):
 	def on_types_name(self, node: defs.TypesName) -> str:
 		type_name = self.to_domain_name_by_class(node.class_types.as_a(defs.ClassDef))
 		return self.render(node, f'symbol/{node.classification}', vars={'type_name': type_name})
+
+	def on_alt_types_name(self, node: defs.AltTypesName) -> str:
+		return self.render(node, f'symbol/{node.classification}', vars={'type_name': node.tokens})
 
 	def on_import_name(self, node: defs.ImportName) -> str:
 		"""Note: XXX このノードは展開されないためハンドラーは不要"""

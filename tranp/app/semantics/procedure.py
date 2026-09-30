@@ -145,7 +145,8 @@ class Procedure[T_Ret]:
 		consumed = len(self.__stack)
 		self.__stack.append(result)
 
-		self.__put_log_action(node, handler_name, stacks=(before, consumed, len(self.__stack)), result=result)
+		if self.__verbose:
+			self.__debug_log(node, handler_name, stacks=(before, consumed, len(self.__stack)), result=result)
 
 	def __emit(self, action: str, node: Node) -> T_Ret:
 		"""イベント発火
@@ -220,7 +221,7 @@ class Procedure[T_Ret]:
 		assert self.__stack
 		return self.__stack.pop()
 
-	def __put_log_action(self, node: Node, handler_name: str, stacks: tuple[int, int, int], result: T_Ret | None) -> None:
+	def __debug_log(self, node: Node, handler_name: str, stacks: tuple[int, int, int], result: T_Ret | None) -> None:
 		"""プロセス処理のログを出力
 
 		Args:
@@ -229,11 +230,10 @@ class Procedure[T_Ret]:
 			stacks: スタック数(実行前, 実行, 実行後)
 			result: 結果
 		"""
-		if self.__verbose:
-			data = self.__make_log_data(node, handler_name, stacks, result)
-			joined_data = ', '.join([f'{key}: {value}' for key, value in data.items()])
-			indent = ' ' * DSN.elem_counts(node.full_path)
-			self.__put_log(f'{indent} {joined_data}')
+		data = self.__make_log_data(node, handler_name, stacks, result)
+		joined_data = ', '.join([f'{key}: {value}' for key, value in data.items()])
+		indent = ' ' * DSN.elem_counts(node.full_path)
+		print(f'{indent} {joined_data}')
 
 	def __make_log_data(self, node: Node, handler_name: str, stacks: tuple[int, int, int], result: T_Ret | None) -> dict[str, str]:
 		"""プロセス処理のログデータを生成
@@ -252,12 +252,3 @@ class Procedure[T_Ret]:
 			'stacks': ' -> '.join(map(str, stacks)),
 			'result': result_str if len(result_str) < 50 else f'{result_str[:50]}...',
 		}
-
-	def __put_log(self, *strs: str) -> None:
-		"""ログ出力
-
-		Args:
-			*strs: 出力メッセージ
-		"""
-		if self.__verbose:
-			print(*strs)  # FIXME impl Logger

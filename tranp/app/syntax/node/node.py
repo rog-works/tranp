@@ -98,7 +98,12 @@ class Node:
 	@property
 	def classification(self) -> str:
 		"""Returns: 構造を分類する識別子。実質的に派生クラスに対する識別子"""
-		return snakelize(self.__class__.__name__)
+		# XXX 効率化のためクラスにキャッシュ
+		key = f'__{self.__class__.__name__}_classification__'
+		if not hasattr(self.__class__, key):
+			setattr(self.__class__, key, snakelize(self.__class__.__name__))
+
+		return getattr(self.__class__, key)
 
 	@property
 	def domain_name(self) -> str:

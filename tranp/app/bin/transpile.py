@@ -58,9 +58,6 @@ ConfigDict = TypedDict('ConfigDict', {
 	'output_language': str,
 	'di': dict[str, str],
 	'env': EnvDict,
-	'force': bool,
-	'profile': bool,
-	'verbose': bool,
 })
 
 
@@ -144,9 +141,9 @@ class Config:
 		self.output_language = config['output_language']
 		self.di = config.get('di', {})
 		self.env = config.get('env', {})
-		self.force = config.get('force', args.force)
-		self.profile = config.get('profile', args.profile)
-		self.verbose = config.get('verbose', args.verbose)
+		self.force = args.force
+		self.profile = args.profile
+		self.verbose = args.verbose
 		self.mode = Config.Modes.Help if args.help else (Config.Modes.Interactive if args.interactive else Config.Modes.Run)
 
 	def __load_config(self, filepath: str) -> ConfigDict:
@@ -410,8 +407,8 @@ class Interactive:
 		try:
 			while True:
 				prompt = '\n'.join([
-					'===============',
-					'Python code here. Type `exit` to quit:',
+					'==========',
+					'Code here. Type `exit` to quit:',
 				])
 				lines = tty(prompt)
 				if len(lines) == 1 and lines[0] == 'exit':
@@ -420,9 +417,9 @@ class Interactive:
 				try:
 					main_module = self.rebuild_module('\n'.join(lines))
 					result = self.transpiler.transpile(main_module.entrypoint)
-					print('===============')
+					print('==========')
 					print('Result:')
-					print('---------------')
+					print('----------')
 					print(result)
 				except Errors.Error as e:
 					print(ErrorRender(e))

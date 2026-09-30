@@ -7,6 +7,8 @@ def default_definitions() -> ModuleDefinitions:
 
 	Returns:
 		モジュール定義
+	Note:
+		@see tranp.app.bin.di_defs.DIDefinitions.app
 	"""
 	return {
 		'tranp.app.app.env.DataEnvPath': 'tranp.app.providers.app.data_env_path',
@@ -47,6 +49,8 @@ def module_dependency_provider() -> ModuleDependencyProvider:
 
 	Returns:
 		モジュールの依存プロバイダー
+	Note:
+		@see tranp.app.bin.di_defs.DIDefinitions.module
 	"""
 	return lambda: {
 		'tranp.app.syntax.ast.entry.Entry': 'tranp.app.providers.syntax.ast.make_root_entry',

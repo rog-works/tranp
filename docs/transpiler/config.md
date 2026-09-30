@@ -48,15 +48,12 @@ grammar: path/to/grammar.lark
 # template_dirs
 
 * テンプレートの探索フォルダーのリスト
+* 定義順にファイルを探索
 
 ## ファイルの種類
 
 * レンダラーに準拠
 * デフォルトは`.j2`
-
-## 評価順序
-
-* 上から順にファイルを探索
 
 ## 書式
 
@@ -189,7 +186,7 @@ output_language: cpp:h
 # exclude_patterns
 
 * 入力ファイルの除外パターンのリスト
-* ワイルドカードが使用可能
+* ワイルドカードが使用可能 ※globや正規表現は不可
 
 ## 書式
 
@@ -210,8 +207,8 @@ exclude_patterns:
 # di
 
 * DIシンボルの拡張定義
-* キーが対象のDIシンボルのモジュールパス
-* 値が注入するクラス・関数のモジュールパス
+* キー: 対象のDIシンボルのモジュールパス
+* 値: 注入するクラス・関数のモジュールパス
 
 ## 書式
 
@@ -232,8 +229,8 @@ di:
 
 # include_dirs
 
-* インクルードパスの拡張定義
-* 書式によりインクルードパスを変更
+* インクルードパスの変換パターンリスト
+* 書式により変換パターンを変更
 
 ## 書式
 
@@ -285,8 +282,8 @@ cvars:
 
 # string_formats
 
-* 文字列フォーマッターの書式設定の拡張定義
-* 登録した型を`string.format`の実引数に指定した際のマッピング先として利用
+* 文字列フォーマッターの書式設定
+* 登録した型を`string.format`の実引数に指定した際に利用
 
 ## 書式
 
@@ -308,7 +305,7 @@ string_formats:
 # view
 
 * ビュー用の環境変数
-* テンプレート内で`get_env`関数を通して参照可能
+* テンプレート内で`get_env`ヘルパーを介して参照可能
 
 ## 書式
 
@@ -408,7 +405,6 @@ properties:
               '[\w\d]+':
                 type: string
                 pattern: '(CP|CW|CSP|CWP|CUP|CRef)(Const)?'
-                pattern: '[\w\d]+'
           string_formats:
             type: object
             additionalProperties:

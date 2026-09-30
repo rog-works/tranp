@@ -1,5 +1,11 @@
-トランスパイラー - コンフィグ
+トランスパイラー / コンフィグ
 ===
+
+# 概要
+
+* コンフィグの仕様・スキーマに関して記載
+
+# インデックス
 
 * [grammar](#grammar)
 * [template_dirs](#template_dirs)
@@ -15,6 +21,7 @@
     * [string_formats](#string_formats)
   * [view](#view)
     * [immutable_param_types](#immutable_param_types)
+* [JSONSchema](#jsonschema)
 
 # grammer
 

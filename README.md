@@ -120,10 +120,10 @@ def hello() -> None:
 
 ```yaml
 # config.yml
-grammar: data/grammar.lark
-trans_mapping: data/i18n.yml
+grammar: ${tranp_dir}/data/grammar.lark
+trans_mapping: ${tranp_dir}/data/i18n.yml
 template_dirs:
-  - data/cpp/template
+  - ${tranp_dir}/data/cpp/template
 input_globs:
   - app/**/*.py
 exclude_patterns: []

@@ -26,6 +26,7 @@
 # grammer
 
 * グラマーファイルのパス
+* `${tranp_dir}`を指定可能
 
 ## ファイルの種類
 
@@ -48,6 +49,7 @@ grammar: path/to/grammar.lark
 # trans_mapping
 
 * 型名翻訳マッピングデータのパス
+* `${tranp_dir}`を指定可能
 
 ## ファイルの種類
 
@@ -63,13 +65,14 @@ pattern: '[\w\d/.]+\.yml'
 ## 設定例
 
 ```yaml
-trans_mapping: data/i18n.yml
+trans_mapping: path/to/data/i18n.yml
 ```
 
 # template_dirs
 
 * テンプレートの探索フォルダーのリスト
 * 定義順にファイルを探索
+* `${tranp_dir}`を指定可能
 
 ## ファイルの種類
 
@@ -90,7 +93,7 @@ items:
 ```yaml
 template_dirs:
   - data/template
-  - data/cpp/template
+  - ${tranp_dir}/data/cpp/template
 ```
 
 # input_globs

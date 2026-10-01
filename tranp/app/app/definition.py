@@ -23,7 +23,7 @@ def default_definitions() -> ModuleDefinitions:
 		'tranp.app.lang.trait.Traits': 'tranp.app.lang.trait.Traits',
 		'tranp.app.lang.trait.TraitProvider': 'tranp.app.providers.semantics.trait_provider',
 		'tranp.app.module.loader.IModuleLoader': 'tranp.app.providers.module.ModuleLoader',
-		'tranp.app.module.loader.ModuleDependencyProvider': 'tranp.app.app.config.module_dependency_provider',
+		'tranp.app.module.loader.ModuleDependencyProvider': 'tranp.app.app.definition.module_dependency_provider',
 		'tranp.app.module.modules.Modules': 'tranp.app.module.modules.Modules',
 		'tranp.app.module.types.LibraryPaths': 'tranp.app.providers.module.library_paths',
 		'tranp.app.module.types.ModulePaths': 'tranp.app.providers.module.module_paths',

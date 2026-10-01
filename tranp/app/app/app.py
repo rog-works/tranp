@@ -1,6 +1,6 @@
 from collections.abc import Callable
 
-from tranp.app.app.config import default_definitions
+from tranp.app.app.definition import default_definitions
 from tranp.app.lang.di import ModuleDefinitions
 from tranp.app.lang.locator import T_Inst
 from tranp.app.providers.app import di_container

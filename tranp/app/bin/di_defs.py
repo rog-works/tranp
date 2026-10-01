@@ -2,7 +2,7 @@ import json
 import sys
 from typing import Any
 
-from tranp.app.app.config import module_dependency_provider
+from tranp.app.app.definition import module_dependency_provider
 from tranp.app.app.env import DataEnvPath, SourceEnvPath
 from tranp.app.cache.cache import CacheProvider, CacheSetting
 from tranp.app.data.meta.types import ModuleMetaFactory

@@ -1,7 +1,7 @@
 from typing import cast
 from unittest import TestCase
 
-from tranp.app.app.config import default_definitions
+from tranp.app.app.definition import default_definitions
 from tranp.app.lang.module import load_module_path
 
 

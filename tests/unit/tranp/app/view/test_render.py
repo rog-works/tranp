@@ -154,7 +154,7 @@ class Fixture:
 		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 		setting = RendererSetting(template_dirs, translator, Middleware(), env)
 		provider = renderer_helper_provider_cpp(setting)
-		self.renderer = Renderer(DataEnvPath.instantiate(), setting, provider)
+		self.renderer = Renderer(DataEnvPath(), setting, provider)
 
 	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:
 		with open(filepath) as f:

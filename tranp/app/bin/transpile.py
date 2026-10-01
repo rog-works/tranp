@@ -385,11 +385,11 @@ class Runner:
 			pattern = condition.replace('*', '.+')
 			if condition.endswith('*') and re.fullmatch(pattern, _filepath):
 				# globパターン
-				# 設定値: '{入力フォルダー}/*:{出力フォルダー}'
+				# 設定値: '{入力ディレクトリー}/*:{出力ディレクトリー}'
 				return os.path.join(output_dir, filepath)
 			elif _filepath.startswith(condition):
 				# 置換パターン
-				# 設定値: '{入力フォルダー}/:{出力フォルダー}'
+				# 設定値: '{入力ディレクトリー}/:{出力ディレクトリー}'
 				return os.path.join(output_dir, filepath[len(condition):])
 
 		return os.path.join(fallback, filepath)

@@ -14,7 +14,7 @@ class RendererSetting(NamedTuple):
 	"""テンプレートレンダー設定データ
 
 	Attributes:
-		template_dirs: テンプレートファイルのディレクトリーリスト
+		template_dirs: テンプレートの入力ディレクトリーリスト(相対/絶対)
 		translator: 翻訳関数
 		emitter: レンダー用イベントエミッター
 		env: 環境変数

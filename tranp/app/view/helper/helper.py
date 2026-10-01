@@ -3,6 +3,7 @@ import re
 from collections.abc import Callable
 from typing import Any
 
+from tranp.app.app.dir import tranp_dir
 from tranp.app.dsn.module import ModuleDSN
 from tranp.app.dsn.translation import alias_dsn
 from tranp.app.lang.dict import dict_pluck
@@ -44,6 +45,11 @@ class HelperFunctions:
 	def env_get(cls, setting: RendererSetting) -> Callable[[str, Any], Any]:
 		"""Note: @see tranp.app.lang.dict.dict_pluck"""
 		return lambda env_path, fallback='': dict_pluck(setting.env, env_path, fallback)
+
+	@classmethod
+	def tranp_dir(cls, setting: RendererSetting) -> Callable[[], str]:
+		"""Note: @see tranp.app.app.dir.tranp_dir"""
+		return tranp_dir
 
 	@classmethod
 	def i18n(cls, setting: RendererSetting) -> Callable[[str, str], str]:
@@ -105,6 +111,7 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 			HelperFunctions.is_quoted_literal,
 			HelperFunctions.parse_decorators,
 			HelperFunctions.env_get,
+			HelperFunctions.tranp_dir,
 			HelperFunctions.i18n,
 			HelperFunctions.md5,
 			HelperFunctions.reg_fullmatch,

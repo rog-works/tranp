@@ -58,8 +58,7 @@ class App:
 			except Exception as e:
 				print(''.join(stacktrace(e)))
 
-
-if __name__ == '__main__':
+def main() -> None:
 	try:
 		App(Args(sys.argv[1:])).run()
 	except KeyboardInterrupt:
@@ -68,3 +67,7 @@ if __name__ == '__main__':
 		print(''.join(stacktrace(e)))
 	finally:
 		print('Quit')
+
+
+if __name__ == '__main__':
+	main()

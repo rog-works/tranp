@@ -1,4 +1,4 @@
-{%- if arguments[0].startswith('"') and arguments[0].endswith('"') -%}
+{%- if is_quoted_literal(arguments[0]) -%}
 '{{ arguments[0][1:-1] }}'{% if is_statement %};{% endif %}
 {%- else -%}
 {{ arguments[0] }}{% if is_statement %};{% endif %}

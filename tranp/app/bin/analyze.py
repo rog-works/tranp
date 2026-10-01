@@ -346,7 +346,7 @@ class AnalyzeApp(App):
 			'# Usage',
 			'$ bash bin/analyze.sh [-g ${filepath}] [-i ${filepath}] [-c [classes] [class --name ${name}] [db] [modules] [pretty --module ${module}] [symbol --name ${name}]]',
 			'# Options',
-			'* -g: Grammar file path. defalut = "data/grammar.lark"',
+			'* -g: Grammar file path. defalut = "path/to/tranp/data/grammar.lark"',
 			'* -i: Python source code input file path. default = ""',
 			'* -c: Execute command. classes | class | db | modules | pretty | symbol',
 			'# Command options',

@@ -1,4 +1,4 @@
-{%- if receiver.startswith('"') and receiver.endswith('"') -%}
+{%- if is_quoted_literal(receiver) -%}
 ({{ receiver }}){% if is_statement %};{% endif %}
 {%- else -%}
 ({{ receiver }}).c_str(){% if is_statement %};{% endif %}

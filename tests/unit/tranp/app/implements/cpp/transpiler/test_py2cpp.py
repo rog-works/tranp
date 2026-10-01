@@ -1,5 +1,8 @@
 import os
+from typing import cast
 from unittest import TestCase
+
+import yaml
 
 import tranp.app.syntax.node.definition as defs
 from tests.test.fixture import Fixture
@@ -9,7 +12,6 @@ from tranp.app.dsn.module import ModuleDSN
 from tranp.app.dsn.translation import alias_dsn
 from tranp.app.file.loader import IDataLoader
 from tranp.app.i18n.i18n import I18n, TranslationMapping
-from tranp.app.implements.cpp.providers.i18n import translation_mapping_cpp
 from tranp.app.implements.cpp.providers.view import renderer_helper_provider_cpp
 from tranp.app.implements.cpp.transpiler.py2cpp import Py2Cpp
 from tranp.app.lang.middleware import Middleware
@@ -30,13 +32,14 @@ def profiler_on() -> bool:
 	return 'TRANPPROFILE' in os.environ
 
 
-def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
+def make_translation_mapping(datums: IDataLoader) -> TranslationMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture_translations = {
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'ForClass.Alias.inner')): 'inner_b',
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'ForClass.Alias.Inner.V')): 'V2',
 	}
-	return translation_mapping_cpp(datums).merge(fixture_translations)
+	data = cast(dict[str, str], yaml.safe_load(datums.load(os.path.join(tranp_dir(), 'data', 'i18n.yml'))))
+	return TranslationMapping(to=data).merge(fixture_translations)
 
 
 def make_renderer_setting(i18n: I18n, emitter: RendererEmitter) -> RendererSetting:
@@ -53,7 +56,7 @@ class TestPy2Cpp(TestCase):
 		to_fullyname(RendererEmitter): Middleware,
 		to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 		to_fullyname(RendererSetting): make_renderer_setting,
-		to_fullyname(TranslationMapping): fixture_translation_mapping,
+		to_fullyname(TranslationMapping): make_translation_mapping,
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=verbose_on(), env={'cvars': {'AltCSP': 'CSP'}}),
 	})
 

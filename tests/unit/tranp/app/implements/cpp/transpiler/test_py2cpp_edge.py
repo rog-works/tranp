@@ -1,6 +1,9 @@
 import os
 import sys
+from typing import cast
 from unittest import TestCase
+
+import yaml
 
 import tranp.app.syntax.node.definition as defs
 from tests.test.fixture import Fixture
@@ -8,7 +11,6 @@ from tranp.app.app.dir import tranp_dir
 from tranp.app.dsn.module import ModuleDSN
 from tranp.app.file.loader import IDataLoader
 from tranp.app.i18n.i18n import I18n, TranslationMapping
-from tranp.app.implements.cpp.providers.i18n import translation_mapping_cpp
 from tranp.app.implements.cpp.providers.view import renderer_helper_provider_cpp
 from tranp.app.implements.cpp.transpiler.py2cpp import Py2Cpp
 from tranp.app.lang.middleware import Middleware
@@ -23,8 +25,9 @@ from tranp.app.view.render import Renderer, RendererEmitter, RendererHelperProvi
 profiler_on = '--' in sys.argv
 
 
-def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
-	return translation_mapping_cpp(datums)
+def make_translation_mapping(datums: IDataLoader) -> TranslationMapping:
+	data = cast(dict[str, str], yaml.safe_load(datums.load(os.path.join(tranp_dir(), 'data', 'i18n.yml'))))
+	return TranslationMapping(to=data)
 
 
 def make_renderer_setting(i18n: I18n, emitter: RendererEmitter) -> RendererSetting:
@@ -41,7 +44,7 @@ class TestPy2CppEdge(TestCase):
 		to_fullyname(RendererEmitter): Middleware,
 		to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 		to_fullyname(RendererSetting): make_renderer_setting,
-		to_fullyname(TranslationMapping): fixture_translation_mapping,
+		to_fullyname(TranslationMapping): make_translation_mapping,
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
 	})
 

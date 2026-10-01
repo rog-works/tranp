@@ -1,3 +1,6 @@
+import os
+
+from tranp.app.app.dir import tranp_dir
 from tranp.app.file.loader import ISourceLoader
 from tranp.app.lang.annotation import injectable
 from tranp.app.lang.module import module_path_to_filepath
@@ -12,7 +15,7 @@ def parser_setting() -> ParserSetting:
 	Returns:
 		シンタックスパーサー設定データ
 	"""
-	return ParserSetting(grammar='data/grammar.lark')
+	return ParserSetting(grammar=os.path.join(tranp_dir(), 'data', 'grammar.lark'))
 
 
 @injectable

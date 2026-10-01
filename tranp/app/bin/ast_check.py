@@ -13,7 +13,7 @@ from tranp.app.implements.syntax.tranp.ast import ASTNormalizer
 from tranp.app.implements.syntax.tranp.rule import Rules
 from tranp.app.implements.syntax.tranp.syntax import SyntaxParser
 from tranp.app.lang.error import stacktrace
-from tranp.app.lang.module import filepath_to_module_path, load_module, load_module_path
+from tranp.app.lang.module import filepath_to_module_path
 from tranp.data.syntax.gram_rules import gram_rules
 from tranp.data.syntax.gram_tokenizer import gram_tokenizer
 

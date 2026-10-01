@@ -9,7 +9,7 @@ class ParserSetting:
 	"""シンタックスパーサー設定データ
 
 	Attributes:
-		grammer: Grammarファイルへのパス(実行ディレクトリーからの相対パス)
+		grammer: Grammarファイルへのパス(実行ディレクトリーからの相対パス。または絶対パス)
 		start: ルートエントリータグ(default = 'file_input')
 		algorithem: パーサーアルゴリズム(default = 'lalr')
 	"""

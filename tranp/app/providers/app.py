@@ -1,6 +1,5 @@
 from tranp.app.app.env import DataEnvPath, SourceEnvPath
-from tranp.app.app.loader import FileLoader
-from tranp.app.file.loader import IFileLoader
+from tranp.app.file.loader import FileLoader, IFileLoader
 from tranp.app.lang.annotation import injectable
 from tranp.app.lang.di import DI, LazyDI, ModuleDefinitions
 from tranp.app.lang.locator import Invoker, Locator

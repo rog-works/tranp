@@ -48,7 +48,7 @@ grammar: path/to/grammar.lark
 
 # trans_mapping
 
-* 型名翻訳マッピングデータのパス
+* 翻訳マッピングデータのパス
 * `${tranp_dir}`を指定可能
 
 ## ファイルの種類

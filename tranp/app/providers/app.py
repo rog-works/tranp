@@ -1,6 +1,5 @@
 from tranp.app.app.env import DataEnvPath, SourceEnvPath
-from tranp.app.app.loader import FileLoader
-from tranp.app.file.loader import IFileLoader
+from tranp.app.file.loader import FileLoader, IFileLoader
 from tranp.app.lang.annotation import injectable
 from tranp.app.lang.di import DI, LazyDI, ModuleDefinitions
 from tranp.app.lang.locator import Invoker, Locator
@@ -20,43 +19,25 @@ def di_container(definitions: ModuleDefinitions) -> DI:
 	return di
 
 
-def data_env_path() -> DataEnvPath:
-	"""環境パス(データ用)を生成
-
-	Returns:
-		環境パス(データ用)
-	"""
-	return DataEnvPath.instantiate()
-
-
-def source_env_path() -> SourceEnvPath:
-	"""環境パス(ソースコード用)を生成
-
-	Returns:
-		環境パス(ソースコード用)
-	"""
-	return SourceEnvPath.instantiate([])
-
-
 @injectable
-def data_loader(env_paths: DataEnvPath) -> IFileLoader:
+def data_loader(env_path: DataEnvPath) -> IFileLoader:
 	"""ファイルローダー(データ用)を生成
 
 	Args:
-		env_paths: 環境パスリスト @inject
+		env_path: 環境パスリスト @inject
 	Returns:
 		ファイルローダー
 	"""
-	return FileLoader(env_paths)
+	return FileLoader(env_path.paths)
 
 
 @injectable
-def source_loader(env_paths: SourceEnvPath) -> IFileLoader:
+def source_loader(env_path: SourceEnvPath) -> IFileLoader:
 	"""ファイルローダー(ソースコード用)を生成
 
 	Args:
-		env_paths: 環境パスリスト @inject
+		env_path: 環境パスリスト @inject
 	Returns:
 		ファイルローダー
 	"""
-	return FileLoader(env_paths)
+	return FileLoader(env_path.paths)

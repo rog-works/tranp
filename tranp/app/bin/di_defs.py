@@ -2,7 +2,7 @@ import json
 import sys
 from typing import Any
 
-from tranp.app.app.config import module_dependency_provider
+from tranp.app.app.definition import module_dependency_provider
 from tranp.app.app.env import DataEnvPath, SourceEnvPath
 from tranp.app.cache.cache import CacheProvider, CacheSetting
 from tranp.app.data.meta.types import ModuleMetaFactory
@@ -15,7 +15,7 @@ from tranp.app.lang.trait import TraitProvider, Traits
 from tranp.app.module.loader import IModuleLoader, ModuleDependencyProvider
 from tranp.app.module.modules import Modules
 from tranp.app.module.types import LibraryPaths, ModulePaths
-from tranp.app.providers.app import data_env_path, data_loader, source_env_path, source_loader
+from tranp.app.providers.app import data_loader, source_loader
 from tranp.app.providers.cache import cache_setting
 from tranp.app.providers.module import ModuleLoader, library_paths, module_meta_factory, module_paths
 from tranp.app.providers.semantics import preprocessor_provider, trait_provider
@@ -52,8 +52,8 @@ class DIDefinitions:
 			DI定義
 		"""
 		return {
-			DataEnvPath: data_env_path,
-			SourceEnvPath: source_env_path,
+			DataEnvPath: DataEnvPath,
+			SourceEnvPath: SourceEnvPath,
 			CacheProvider: CacheProvider,
 			CacheSetting: cache_setting,
 			ModuleMetaFactory: module_meta_factory,
@@ -114,4 +114,4 @@ def run(target: str) -> None:
 
 
 if __name__ == '__main__':
-	run(sys.argv[1])
+	run(sys.argv[1] if len(sys.argv) == 2 else 'app')

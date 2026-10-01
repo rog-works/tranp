@@ -220,8 +220,8 @@ class TranspileApp:
 		Returns:
 			翻訳マッピングデータ
 		"""
-		mapping = cast(dict[str, str], yaml.safe_load(datums.load(config.trans_mapping)))
-		return TranslationMapping(to=mapping)
+		data = cast(dict[str, str], yaml.safe_load(datums.load(config.trans_mapping)))
+		return TranslationMapping(to=data)
 
 	@classmethod
 	@injectable

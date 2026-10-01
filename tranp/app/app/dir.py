@@ -7,7 +7,10 @@ def repository_dir() -> str:
 	Returns:
 		ルートディレクトリーの絶対パス
 	Note:
-		このモジュールを起点にルートディレクトリーを算出
+		```
+		* このモジュールを起点にルートディレクトリーを算出
+		* このパスは`site-packages`と同義
+		```
 	"""
 	return os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 

@@ -132,9 +132,9 @@ class Config:
 			args: 引数
 		"""
 		config = self.__load_config(args.config)
-		self.grammar = config['grammar']
-		self.template_dirs = config['template_dirs']
-		self.trans_mapping = config['trans_mapping']
+		self.grammar = self.__normalize_data_path(config['grammar'])
+		self.trans_mapping = self.__normalize_data_path(config['trans_mapping'])
+		self.template_dirs = [self.__normalize_data_path(template_dir) for template_dir in config['template_dirs']]
 		self.input_globs = args.input_globs if args.input_globs else config['input_globs']
 		self.exclude_patterns = config['exclude_patterns']
 		self.output_dirs = config['output_dirs']
@@ -156,6 +156,16 @@ class Config:
 		"""
 		with open(filepath) as f:
 			return cast(ConfigDict, yaml.safe_load(f))
+
+	def __normalize_data_path(self, data_path: str) -> str:
+		"""入力パスを正規化(データ専用)
+
+		Args:
+			data_path: データパス
+		Returns:
+			正規化したパス
+		"""
+		return data_path.replace('${tranp_dir}', tranp_dir())
 
 
 class TranspileApp:

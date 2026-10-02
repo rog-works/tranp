@@ -1539,7 +1539,7 @@ class Py2Cpp(ITranspiler):
 class ClassOperationMaps:
 	"""特殊メソッドのマッピングデータ"""
 
-	operators: ClassVar[dict[str, str]] = {
+	operators: ClassVar = {
 		# comparison
 		'__eq__': 'operator==',
 		'__ne__': 'operator!=',
@@ -1561,7 +1561,7 @@ class ClassOperationMaps:
 		# '__setitem__': 'operator[]', XXX C++ではset用のオペレーターは存在せず、getから参照を返すことで実現する
 	}
 
-	ctors: ClassVar[dict[str, str]] = {
+	ctors: ClassVar = {
 		PythonClassOperations.copy_constructor: 'copy_constructor',
 		PythonClassOperations.destructor: 'destructor',
 	}
@@ -1623,7 +1623,7 @@ class FuncCallSpec:
 		cvar_to_addr_hex = 409
 		cvar_to_addr_id = 410
 
-	convertion_scalars: ClassVar[list[str]] = [
+	convertion_scalars: ClassVar = [
 		bool.__name__,
 		int.__name__,
 		float.__name__,
@@ -1634,25 +1634,25 @@ class FuncCallSpec:
 		uint64.__name__,
 		double.__name__,
 	]
-	list_methods: ClassVar[list[str]] = [
+	list_methods: ClassVar = [
 		list.pop.__name__,
 		list.insert.__name__,
 		list.extend.__name__,
 		list.copy.__name__,
 		list.sort.__name__,
 	]
-	dict_iter_methods: ClassVar[list[str]] = [
+	dict_iter_methods: ClassVar = [
 		dict.items.__name__,
 		dict.keys.__name__,
 		dict.values.__name__,
 	]
-	list_and_dict_methods: ClassVar[list[str]] = [
+	list_and_dict_methods: ClassVar = [
 		*list_methods,
 		*dict_iter_methods,
 		dict.get.__name__,
 		dict.copy.__name__,
 	]
-	str_methods: ClassVar[list[str]] = [
+	str_methods: ClassVar = [
 		str.split.__name__,
 		str.join.__name__,
 		str.replace.__name__,
@@ -1676,11 +1676,11 @@ class PatternParser:
 		これらは正規表現を用いないで済む方法へ修正を検討
 	"""
 
-	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
-	ListSortKeyPattern: ClassVar[re.Pattern[str]] = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
-	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(rf'(.+)(->|\.)({"|".join(FuncCallSpec.dict_iter_methods)})\(\)$')
-	CVarRelaySubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
-	CVarToSubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
+	RelayPattern: ClassVar = re.compile(r'(.+)(->|::|\.)\w+$')
+	ListSortKeyPattern: ClassVar = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
+	DictIteratorPattern: ClassVar = re.compile(rf'(.+)(->|\.)({"|".join(FuncCallSpec.dict_iter_methods)})\(\)$')
+	CVarRelaySubPattern: ClassVar = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
+	CVarToSubPattern: ClassVar = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
 
 	@classmethod
 	def break_relay(cls, relay: str) -> tuple[str, str]:

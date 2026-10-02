@@ -180,37 +180,41 @@ class CppViewHelper:
 			iterates = matches_iterates.group(1)
 			return for_index, iterates, index, increment, get_size, get_value
 
+	@classmethod
+	def super_initializer_parse(cls, setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
+		return cls.SuperInitializer.parse
 
-def super_initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
-	"""Note: @see tranp.app.implements.cpp.view.cpp_view_helper.CppViewHelper.SuperInitializer.parse"""
-	return lambda statement: CppViewHelper.SuperInitializer.parse(statement)
+	@classmethod
+	def initializer_parse(cls, setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
+		return cls.Initializer.parse
 
+	@classmethod
+	def parameter_parse(cls, setting: RendererSetting) -> Callable[[str], Param]:
+		return cls.Param.parse
 
-def initializer_parse(setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
-	"""Note: @see tranp.app.implements.cpp.view.cpp_view_helper.CppViewHelper.Initializer.parse"""
-	return lambda statement: CppViewHelper.Initializer.parse(statement)
+	@classmethod
+	def param_type_annotated(cls, setting: RendererSetting) -> Callable[[str, list[str], list[str]], str]:
+		return cls.ParamType.annotated
 
+	@classmethod
+	def var_type_annotated(cls, setting: RendererSetting) -> Callable[[str, list[str]], str]:
+		return cls.VarType.annotated
 
-def parameter_parse(setting: RendererSetting) -> Callable[[str], CppViewHelper.Param]:
-	"""Note: @see tranp.app.implements.cpp.view.cpp_view_helper.CppViewHelper.Param.parse"""
-	return lambda parameter: CppViewHelper.Param.parse(parameter)
-
-
-def param_type_annotated(setting: RendererSetting) -> Callable[[str, list[str], list[str]], str]:
-	"""Note: @see tranp.app.implements.cpp.view.cpp_view_helper.CppViewHelper.ParamType.annotated"""
-	return lambda var_type, annotations, immutable_types: CppViewHelper.ParamType.annotated(var_type, annotations, immutable_types)
-
-
-def var_type_annotated(setting: RendererSetting) -> Callable[[str, list[str]], str]:
-	"""Note: @see tranp.app.implements.cpp.view.cpp_view_helper.CppViewHelper.VarType.annotated"""
-	return lambda var_type, annotations: CppViewHelper.VarType.annotated(var_type, annotations)
-
-
-def break_iterator_list_complex(setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str, str, str]]:
-	"""Note: @see tranp.app.implements.cpp.view.cpp_view_helper.CppViewHelper.Method.break_iterator_list_complex"""
-	return lambda statements: CppViewHelper.Method.break_iterator_list_complex(statements)
+	@classmethod
+	def break_iterator_list_complex(cls, setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str, str, str]]:
+		return cls.Method.break_iterator_list_complex
 
 
 def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
-	return ([super_initializer_parse, initializer_parse, parameter_parse, param_type_annotated, var_type_annotated, break_iterator_list_complex], [])
+	return (
+		[
+			CppViewHelper.super_initializer_parse,
+			CppViewHelper.initializer_parse,
+			CppViewHelper.parameter_parse,
+			CppViewHelper.param_type_annotated,
+			CppViewHelper.var_type_annotated,
+			CppViewHelper.break_iterator_list_complex,
+		],
+		[],
+	)

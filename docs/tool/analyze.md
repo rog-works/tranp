@@ -56,8 +56,9 @@ Selection here. Type `exit` to quit:
 
 # analyze
 
-* ソースコードを入力するとASTを出力
-* analyzeの解析結果は`__main__`モジュールに登録される。各タスクから解析が可能
+* ソースコードを入力すると、モジュールのASTを表示
+* analyzeの解析結果は`__main__`モジュールに登録。各タスクから解析が可能
+* ※ソースコードは保存されない
 
 ```bash
 ==============
@@ -79,7 +80,6 @@ AST
 * 遷移後、ロード中の全モジュールのクラス一覧が表示
 
 ```bash
-c
 ==============
 Class List
 --------------
@@ -112,10 +112,9 @@ typing#Union
 
 # db
 
-* ロード中の全モジュールのシンボル一覧が表示
+* 遷移後、ロード中の全モジュールのシンボル一覧が表示
 
 ```bash
-d
 ==============
 Symbol DB
 --------------
@@ -145,7 +144,6 @@ Module load completed!
 * 遷移後、ロード中の全モジュールのモジュールパス一覧が表示
 
 ```bash
-p
 ==============
 Module List
 --------------
@@ -179,7 +177,6 @@ AST
 * 遷移後、ロード中の全モジュールのモジュールパス一覧が表示
 
 ```bash
-s
 ==============
 Module List
 --------------
@@ -205,6 +202,7 @@ Node/Symbol fullyname or full_path or id here. Type `exit` to Menu:
 * ※1: class/db/prettyタスク等を利用して確認
 
 ```bash
+==============
 Node/Symbol fullyname or full_path or id here. Type `exit` to Menu:
 typing#Any
 {

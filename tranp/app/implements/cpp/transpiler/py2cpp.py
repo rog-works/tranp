@@ -493,7 +493,7 @@ class Py2Cpp(ITranspiler):
 		# 期待値2: 'range(begin, size)'
 		# 期待値3: 'range(begin, size, step)'
 		args_num = len(node.iterates.as_a(defs.FuncCall).arguments)
-		join_args = PatternParser.pluck_func_call_arguments(for_in)
+		_, join_args = BlockParser.break_last_block(for_in, '()')
 		if args_num == 1:
 			return self.render(node, f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'begin': 0, 'size': join_args, 'step': 1, 'statements': statements})
 		elif args_num == 2:
@@ -505,7 +505,7 @@ class Py2Cpp(ITranspiler):
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'enumerate(arguments...)'
-		iterates = PatternParser.pluck_func_call_arguments(for_in)
+		_, iterates = BlockParser.break_last_block(for_in, '()')
 		var_type = self.to_accessible_name(self.reflections.type_of(node.for_in).attrs[1])
 		return self.render(node, f'flow/{node.classification}/enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
@@ -1184,7 +1184,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == FuncCallSpec.Tags.cvar_new_smart:
 			# 期待値: CSP.new(A(a, b, c))
 			cvar_key = context_name
-			var_type, initializer = PatternParser.pluck_cvar_new(arguments[0])
+			var_type, initializer = BlockParser.break_last_block(arguments[0], '()')
 			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'cvar_type': cvar_key, 'var_type': var_type, 'initializer': initializer})
 		elif spec == FuncCallSpec.Tags.cvar_smart_empty:
 			# 期待値: CSP[A].empty()
@@ -1699,22 +1699,6 @@ class PatternParser:
 		return cast(re.Match, cls.RelayPattern.fullmatch(relay)).group(1, 2)
 
 	@classmethod
-	def pluck_func_call_arguments(cls, func_call: str) -> str:
-		"""関数コールから引数リストの部分を抜き出す
-
-		Args:
-			func_call: 文字列
-		Returns:
-			引数リスト
-		Note:
-			```
-			### 期待値
-			'path.to.calls(arguments...)' -> 'arguments...'
-			```
-		"""
-		return BlockParser.break_last_block(func_call, '()')[1]
-
-	@classmethod
 	def break_list_sort_key(cls, arg: str) -> tuple[str, str, str]:
 		"""配列のキーソートコールから各要素に分解
 
@@ -1745,22 +1729,6 @@ class PatternParser:
 			```
 		"""
 		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
-
-	@classmethod
-	def pluck_cvar_new(cls, argument: str) -> tuple[str, str]:
-		"""C++型変数のメモリー生成関数コールを分解
-
-		Args:
-			argument: 文字列
-		Returns:
-			(レシーバー, 引数)
-		Note:
-			```
-			### 期待値
-			'Class(arguments...)' -> ('Class', 'arguments...')
-			```
-		"""
-		return BlockParser.break_last_block(argument, '()')
 
 	@classmethod
 	def sub_cvar_relay(cls, receiver: str) -> str:

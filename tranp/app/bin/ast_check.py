@@ -102,7 +102,7 @@ $ tranp ast [-i source_path] [-g grammar_path] [-p parser_name] [-n normalizer_p
 -i: Input source file
 -g: Input grammar file
 -p: Usage parser name (default="lark")
--n: Normalizer file path
+-n: Normalizer file
 -h: Show help
 # Examples
 ## Interactive mode

@@ -459,13 +459,13 @@ class Help:
 """# Usage
 $ tranp [-c config_path] [-i source_path] [-f] [-it] [-h] [-p] [-v]
 # Options
--c:  Config YAML filepath. default to "path/to/tranp/config.yml"
--i:  Input source filepath
--f:  Force re-output
+-c:  Config YAML file. default to "path/to/tranp/config.yml"
+-i:  Input source file
+-f:  Force excecution
 -it: Interactive mode
 -h:  Show help
 -p:  Show profiling
--v:  Output Detailed logs
+-v:  Show detailed logs
 # Examples
 $ tranp -h
 $ tranp -it

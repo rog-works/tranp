@@ -11,6 +11,14 @@ def help() -> None:
 	"""ヘルプ"""
 	print(
 """# Usage
+$ tranp [sub-command default=transpile] [sub-command options...]
+# Sub-Commands
+transplie: Transpiler
+  analyze: Symbol Analyzer
+      ast: Syntax Analyzer
+     gram: Grammer Analyzer
+       j2: Jinja2 Analyzer
+# Examples
 $ tranp -h
 $ tranp -it
 $ tranp -c path/to/config.yml

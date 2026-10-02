@@ -82,8 +82,9 @@ class App:
 
 	def run_help(self) -> None:
 		"""実行処理(ヘルプ)"""
-		print("""# Usage
-$ bin/gram.sh [-i grammar_path] [-o output_path] [-h]
+		print(
+"""# Usage
+$ tranp gram [-i grammar_path] [-o output_path] [-h]
 # Options
 -i: Input grammar file
 -o: Output rules file
@@ -94,7 +95,8 @@ $ bin/gram.sh
 ## Command line mode
 $ bin/gram.sh -i path/to/grammar.lark
 $ bin/gram.sh -i path/to/grammar.lark -o path/to/output_rules.py
-""")
+"""
+		)
 
 	def run_echo(self) -> None:
 		"""実行処理(解析結果を標準出力)"""

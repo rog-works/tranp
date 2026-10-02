@@ -95,8 +95,9 @@ class App:
 
 	def run_help(self) -> None:
 		"""実行処理(ヘルプ)"""
-		print("""# Usage
-$ bin/ast.sh [-i source_path] [-g grammar_path] [-p parser_name] [-n normalizer_path or "default"] [-h]
+		print(
+"""# Usage
+$ tranp ast [-i source_path] [-g grammar_path] [-p parser_name] [-n normalizer_path or "default"] [-h]
 # Options
 -i: Input source file
 -g: Input grammar file
@@ -105,16 +106,17 @@ $ bin/ast.sh [-i source_path] [-g grammar_path] [-p parser_name] [-n normalizer_
 -h: Show help
 # Examples
 ## Interactive mode
-$ bin/ast.sh
-$ bin/ast.sh -g path/to/grammar.lark
-$ bin/ast.sh -g path/to/grammar.lark -p other
-$ bin/ast.sh -g path/to/grammar.lark -p other -n default
+$ tranp ast
+$ tranp ast -g path/to/grammar.lark
+$ tranp ast -g path/to/grammar.lark -p other
+$ tranp ast -g path/to/grammar.lark -p other -n default
 ## Command line mode
-$ bin/ast.sh -i path/to/source.py
-$ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark
-$ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
-$ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other -n path/to/normalizer.py
-""")
+$ tranp ast -i path/to/source.py
+$ tranp ast -i path/to/source.py -g path/to/grammar.lark
+$ tranp ast -i path/to/source.py -g path/to/grammar.lark -p other
+$ tranp ast -i path/to/source.py -g path/to/grammar.lark -p other -n path/to/normalizer.py
+"""
+		)
 
 	def run_parse(self) -> None:
 		"""実行処理(既存ファイルを解析)"""

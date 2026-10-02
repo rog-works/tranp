@@ -12,7 +12,7 @@ class CppViewHelper:
 	"""ビューヘルパー(C++用)"""
 
 	class SuperInitializer:
-		"""ヘルパー(C++/イニシャライザー/スーパーコール)"""
+		"""ヘルパー(イニシャライザー/スーパーコール)"""
 
 		SuperCall: ClassVar = re.compile(r'([\w\d]+)::__init__\(([^;]*)\);$')
 
@@ -22,7 +22,7 @@ class CppViewHelper:
 			return as_a(re.Match, re.search(cls.SuperCall, statement)).group(1, 2)
 
 	class Initializer:
-		"""ヘルパー(C++/イニシャライザー/メンバー初期化)"""
+		"""ヘルパー(イニシャライザー/メンバー初期化)"""
 
 		MoveAssign: ClassVar = re.compile(r'.+\s+this->([\w\d]+)\s+=\s+([^;]+);')
 		Initializer: ClassVar = re.compile(r'.+\s+this->([\w\d]+)(\{[^;]*\});')
@@ -35,7 +35,7 @@ class CppViewHelper:
 			return matches[0], (matches[1] if len(matches) == 2 else '')
 
 	class Param:
-		"""ヘルパー(C++/パラメーター)"""
+		"""ヘルパー(パラメーター)"""
 
 		VarType: ClassVar = re.compile(r'^(const\s+)?([\w\d\:]+)[^\*&]*[\*&]?')
 
@@ -81,7 +81,7 @@ class CppViewHelper:
 				return self.var_type.split('<')[0]
 
 	class ParamType:
-		"""ヘルパー(C++/引数の型)"""
+		"""ヘルパー(引数の型)"""
 
 		AnnoMutable: ClassVar = f'{Embed.__name__}::{Embed.mutable.__name__}'
 		PatternOriginType: ClassVar = re.compile('^([\\w\\d:_]+)')
@@ -109,7 +109,7 @@ class CppViewHelper:
 				return var_type
 
 	class VarType:
-		"""ヘルパー(C++/変数の型)"""
+		"""ヘルパー(変数の型)"""
 
 		AnnoImmutable: ClassVar = f'{Embed.__name__}::{Embed.immutable.__name__}'
 		AnnoReference: ClassVar = f'{Embed.__name__}::{Embed.reference.__name__}'
@@ -147,7 +147,7 @@ class CppViewHelper:
 				return f'const {var_type}&'
 
 	class Method:
-		"""ヘルパー(C++/メソッド)"""
+		"""ヘルパー(メソッド)"""
 
 		PatternFor: ClassVar = re.compile(r'for \([^;]+; ([\w\d]+) < ([^;]+); ([^)]+)\) \{')
 		PatternYield: ClassVar = re.compile(r'\s+return ([^;]+);')
@@ -180,6 +180,24 @@ class CppViewHelper:
 			iterates = matches_iterates.group(1)
 			return for_index, iterates, index, increment, get_size, get_value
 
+	class Sort:
+		"""ヘルパー(ソート)"""
+
+		ListSorterPattern: ClassVar = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
+
+		@classmethod
+		def break_list_sorter(cls, sorter: str) -> tuple[str, str, str]:
+			"""配列のキーソートコールから各要素に分解
+
+			Args:
+				sorter: ソート関数
+			Returns:
+				(エントリーの型, 引数の名前, 比較対象の式)
+			Note:
+				* 期待値: '[](Entry entry) -> Any { return entry.value; }' -> ('Entry', 'entry', 'entry.value')
+			"""
+			return cast(re.Match, re.fullmatch(cls.ListSorterPattern, sorter)).group(1, 2, 3)
+
 	@classmethod
 	def super_initializer_parse(cls, setting: RendererSetting) -> Callable[[str], tuple[str, str]]:
 		return cls.SuperInitializer.parse
@@ -204,6 +222,10 @@ class CppViewHelper:
 	def break_iterator_list_complex(cls, setting: RendererSetting) -> Callable[[list[str]], tuple[int, str, str, str, str, str]]:
 		return cls.Method.break_iterator_list_complex
 
+	@classmethod
+	def break_list_sorter(cls, setting: RendererSetting) -> Callable[[str], tuple[str, str, str]]:
+		return cls.Sort.break_list_sorter
+
 
 def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
@@ -215,6 +237,7 @@ def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelpe
 			CppViewHelper.param_type_annotated,
 			CppViewHelper.var_type_annotated,
 			CppViewHelper.break_iterator_list_complex,
+			CppViewHelper.break_list_sorter,
 		],
 		[],
 	)

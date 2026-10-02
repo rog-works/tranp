@@ -457,21 +457,21 @@ class Help:
 	def run(self) -> None:
 		print(
 """# Usage
-$ bin/transpile.sh [-c config_path] [-i source_path] [-f] [-it] [-h] [-p] [-v]
+$ tranp [-c config_path] [-i source_path] [-f] [-it] [-h] [-p] [-v]
 # Options
--c: Config YAML filepath. default to 'path/to/tranp/config.yml'
--i: Input source filepath
--f: Force re-output
+-c:  Config YAML file. default to "path/to/tranp/config.yml"
+-i:  Input source file
+-f:  Force excecution
 -it: Interactive mode
--h: Show help
--p: Show profiling
--v: Output Detailed logs
+-h:  Show help
+-p:  Show profiling
+-v:  Show detailed logs
 # Examples
-$ bin/transpile.sh -h
-$ bin/transpile.sh -it
-$ bin/transpile.sh -c path/to/config.yml
-$ bin/transpile.sh -c path/to/config.yml -i path/to/source.py
-$ bin/transpile.sh -c path/to/config.yml -f -p -v
+$ tranp -h
+$ tranp -it
+$ tranp -c path/to/config.yml
+$ tranp -c path/to/config.yml -i path/to/source.py
+$ tranp -c path/to/config.yml -f -p -v
 """
 		)
 

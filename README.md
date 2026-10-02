@@ -76,11 +76,11 @@ int main() {
 }
 ```
 
-* `exit`のみ入力するとREPLが終了
+* `exit`のみ入力するとREPLが終了 (または`Ctrl + C`)
 
 ```bash
-===============
-Python code here. Type `exit` to quit:
+==========
+Code here. Type `exit` to quit:
 exit
 Quit
 ```
@@ -214,7 +214,7 @@ file_input
 
 ## シンボル解析ツール
 
-* `ast`コマンドを指定して実行するとREPLが起動
+* `analyze`コマンドを指定して実行するとREPLが起動
 * 詳細は[シンボル解析ツール](docs/tool/analyze.md)で解説
 
 ```bash

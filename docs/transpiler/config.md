@@ -3,13 +3,20 @@
 
 # 概要
 
-* コンフィグの仕様・スキーマに関して記載
+* コンフィグの設定項目
+  * グラマー
+  * 翻訳マッピング
+  * 入力テンプレート
+  * 入力ソースコード
+  * 出力ソースコード
+  * DI
+  * 環境変数
 
 # インデックス
 
 * [grammar](#grammar)
-* [template_dirs](#template_dirs)
 * [trans_mapping](#trans_mapping)
+* [template_dirs](#template_dirs)
 * [input_globs](#input_globs)
 * [output_dirs](#output_dirs)
 * [exclude_patterns](#exclude_patterns)

@@ -1,5 +1,4 @@
-import json
-import sys
+from pprint import pprint
 from typing import Any
 
 from tranp.app.app.definition import module_dependency_provider
@@ -99,19 +98,17 @@ class DIDefinitions:
 		}
 
 
-def run(target: str) -> None:
-	"""エントリーポイント
-
-	Args:
-		target: 対象
-	"""
-	factories = {
-		'app': DIDefinitions.app,
-		'module': DIDefinitions.module,
-	}
-	defs = {to_fullyname(symbol): to_fullyname(injector) for symbol, injector in factories[target]().items()}
-	print(json.dumps(defs, indent=2, ensure_ascii=False))
+def main() -> None:
+	"""エントリーポイント"""
+	factories = [
+		DIDefinitions.app,
+		DIDefinitions.module,
+	]
+	for factory in factories:
+		defs = {to_fullyname(symbol): to_fullyname(injector) for symbol, injector in factory().items()}
+		print(f'# {factory.__name__}')
+		pprint(defs)
 
 
 if __name__ == '__main__':
-	run(sys.argv[1] if len(sys.argv) == 2 else 'app')
+	main()

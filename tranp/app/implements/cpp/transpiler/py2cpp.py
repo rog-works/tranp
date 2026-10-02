@@ -705,22 +705,15 @@ class Py2Cpp(ITranspiler):
 		return self.render(node, f'assign/{node.classification}', vars={'receiver': receiver, 'operator': node.operator.tokens, 'value': value})
 
 	def on_delete(self, node: defs.Delete, targets: str) -> str:
-		target_types: list[str] = []
-		for target_node in node.targets:
+		_targets: list[dict[str, str]] = []
+		for index, target_node in enumerate(node.targets):
 			if isinstance(target_node, defs.Indexer):
 				target_symbol = self.reflections.type_of(target_node.receiver)
-				target_types.append('list' if target_symbol.impl(refs.Object).type_is(list) else 'dict')
+				target_type = 'list' if target_symbol.impl(refs.Object).type_is(list) else 'dict'
+				receiver, key = BlockParser.break_last_block(targets[index], '[]')
+				_targets.append({'receiver': receiver, 'type': target_type, 'key': key})
 			else:
-				target_types.append('otherwise')
-
-		_targets: list[dict[str, str]] = []
-		for i in range(len(targets)):
-			target = targets[i]
-			if target_types[i] != 'otherwise':
-				receiver, key = PatternParser.break_indexer(target)
-				_targets.append({'receiver': receiver, 'type': target_types[i], 'key': key})
-			else:
-				_targets.append({'receiver': target, 'type': target_types[i]})
+				_targets.append({'receiver': targets[index], 'type': 'otherwise'})
 
 		return self.render(node, f'statement/{node.classification}', vars={'targets': _targets})
 
@@ -1752,22 +1745,6 @@ class PatternParser:
 			```
 		"""
 		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
-
-	@classmethod
-	def break_indexer(cls, indexer: str) -> tuple[str, str]:
-		"""インデクサーからレシーバーとキーに分解
-
-		Args:
-			assign: 文字列
-		Returns:
-			(レシーバー, キー)
-		Note:
-			```
-			### 期待値
-			'path.to[key]' -> ('path.to', 'key')
-			```
-		"""
-		return BlockParser.break_last_block(indexer, '[]')
 
 	@classmethod
 	def pluck_cvar_new(cls, argument: str) -> tuple[str, str]:

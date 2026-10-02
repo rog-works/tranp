@@ -29,11 +29,8 @@ def custom_function(setting: RendererSetting) -> Callable[[str], str]:
 def custom_filter(setting: RendererSetting) -> Callable[[list[str]], list[str]]:
   return lambda strings: ...
 
-def my_helper_provider(setting: RendererSetting) -> RenderHelperProvider:
+def my_helper_provider() -> RenderHelperProvider:
   funcs, filters = factories()
   funcs_cpp, filters_cpp = factories_for_cpp()
-  return {
-    'function': [factory.__name__: factory(setting) for factory in [*funcs, *funcs_cpp, custom_function]],
-    'filter': [factory.__name__: factory(setting) for factory in [*filters, *filters_cpp, custom_filter]],
-  }
+  return lambda: ([*funcs, *funcs_cpp, custom_function], [*filters, *filters_cpp, custom_filter])
 ```

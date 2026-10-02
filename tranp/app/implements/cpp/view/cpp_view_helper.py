@@ -194,7 +194,7 @@ class CppViewHelper:
 			Returns:
 				(エントリーの型, 引数の名前, 比較対象の式)
 			Note:
-				* 期待値: '[](Entry entry) -> Any { return entry.value; }' -> ('Entry', 'entry', 'entry.value')
+				期待値: '[](Entry entry) -> Any { return entry.value; }' -> ('Entry', 'entry', 'entry.value')
 			"""
 			return cast(re.Match, re.fullmatch(cls.ListSorterPattern, sorter)).group(1, 2, 3)
 

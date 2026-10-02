@@ -1,4 +1,5 @@
-{%- if is_quoted_literal(arguments[0]) -%}
+{#- XXX char('"')の場合はエスケープされないため、startswith/endswithで判定 -#}
+{%- if arguments[0].startswith('"') and arguments[0].endswith('"') -%}
 '{{ arguments[0][1:-1] }}'{% if is_statement %};{% endif %}
 {%- else -%}
 {{ arguments[0] }}{% if is_statement %};{% endif %}

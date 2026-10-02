@@ -611,9 +611,9 @@ class Py2Cpp(ITranspiler):
 					class_var_statements.append((index, statements[index]))
 
 		# XXX メンバー変数の展開方法を検討
-		for index, class_var_statement in class_var_statements:
-			class_var_name = PatternParser.pluck_class_var_name(class_var_statement)
-			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': class_var_statement}
+		for var_index, decl_class_var in enumerate(node.class_vars):
+			index, class_var_statement = class_var_statements[var_index]
+			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(decl_class_var.domain_name)), 'decl_class_var': class_var_statement}
 			a_statements[index] = self.render(node, f'{node.classification}/_decl_class_var', vars=class_var_vars)
 
 		for var_index, decl_this_var_item in enumerate(node.decl_this_vars.items()):
@@ -1686,7 +1686,6 @@ class PatternParser:
 	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
 	ListSortKeyPattern: ClassVar[re.Pattern[str]] = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
 	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
-	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
 	CVarRelaySubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
 	CVarToSubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
 
@@ -1753,23 +1752,6 @@ class PatternParser:
 			```
 		"""
 		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
-
-	@classmethod
-	def pluck_class_var_name(cls, decl_class_var: str) -> str:
-		"""代入式から右辺の部分を抜き出す
-
-		Args:
-			assign: 文字列
-		Returns:
-			右辺
-		Note:
-			```
-			### 期待値
-			'A var_name = right;' -> 'var_name'
-			```
-		"""
-		matches = cls.DeclClassVarNamePattern.search(decl_class_var)
-		return matches[1] if matches else ''
 
 	@classmethod
 	def break_indexer(cls, indexer: str) -> tuple[str, str]:

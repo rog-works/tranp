@@ -3,22 +3,41 @@
 
 # 概要
 
-* Python to C++特有のルール、各種フックやテクニックの紹介
+* Python to C++特有のルール、技術的なトピックの紹介
 
 # インデックス
 
+* [記述ルール](#記述ルール)
+  * [型注釈](#型注釈)
+  * [インポート](#インポート)
 * [一般](#一般)
   * [クラス](#クラス)
+  * [ジェネリック](#ジェネリック)
+  * [型エイリアス](#型エイリアス)
   * [C++型変数](#c型変数)
+  * [for文](#for文)
   * [文字・文字列](#文字文字列)
   * [配列・連想配列](#配列連想配列)
   * [クロージャー・ラムダ](#クロージャーラムダ)
   * [文字列展開](#文字列展開)
 * [アノテーション](#アノテーション)
   * [エイリアス](#エイリアス)
+  * [インターフェイス・抽象型](#インターフェイス抽象型)
   * [出力除外](#出力除外)
+  * [継承除外](#継承除外)
   * [構造体・ユニオン](#構造体ユニオン)
   * [関数ローカルスタティック変数](#関数ローカルスタティック変数)
+
+# 記述ルール
+
+## 型注釈
+
+* 基本的に必須
+* 代入など、型推論可能な場合は省略可能
+
+## インポート
+
+* モジュール全体のインポートは不可
 
 # 一般
 
@@ -42,6 +61,53 @@ public: int n;
 public:
   A(int n) : n(n) {}
 };
+```
+
+## ジェネリック
+
+```python
+# 関数
+def gen[T](t: type[T]) -> T: ...
+
+n = gen(int)
+
+# クラス
+class Gen[T]:
+  value: T
+
+  def __init__(self, value: T) -> None:
+    self.value = value
+
+g = Gen(0)
+```
+↓
+```cpp
+// 関数
+<typename T>
+T gen() { ... }
+int n = gen<int>();
+// クラス
+<typename T>
+class Gen {
+public: T value;
+public:
+  Gen(T value) : value(value) {}
+};
+Gen<int> g = Gen(0);
+```
+
+## 型エイリアス
+
+```python
+from typing import TypeAlias
+
+Int: TypeAlias = int
+# NG: Int = int
+# NG: type Int = int
+```
+↓
+```cpp
+using Int = int;
 ```
 
 ## C++型変数
@@ -81,6 +147,24 @@ std::unique_ptr<int> unique = std::make_unique<int>(1);
 // 参照
 int& ref = *p;
 const int& ref_const = ref;
+```
+
+## for文
+
+```python
+for i in range(10): ...
+for value in values: ...
+for index, value in enumerate(values): ...
+```
+↓
+```cpp
+for (auto i = 0; i < 10; i += 1) {}
+for (auto value& : values) {}
+int index = 0;
+for (auto value& : values) {
+  ...
+  index += 1;
+}
 ```
 
 ## 文字・文字列
@@ -167,6 +251,43 @@ class A2 {};
 class AB {};
 ```
 
+## インターフェイス・抽象型
+
+```python
+from abc import abstracemethod, ABCMeta
+from tranp.app.compatible.python.embed import Embed
+
+class Interface(metaclass=ABCMeta):
+  @Embed.allow_override
+  def __py_destroy__(self) -> None: ...
+  @abstractmethod
+  def f(self) -> int: ...
+
+class Abstract:
+  @Embed.allow_override
+  def __py_destroy__(self) -> None: ...
+  @abstractmethod
+  def f(self) -> int: ...
+  @Embed.allow_override
+  def f2(self) -> int:
+    return 1
+```
+↓
+```cpp
+class Interface {
+public: virtual ~Interface() = default;
+public: virtual int f() = 0;
+};
+class Abstract {
+public: virtual ~Abstract() = default;
+public: virtual int f() = 0;
+public:
+  virtual int f2(self) {
+    return 1;
+  }
+};
+```
+
 ## 出力除外
 
 ```python
@@ -174,20 +295,33 @@ from tranp.app.compatible.python.embed import Embed
 
 @Embed.python
 def exec() -> None:
-  print('bar')
+  print('python')
 
 @Embed.alias(exec.__name__)
 def exec_cpp() -> None:
-  print('buzz')
+  print('cpp')
 
 exec()
 ```
 ↓
 ```cpp
 void exec() {
-  printf("buzz");
+  printf("cpp");
 }
 exec();
+```
+
+## 継承除外
+
+```python
+from tranp.app.compatible.python.embed import Embed
+
+@Embed.ignore(OnPython)
+class A(OnPython): ...
+```
+↓
+```cpp
+class A {};
 ```
 
 ## 構造体・ユニオン

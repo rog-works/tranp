@@ -1,5 +1,5 @@
 import os
-from typing import Any, Callable, Literal, NamedTuple, Protocol, TypeAlias
+from typing import Any, Callable, NamedTuple, Protocol, TypeAlias
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -32,10 +32,10 @@ class RendererHelperProvider(Protocol):
 	"""ヘルパープロバイダープロトコル
 
 	Returns:
-		ヘルパー一覧({登録タイプ: {関数名: ヘルパー関数}})
+		([ヘルパーファクトリー(関数)], [ヘルパーファクトリー(フィルター)])
 	"""
 
-	def __call__(self) -> dict[Literal['function', 'filter'], dict[str, Callable[..., Any]]]:
+	def __call__(self) -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
 		"""@see decl"""
 		...
 
@@ -53,7 +53,7 @@ class Renderer:
 		"""
 		template_dirs = self.__make_template_dirs(env_path, setting)
 		self.__renderer = Environment(loader=FileSystemLoader(template_dirs, encoding='utf-8'), auto_reload=False)
-		self.__apply_helpers(helper_provider)
+		self.__apply_helpers(setting, helper_provider)
 
 	def __make_template_dirs(self, env_path: DataEnvPath, setting: RendererSetting) -> list[str]:
 		"""テンプレートの入力ディレクトリーリストを生成
@@ -73,18 +73,18 @@ class Renderer:
 
 		return template_dirs
 
-	def __apply_helpers(self, helper_provider: RendererHelperProvider) -> None:
+	def __apply_helpers(self, setting: RendererSetting, helper_provider: RendererHelperProvider) -> None:
 		"""テンプレートヘルパーを適用
 
 		Args:
 			helper_privider: ヘルパープロバイダー
 		"""
-		for tag, helpers in helper_provider().items():
-			for name, helper in helpers.items():
-				if tag == 'function':
-					self.__renderer.globals[name] = helper
-				elif tag == 'filter':
-					self.__renderer.filters[name] = helper
+		for index, factories in enumerate(helper_provider()):
+			for factory in factories:
+				if index == 0:
+					self.__renderer.globals[factory.__name__] = factory(setting)
+				elif index == 1:
+					self.__renderer.filters[factory.__name__] = factory(setting)
 
 	def render(self, template: str, vars: dict[str, Any] = {}) -> str:
 		"""テンプレートをレンダリング

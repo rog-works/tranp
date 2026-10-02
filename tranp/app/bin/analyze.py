@@ -276,7 +276,11 @@ class AnalyzeApp(App):
 
 	def task_load(self) -> None:
 		"""タスク(モジュールロード)"""
-		filepath = readline('Module filepath here:')
+		prompt = '\n'.join([
+			'--------------',
+			'Module filepath here:',
+		])
+		filepath = readline(prompt)
 		if not os.path.isabs(filepath):
 			filepath = os.path.abspath(filepath)
 

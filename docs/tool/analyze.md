@@ -133,6 +133,7 @@ Symbol DB
 * 読み込みが完了すると、各タスクから解析が可能
 
 ```bash
+--------------
 Module filepath here:
 example/json.py
 --------------

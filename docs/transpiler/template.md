@@ -22,6 +22,7 @@ di:
 # view.helper.py
 from tranp.app.implements.cpp.view.cpp_view_helper import factories_for_cpp
 from tranp.app.view.helper.helper import factories
+from tranp.app.view.render import RendererHelperProvider, RendererSetting
 
 def custom_function(setting: RendererSetting) -> Callable[[str], str]:
   return lambda string: ...

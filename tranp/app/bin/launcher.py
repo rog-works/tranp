@@ -11,9 +11,9 @@ def help() -> None:
 	"""ヘルプ"""
 	print(
 """# Usage
-$ tranp [sub-command default=transpile] [sub-command options...]
-# Sub-Commands
-transplie: Transpiler
+$ tranp [command [command options...]]
+# Commands
+transplie: Transpiler *default
   analyze: Symbol Analyzer
       ast: Syntax Analyzer
      gram: Grammer Analyzer

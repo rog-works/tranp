@@ -493,7 +493,7 @@ class Py2Cpp(ITranspiler):
 		# 期待値2: 'range(begin, size)'
 		# 期待値3: 'range(begin, size, step)'
 		args_num = len(node.iterates.as_a(defs.FuncCall).arguments)
-		join_args = PatternParser.pluck_func_call_arguments(for_in)
+		_, join_args = BlockParser.break_last_block(for_in, '()')
 		if args_num == 1:
 			return self.render(node, f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'begin': 0, 'size': join_args, 'step': 1, 'statements': statements})
 		elif args_num == 2:
@@ -505,7 +505,7 @@ class Py2Cpp(ITranspiler):
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'enumerate(arguments...)'
-		iterates = PatternParser.pluck_func_call_arguments(for_in)
+		_, iterates = BlockParser.break_last_block(for_in, '()')
 		var_type = self.to_accessible_name(self.reflections.type_of(node.for_in).attrs[1])
 		return self.render(node, f'flow/{node.classification}/enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
@@ -611,9 +611,9 @@ class Py2Cpp(ITranspiler):
 					class_var_statements.append((index, statements[index]))
 
 		# XXX メンバー変数の展開方法を検討
-		for index, class_var_statement in class_var_statements:
-			class_var_name = PatternParser.pluck_class_var_name(class_var_statement)
-			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': class_var_statement}
+		for var_index, decl_class_var in enumerate(node.class_vars):
+			index, class_var_statement = class_var_statements[var_index]
+			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(decl_class_var.domain_name)), 'decl_class_var': class_var_statement}
 			a_statements[index] = self.render(node, f'{node.classification}/_decl_class_var', vars=class_var_vars)
 
 		for var_index, decl_this_var_item in enumerate(node.decl_this_vars.items()):
@@ -705,22 +705,15 @@ class Py2Cpp(ITranspiler):
 		return self.render(node, f'assign/{node.classification}', vars={'receiver': receiver, 'operator': node.operator.tokens, 'value': value})
 
 	def on_delete(self, node: defs.Delete, targets: str) -> str:
-		target_types: list[str] = []
-		for target_node in node.targets:
+		_targets: list[dict[str, str]] = []
+		for index, target_node in enumerate(node.targets):
 			if isinstance(target_node, defs.Indexer):
 				target_symbol = self.reflections.type_of(target_node.receiver)
-				target_types.append('list' if target_symbol.impl(refs.Object).type_is(list) else 'dict')
+				target_type = 'list' if target_symbol.impl(refs.Object).type_is(list) else 'dict'
+				receiver, key = BlockParser.break_last_block(targets[index], '[]')
+				_targets.append({'receiver': receiver, 'type': target_type, 'key': key})
 			else:
-				target_types.append('otherwise')
-
-		_targets: list[dict[str, str]] = []
-		for i in range(len(targets)):
-			target = targets[i]
-			if target_types[i] != 'otherwise':
-				receiver, key = PatternParser.break_indexer(target)
-				_targets.append({'receiver': receiver, 'type': target_types[i], 'key': key})
-			else:
-				_targets.append({'receiver': target, 'type': target_types[i]})
+				_targets.append({'receiver': targets[index], 'type': 'otherwise'})
 
 		return self.render(node, f'statement/{node.classification}', vars={'targets': _targets})
 
@@ -1122,9 +1115,8 @@ class Py2Cpp(ITranspiler):
 			receiver, operator = PatternParser.break_relay(calls)
 			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == FuncCallSpec.Tags.list and context_name == list.sort.__name__ and len(arguments) > 0:
-			# 期待値: 'receiver.sort([]({entry_type} entry) -> Any { return entry; })'
-			entry_type, entry_name, entry_value = PatternParser.break_list_sort_key(arguments[0])
-			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'entry_type': entry_type, 'entry_name': entry_name, 'entry_value': entry_value})
+			# 期待値: 'receiver.sort([](EntryType entry) -> Any { return entry; })'
+			return self.render(node, f'{node.classification}/{spec.name}_{context_name}', vars={**func_call_vars, 'sorter': arguments[0]})
 		elif spec == FuncCallSpec.Tags.dict and context_name == dict.copy.__name__:
 			# 期待値: 'receiver.copy'
 			receiver, operator = PatternParser.break_relay(calls)
@@ -1191,7 +1183,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == FuncCallSpec.Tags.cvar_new_smart:
 			# 期待値: CSP.new(A(a, b, c))
 			cvar_key = context_name
-			var_type, initializer = PatternParser.pluck_cvar_new(arguments[0])
+			var_type, initializer = BlockParser.break_last_block(arguments[0], '()')
 			return self.render(node, f'{node.classification}/{spec.name}', vars={**func_call_vars, 'cvar_type': cvar_key, 'var_type': var_type, 'initializer': initializer})
 		elif spec == FuncCallSpec.Tags.cvar_smart_empty:
 			# 期待値: CSP[A].empty()
@@ -1546,7 +1538,7 @@ class Py2Cpp(ITranspiler):
 class ClassOperationMaps:
 	"""特殊メソッドのマッピングデータ"""
 
-	operators: ClassVar[dict[str, str]] = {
+	operators: ClassVar = {
 		# comparison
 		'__eq__': 'operator==',
 		'__ne__': 'operator!=',
@@ -1568,7 +1560,7 @@ class ClassOperationMaps:
 		# '__setitem__': 'operator[]', XXX C++ではset用のオペレーターは存在せず、getから参照を返すことで実現する
 	}
 
-	ctors: ClassVar[dict[str, str]] = {
+	ctors: ClassVar = {
 		PythonClassOperations.copy_constructor: 'copy_constructor',
 		PythonClassOperations.destructor: 'destructor',
 	}
@@ -1630,7 +1622,7 @@ class FuncCallSpec:
 		cvar_to_addr_hex = 409
 		cvar_to_addr_id = 410
 
-	convertion_scalars: ClassVar[list[str]] = [
+	convertion_scalars: ClassVar = [
 		bool.__name__,
 		int.__name__,
 		float.__name__,
@@ -1641,25 +1633,25 @@ class FuncCallSpec:
 		uint64.__name__,
 		double.__name__,
 	]
-	list_methods: ClassVar[list[str]] = [
+	list_methods: ClassVar = [
 		list.pop.__name__,
 		list.insert.__name__,
 		list.extend.__name__,
 		list.copy.__name__,
 		list.sort.__name__,
 	]
-	dict_iter_methods: ClassVar[list[str]] = [
+	dict_iter_methods: ClassVar = [
 		dict.items.__name__,
 		dict.keys.__name__,
 		dict.values.__name__,
 	]
-	list_and_dict_methods: ClassVar[list[str]] = [
+	list_and_dict_methods: ClassVar = [
 		*list_methods,
 		*dict_iter_methods,
 		dict.get.__name__,
 		dict.copy.__name__,
 	]
-	str_methods: ClassVar[list[str]] = [
+	str_methods: ClassVar = [
 		str.split.__name__,
 		str.join.__name__,
 		str.replace.__name__,
@@ -1683,12 +1675,10 @@ class PatternParser:
 		これらは正規表現を用いないで済む方法へ修正を検討
 	"""
 
-	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
-	ListSortKeyPattern: ClassVar[re.Pattern[str]] = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
-	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
-	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
-	CVarRelaySubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
-	CVarToSubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
+	RelayPattern: ClassVar = re.compile(r'(.+)(->|::|\.)\w+$')
+	DictIteratorPattern: ClassVar = re.compile(rf'(.+)(->|\.)({"|".join(FuncCallSpec.dict_iter_methods)})\(\)$')
+	CVarRelaySubPattern: ClassVar = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
+	CVarToSubPattern: ClassVar = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
 
 	@classmethod
 	def break_relay(cls, relay: str) -> tuple[str, str]:
@@ -1707,38 +1697,6 @@ class PatternParser:
 		return cast(re.Match, cls.RelayPattern.fullmatch(relay)).group(1, 2)
 
 	@classmethod
-	def pluck_func_call_arguments(cls, func_call: str) -> str:
-		"""関数コールから引数リストの部分を抜き出す
-
-		Args:
-			func_call: 文字列
-		Returns:
-			引数リスト
-		Note:
-			```
-			### 期待値
-			'path.to.calls(arguments...)' -> 'arguments...'
-			```
-		"""
-		return BlockParser.break_last_block(func_call, '()')[1]
-
-	@classmethod
-	def break_list_sort_key(cls, arg: str) -> tuple[str, str, str]:
-		"""配列のキーソートコールから各要素に分解
-
-		Args:
-			arg: 文字列
-		Returns:
-			(エントリーの型, 引数の名前, 比較対象の式)
-		Note:
-			```
-			### 期待値
-			'[](Entry entry) -> Any { return entry.value; }' -> ('Entry', 'entry', 'entry.value')
-			```
-		"""
-		return cast(re.Match, re.fullmatch(cls.ListSortKeyPattern, arg)).group(1, 2, 3)
-
-	@classmethod
 	def break_dict_iterator(cls, func_call: str) -> tuple[str, str, str]:
 		"""連想配列のイテレーターコール(items|keys|values)から各要素に分解
 
@@ -1753,55 +1711,6 @@ class PatternParser:
 			```
 		"""
 		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
-
-	@classmethod
-	def pluck_class_var_name(cls, decl_class_var: str) -> str:
-		"""代入式から右辺の部分を抜き出す
-
-		Args:
-			assign: 文字列
-		Returns:
-			右辺
-		Note:
-			```
-			### 期待値
-			'A var_name = right;' -> 'var_name'
-			```
-		"""
-		matches = cls.DeclClassVarNamePattern.search(decl_class_var)
-		return matches[1] if matches else ''
-
-	@classmethod
-	def break_indexer(cls, indexer: str) -> tuple[str, str]:
-		"""インデクサーからレシーバーとキーに分解
-
-		Args:
-			assign: 文字列
-		Returns:
-			(レシーバー, キー)
-		Note:
-			```
-			### 期待値
-			'path.to[key]' -> ('path.to', 'key')
-			```
-		"""
-		return BlockParser.break_last_block(indexer, '[]')
-
-	@classmethod
-	def pluck_cvar_new(cls, argument: str) -> tuple[str, str]:
-		"""C++型変数のメモリー生成関数コールを分解
-
-		Args:
-			argument: 文字列
-		Returns:
-			(レシーバー, 引数)
-		Note:
-			```
-			### 期待値
-			'Class(arguments...)' -> ('Class', 'arguments...')
-			```
-		"""
-		return BlockParser.break_last_block(argument, '()')
 
 	@classmethod
 	def sub_cvar_relay(cls, receiver: str) -> str:

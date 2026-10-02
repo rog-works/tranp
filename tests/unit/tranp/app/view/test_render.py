@@ -143,7 +143,6 @@ class Expects:
 
 class Fixture:
 	def __init__(self) -> None:
-		# 効率化のためexampleのマッピングデータを利用
 		trans_mapping = self.__load_trans_mapping(os.path.join(tranp_dir(), 'data', 'i18n.yml'))
 
 		@duck_typed(Translator)
@@ -153,7 +152,7 @@ class Fixture:
 		template_dirs = [os.path.join(tranp_dir(), 'data', 'cpp', 'template')]
 		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 		setting = RendererSetting(template_dirs, translator, Middleware(), env)
-		provider = renderer_helper_provider_cpp(setting)
+		provider = renderer_helper_provider_cpp()
 		self.renderer = Renderer(DataEnvPath(), setting, provider)
 
 	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:
@@ -1145,14 +1144,14 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/list_pop', vars, expected)
 
 	@data_provider([
-		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'entry.value', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return a.value < b.value; });'),
-		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a) < order(b); });'),
-		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry.value)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a.value) < order(b.value); });'),
-		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry.value, false)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a.value, false) < order(b.value, false); });'),
-		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'entry->value', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return a.value < b.value; });'),
-		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(&a) < order(&b); });'),
-		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry->value)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a.value) < order(b.value); });'),
-		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry, false)', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(&a, false) < order(&b, false); });'),
+		({'calls': 'path.to.arr', 'sorter': '[](Entry entry) -> Any { return entry.value; }', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return a.value < b.value; });'),
+		({'calls': 'path.to.arr', 'sorter': '[](Entry entry) -> Any { return order(entry); }', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a) < order(b); });'),
+		({'calls': 'path.to.arr', 'sorter': '[](Entry entry) -> Any { return order(entry.value); }', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a.value) < order(b.value); });'),
+		({'calls': 'path.to.arr', 'sorter': '[](Entry entry) -> Any { return order(entry.value, false); }', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a.value, false) < order(b.value, false); });'),
+		({'calls': 'path.to.arr', 'sorter': '[](Entry* entry) -> Any { return entry->value; }', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return a.value < b.value; });'),
+		({'calls': 'path.to.arr', 'sorter': '[](Entry* entry) -> Any { return order(entry); }', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(&a) < order(&b); });'),
+		({'calls': 'path.to.arr', 'sorter': '[](Entry* entry) -> Any { return order(entry->value); }', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(a.value) < order(b.value); });'),
+		({'calls': 'path.to.arr', 'sorter': '[](Entry* entry) -> Any { return order(entry, false); }', 'arguments': [], 'is_statement': True}, 'path.to.arr([&](const Entry& a, const Entry& b) -> bool { return order(&a, false) < order(&b, false); });'),
 	])
 	def test_render_func_call_list_sort(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/list_sort', vars, expected)

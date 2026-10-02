@@ -1678,7 +1678,7 @@ class PatternParser:
 
 	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
 	ListSortKeyPattern: ClassVar[re.Pattern[str]] = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
-	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
+	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(rf'(.+)(->|\.)({"|".join(FuncCallSpec.dict_iter_methods)})\(\)$')
 	CVarRelaySubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.){CVars.Verbs.On.value}\(\)$')
 	CVarToSubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.)({"|".join(CVars.Casts.values())})\(\)$')
 

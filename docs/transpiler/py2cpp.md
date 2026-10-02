@@ -30,13 +30,13 @@ public:
 ## C++型変数
 
 |型名|不変型|C++|概要|
-|------|-----------|--------------------|---|
-| CP   | CPConst   | T*                 |ポインター|
-| CW   | -         | T*                 |ポインター(Pythonでは弱参照)|
-| CSP  | CSPConst  | std::shared_ptr<T> |強参照|
-| CWP  | -         | std::weak_ptr<T>   |弱参照(Pythonでも弱参照)|
-| CUP  | CUPConst  | std::unique_ptr<T> |ユニークポインター|
-| CRef | CRefConst | T&                 |参照|
+|------|-----------|----------------------|---|
+| CP   | CPConst   | `T*`                 |ポインター|
+| CW   | -         | `T*`                 |ポインター(Pythonでは弱参照)|
+| CSP  | CSPConst  | `std::shared_ptr<T>` |強参照|
+| CWP  | -         | `std::weak_ptr<T>`   |弱参照(Pythonでも弱参照)|
+| CUP  | CUPConst  | `std::unique_ptr<T>` |ユニークポインター|
+| CRef | CRefConst | `T&`                 |参照|
 
 ```python
 p = CP.new(0)

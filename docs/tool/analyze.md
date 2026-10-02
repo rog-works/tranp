@@ -57,7 +57,7 @@ Selection here. Type `exit` to quit:
 # analyze
 
 * ソースコードを入力すると、モジュールのASTを表示
-* analyzeの解析結果は`__main__`モジュールに登録。各タスクから解析が可能
+* 解析結果は`__main__`モジュールに登録。各タスクから解析が可能
 * ※ソースコードは保存されない
 
 ```bash

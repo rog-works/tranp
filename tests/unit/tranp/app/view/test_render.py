@@ -909,6 +909,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		({'arguments': ['"A"'], 'is_statement': True}, "'A';"),
+		({'arguments': ['"""'], 'is_statement': True}, "'\"';"),
 		({'arguments': ['string[0]'], 'is_statement': True}, "string[0];"),
 	])
 	def test_render_func_call_cast_char(self, vars: dict[str, Any], expected: str) -> None:

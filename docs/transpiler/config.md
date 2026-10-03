@@ -234,7 +234,7 @@ additionalProperties:
 
 ```yaml
 di:
-  tranp.app.view.render.RendererHelperProvider: view.my_helper_provider
+  tranp.app.view.render.RendererHelperProvider: view.helper.my_helper_provider
 ```
 
 # include_dirs
@@ -364,33 +364,40 @@ type: object
 properties:
   grammar:
     type: string
+    required: true
     pattern: '[\w\d/.]+'
   trans_mapping:
     type: string
+    required: true
     pattern: '[\w\d/.]+\.yml'
   template_dirs:
     type: array
+    required: true
     items:
       type: string
       pattern: '[\w\d/.]+'
   input_globs:
     type: array
+    required: true
     items:
       type: string
       pattern: '[\w\d/.*]+'
   exclude_patterns:
     type: array
+    required: true
     items:
       type: string
       pattern: '[\w\d/.]+\*?'
   output_dirs:
     type: array
+    required: true
     minItems: 1
     items:
       type: string
       pattern: '[\w\d/.]+(\*?:[\w\d/.]+)'
   output_language:
     type: string
+    required: true
     pattern: '[\w\d]+(:[\w\d]+)'
   di:
     type: object
@@ -400,9 +407,11 @@ properties:
         pattern: '[\w\d.]+'
   env:
     type: object
+    required: true
     properties:
       transpiler:
         type: object
+        required: true
         properties:
           include_dirs:
             type: array
@@ -423,6 +432,7 @@ properties:
                 pattern: '%\w+'
       view:
         type: object
+        required: true
         properties:
           immutable_param_types:
             type: array

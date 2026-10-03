@@ -12,6 +12,7 @@
   * [インポート](#インポート)
 * [一般](#一般)
   * [クラス](#クラス)
+  * [Enum](#Enum)
   * [ジェネリック](#ジェネリック)
   * [型エイリアス](#型エイリアス)
   * [C++型変数](#c型変数)
@@ -23,9 +24,12 @@
 * [アノテーション](#アノテーション)
   * [エイリアス](#エイリアス)
   * [インターフェイス・抽象型](#インターフェイス抽象型)
+  * [構造体・ユニオン](#構造体ユニオン)
   * [出力除外](#出力除外)
   * [継承除外](#継承除外)
-  * [構造体・ユニオン](#構造体ユニオン)
+  * [関数シグネチャー](#関数シグネチャー)
+  * [不変型](#不変型)
+  * [暗黙的不変型の解除](#暗黙的不変型の解除)
   * [関数ローカルスタティック変数](#関数ローカルスタティック変数)
 
 # 記述ルール
@@ -61,6 +65,30 @@ public: int n;
 public:
   A(int n) : n(n) {}
 };
+```
+
+## Enum
+
+```python
+from enum import Enum
+
+class Values(Enum):
+  A = 0
+  B = 1
+
+e = Values.A
+value = Values.A.value
+name = Values.A.name
+```
+↓
+```cpp
+enum class Values {
+  A = 0,
+  B = 1,
+};
+Values e = Values::A;
+int value = 0;
+std::string name = "A";
 ```
 
 ## ジェネリック
@@ -202,7 +230,7 @@ def method(self) -> None:
   def closure() -> int:
     return self.n
 
-  sum: Callable[[int, int], int] = lambda a, b: a + b
+  add: Callable[[int, int], int] = lambda a, b: a + b
   bind(lambda s: print('s: {s}'.format(s=s)))
 
 def bind(self, callback: Callable[[str], None]) -> None: ...
@@ -214,7 +242,7 @@ def factory(n: int) -> Callable[[], int]:
 #include <functional>
 void method() {
   std::function<int()> closure = [this]() -> int { return this->n; };
-  std::function<int(int, int)> sum = [](int a, int b) -> int { return a + b; };
+  std::function<int(int, int)> add = [](int a, int b) -> int { return a + b; };
   bind([](std::string s) -> void { printf("s: %s", s.c_str()); });
 }
 void bind(std::function<void(std::string)>>& callback) {}
@@ -238,16 +266,30 @@ std::string s = std::format('b: %d, n: %d, f: %f, s: %s', true, 1, 1.0f, std::st
 ## エイリアス
 
 ```python
+from typing import Annotated
 from tranp.app.compatible.python.embed import Embed
 
 @Embed.alias('A2')
-class A: ...
+class A:
+  n: Annotated[int, Embed.alias('n2')]
+
+  def __init__(self, n: int) -> None:
+    self.n = n
+
+  @Embed.alias('func2')
+  def func(self) -> None: ...
+
 @Embed.alias('A', prefix=True)
 class B: ...
 ```
 ↓
 ```cpp
-class A2 {};
+class A2 {
+public: int n2;
+public:
+  A2(int n) n2(n) {}
+  void func2() {}
+};
 class AB {};
 ```
 
@@ -261,67 +303,31 @@ class Interface(metaclass=ABCMeta):
   @Embed.allow_override
   def __py_destroy__(self) -> None: ...
   @abstractmethod
-  def f(self) -> int: ...
+  def interface_func(self) -> int: ...
 
 class Abstract:
   @Embed.allow_override
   def __py_destroy__(self) -> None: ...
   @abstractmethod
-  def f(self) -> int: ...
+  def interface_func(self) -> int: ...
   @Embed.allow_override
-  def f2(self) -> int:
+  def abstract_func(self) -> int:
     return 1
 ```
 ↓
 ```cpp
 class Interface {
 public: virtual ~Interface() = default;
-public: virtual int f() = 0;
+public: virtual int interface_func() = 0;
 };
 class Abstract {
 public: virtual ~Abstract() = default;
-public: virtual int f() = 0;
+public: virtual int interface_func() = 0;
 public:
-  virtual int f2(self) {
+  virtual int abstract_func(self) {
     return 1;
   }
 };
-```
-
-## 出力除外
-
-```python
-from tranp.app.compatible.python.embed import Embed
-
-@Embed.python
-def exec() -> None:
-  print('python')
-
-@Embed.alias(exec.__name__)
-def exec_cpp() -> None:
-  print('cpp')
-
-exec()
-```
-↓
-```cpp
-void exec() {
-  printf("cpp");
-}
-exec();
-```
-
-## 継承除外
-
-```python
-from tranp.app.compatible.python.embed import Embed
-
-@Embed.ignore(OnPython)
-class A(OnPython): ...
-```
-↓
-```cpp
-class A {};
 ```
 
 ## 構造体・ユニオン
@@ -352,6 +358,93 @@ union U {
   int n;
   float f;
 };
+```
+
+## 出力除外
+
+```python
+from enum import Enum
+from tranp.app.compatible.python.embed import Embed
+
+@Embed.python
+class Values(Enum): ...
+
+@Embed.python
+def func() -> None:
+  print('python')
+
+@Embed.alias(func.__name__)
+def func_cpp() -> None:
+  print('cpp')
+
+func()
+```
+↓
+```cpp
+void func() {
+  printf("cpp");
+}
+func();
+```
+
+## 継承除外
+
+```python
+from tranp.app.compatible.python.embed import Embed
+
+@Embed.ignore(OnPython)
+class A(OnPython): ...
+```
+↓
+```cpp
+class A {};
+```
+
+## 関数シグネチャー
+
+```python
+from tranp.app.compatible.python.embed import Embed
+
+class A:
+  @Embed.pure
+  def const_func(self) -> int: ...
+  @Embed.public
+  def __public_func(self) -> int: ...
+```
+↓
+```cpp
+class A {
+public: int const_func() const { ... }
+public: int __public_func() { ... }
+};
+```
+
+## 不変型
+
+```python
+from typing import Annotated
+from tranp.app.compatible.python.embed import Embed
+
+def func(obj: Annotated[Obj, Embed.immutable]) -> None: ...
+
+const_n: Annotated[int, Embed.immutable] = 1
+```
+↓
+```cpp
+void func(const Obj& obj) {}
+const int& const_n = 1;
+```
+
+## 暗黙的不変型の解除
+
+```python
+def sum(arr: list[int]) -> int: ...
+def sum_alt(arr: Annotated[list[int], Embed.mutable]) -> int: ...
+```
+↓
+```cpp
+int sum(const std::vector<int>& arr) { ... }
+int sum_alt(std::vector<int> arr) { ... }
 ```
 
 ## 関数ローカルスタティック変数

@@ -26,7 +26,7 @@ if [ "$1" == "-l" ]; then
 		shift
 	fi
 
-	module=$(find ${appdir}/tests/ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
+	module=$(find tests/ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
 	target=$(echo "$module" | sed -e 's/^.\///g')
 	target=$(echo "$target" | sed -e 's/\//\./g')
 	target=$(echo "$target" | sed -e 's/\.py$//g')
@@ -39,7 +39,7 @@ if [ "$1" == "-l" ]; then
 			shift
 		fi
 
-		case=$(python ${appdir}/tranp/app/test/case_discovery.py ${module} | cat - | peco ${peco_opt})
+		case=$(cd ${appdir} && python tranp/app/test/case_discovery.py ${module} | cat - | peco ${peco_opt})
 		target="${target}.${case}"
 	fi
 fi
@@ -56,9 +56,9 @@ done
 
 
 if [ "$target" == "" ]; then
-	echo python -m unittest discover ${appdir}/tests/
-	python -m unittest discover ${appdir}/tests/
+	echo python -m unittest discover tests/
+	cd ${appdir} && python -m unittest discover tests/
 else
 	echo python -m unittest ${target} ${profiler}
-	python -m unittest ${target} ${profiler}
+	cd ${appdir} && python -m unittest ${target} ${profiler}
 fi

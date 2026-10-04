@@ -20,5 +20,10 @@ if [ "$1" == "-l" ]; then
 	target=$(echo "$target" | sed -e 's/\.py$//g')
 fi
 
-echo python tranp/app/bin/profiler.py
-python tranp/app/bin/profiler.py -t "${target}" $*
+if [ "$1" == "-d" ]; then
+	shift
+	python tranp/app/bin/profile_diff.py $*
+else
+	echo python tranp/app/bin/profiler.py
+	python tranp/app/bin/profiler.py -t "${target}" $*
+fi

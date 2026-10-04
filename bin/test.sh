@@ -3,15 +3,16 @@
 cwd=$(cd $(dirname $0); pwd)
 appdir=${cwd}/..
 
+source ${cwd}/.env.sh
+
 if [ "$1" == "-h" ]; then
 	cat << EOS
 # Usage
-$ bin/test.sh [-l module_name] [-c case_name] [-v] [-p]
+$ bin/test.sh [-l module_name] [-c case_name] [-v]
 # Examples
 $ bin/test.sh -l py2cpp
 $ bin/test.sh -l reflections -c type_of
 $ bin/test.sh -l py2cpp -v
-$ bin/test.sh -l py2cpp -p
 EOS
 	exit
 fi
@@ -25,7 +26,7 @@ if [ "$1" == "-l" ]; then
 		shift
 	fi
 
-	module=$(find ./ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
+	module=$(find ./tests/ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
 	target=$(echo "$module" | sed -e 's/^.\///g')
 	target=$(echo "$target" | sed -e 's/\//\./g')
 	target=$(echo "$target" | sed -e 's/\.py$//g')
@@ -38,7 +39,7 @@ if [ "$1" == "-l" ]; then
 			shift
 		fi
 
-		case=$(python ${appdir}/tranp/app/test/case_discovery.py ${module} | cat - | peco ${peco_opt})
+		case=$(python tranp/app/test/case_discovery.py ${module} | cat - | peco ${peco_opt})
 		target="${target}.${case}"
 	fi
 fi
@@ -46,8 +47,6 @@ fi
 while [ $# -gt 0 ]; do
 	if [ "${1}" == "-v" ]; then
 		export TRANPVERBOSE=1
-	elif [ "${1}" == "-p" ]; then
-		export TRANPPROFILE=1
 	elif [ "${1}" == "--index" ]; then
 		shift
 		export TRANPTESTINDEX=$1
@@ -55,11 +54,10 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-source ${cwd}/.env.sh
 
 if [ "$target" == "" ]; then
-	echo python -m unittest discover ${appdir}/tests/
-	python -m unittest discover ${appdir}/tests/
+	echo python -m unittest discover tests/
+	python -m unittest discover tests/
 else
 	echo python -m unittest ${target} ${profiler}
 	python -m unittest ${target} ${profiler}

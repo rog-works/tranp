@@ -4,4 +4,5 @@ cwd=$(cd $(dirname $0); pwd)
 appdir=${cwd}/..
 
 source ${cwd}/.env.sh
-python ${appdir}/tranp/app/bin/j2_check.py $*
+
+python tranp/app/bin/j2_check.py $*

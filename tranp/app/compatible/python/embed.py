@@ -89,7 +89,7 @@ class Embed:
 		return wrapped
 
 	@classmethod
-	def alias(cls, name: str, prefix: bool = False) -> Callable[[Any], Any]:
+	def alias(cls, name: str, prefix: bool = False) -> Callable:
 		"""トランスパイル後のシンボル名を埋め込む
 
 		Args:
@@ -103,7 +103,10 @@ class Embed:
 			* シンボルテーブルに登録する名称を変更する場合は__actual__を使用 @see tranp.app.compatible.libralies.classes.__actual__
 			```
 		"""
-		return lambda wrapped: wrapped
+		def decorator[T](wrapped: T) -> T:
+			return wrapped
+
+		return decorator
 
 	@classmethod
 	def allow_override[T](cls, wrapped: T) -> T:
@@ -196,7 +199,7 @@ class Embed:
 		return wrapped
 
 	@classmethod
-	def ignore(cls, *classes: type[Any]) -> Callable[[Any], Any]:
+	def ignore(cls, *classes: type[Any]) -> Callable:
 		"""除外情報を埋め込む
 
 		Args:
@@ -209,10 +212,13 @@ class Embed:
 			class A(B, C): ...
 			```
 		"""
-		return lambda wrapped: wrapped
+		def decorator[T](wrapped: T) -> T:
+			return wrapped
+
+		return decorator
 
 	@classmethod
-	def meta(cls, key: str, meta: Any) -> Callable[[Any], Any]:
+	def meta(cls, key: str, meta: Any) -> Callable:
 		"""メタ情報を埋め込む
 
 		Args:
@@ -226,4 +232,7 @@ class Embed:
 			class A: ...
 			```
 		"""
-		return lambda wrapped: wrapped
+		def decorator[T](wrapped: T) -> T:
+			return wrapped
+
+		return decorator

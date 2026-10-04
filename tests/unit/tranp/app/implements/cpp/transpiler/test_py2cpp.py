@@ -271,6 +271,7 @@ class TestPy2Cpp(TestCase):
 		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, const std::string& b) : a(a), b(b) {}\n};'),
 
 		('ForClass.Proto', '', defs.Class, '// class Proto'),
+		('ForClass.NS', '', defs.Class, 'public:\n/** NS */\nnamespace NS {\n\n};'),
 		('ForClass.DeclProps', '', defs.Class, BlockExpects.DeclProps),
 
 		('ForClass.Alias.Inner', '', defs.Class, BlockExpects.ForClass_AliasInner),

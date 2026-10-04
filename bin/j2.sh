@@ -5,4 +5,4 @@ appdir=${cwd}/..
 
 source ${cwd}/.env.sh
 
-python tranp/app/bin/j2_check.py $*
+python ${appdir}/tranp/app/bin/j2_check.py $*

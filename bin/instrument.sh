@@ -7,8 +7,8 @@ source ${cwd}/.env.sh
 
 if [ "$1" != "-l" ]; then
 	echo '### Usage'
-	echo bin/profile.sh -l
-	echo bin/profile.sh -l '${query}'
+	echo bin/instrument.sh -l
+	echo bin/instrument.sh -l '${query}'
 	exit
 fi
 
@@ -20,10 +20,10 @@ if [ "${1}" != "" -a "${1:0:1}" != "-" ]; then
 	shift
 fi
 
-target=$(find ./tests/ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
+target=$(find ${appdir}/tests/ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
 target=$(echo "$target" | sed -e 's/^.\///g')
 target=$(echo "$target" | sed -e 's/\//\./g')
 target=$(echo "$target" | sed -e 's/\.py$//g')
 
 echo python -m unittest ${target}
-vendor/bin/pyinstrument -m unittest ${target}
+${appdir}/vendor/bin/pyinstrument -m unittest ${target}

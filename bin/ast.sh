@@ -11,4 +11,4 @@ for arg in "$@"; do
 	fi
 done
 
-python tranp/app/bin/ast_check.py $*
+python ${appdir}/tranp/app/bin/ast_check.py $*

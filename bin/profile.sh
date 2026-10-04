@@ -14,7 +14,7 @@ if [ "$1" == "-l" ]; then
 		shift
 	fi
 
-	target=$(find ./tests/ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
+	target=$(find ${appdir}/tests/ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
 	target=$(echo "$target" | sed -e 's/^.\///g')
 	target=$(echo "$target" | sed -e 's/\//\./g')
 	target=$(echo "$target" | sed -e 's/\.py$//g')
@@ -22,8 +22,8 @@ fi
 
 if [ "$1" == "-d" ]; then
 	shift
-	python tranp/app/bin/profile_diff.py $*
+	python ${appdir}/tranp/app/bin/profile_diff.py $*
 else
-	echo python tranp/app/bin/profiler.py
-	python tranp/app/bin/profiler.py -t "${target}" $*
+	echo python ${appdir}/tranp/app/bin/profiler.py
+	python ${appdir}/tranp/app/bin/profiler.py -t "${target}" $*
 fi

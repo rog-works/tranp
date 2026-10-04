@@ -8,12 +8,11 @@ source ${cwd}/.env.sh
 if [ "$1" == "-h" ]; then
 	cat << EOS
 # Usage
-$ bin/test.sh [-l module_name] [-c case_name] [-v] [-p]
+$ bin/test.sh [-l module_name] [-c case_name] [-v]
 # Examples
 $ bin/test.sh -l py2cpp
 $ bin/test.sh -l reflections -c type_of
 $ bin/test.sh -l py2cpp -v
-$ bin/test.sh -l py2cpp -p
 EOS
 	exit
 fi
@@ -48,8 +47,6 @@ fi
 while [ $# -gt 0 ]; do
 	if [ "${1}" == "-v" ]; then
 		export TRANPVERBOSE=1
-	elif [ "${1}" == "-p" ]; then
-		export TRANPPROFILE=1
 	elif [ "${1}" == "--index" ]; then
 		shift
 		export TRANPTESTINDEX=$1

@@ -16,7 +16,6 @@ from tranp.app.implements.cpp.providers.view import renderer_helper_provider_cpp
 from tranp.app.implements.cpp.transpiler.py2cpp import Py2Cpp
 from tranp.app.lang.middleware import Middleware
 from tranp.app.lang.module import to_fullyname
-from tranp.app.lang.profile import profiler
 from tranp.app.semantics.reflections import Reflections
 from tranp.app.syntax.node.node import Node
 from tranp.app.test.helper import data_provider
@@ -26,10 +25,6 @@ from tranp.app.view.render import Renderer, RendererEmitter, RendererHelperProvi
 
 def verbose_on() -> bool:
 	return 'TRANPVERBOSE' in os.environ
-
-
-def profiler_on() -> bool:
-	return 'TRANPPROFILE' in os.environ
 
 
 def make_translation_mapping(datums: IDataLoader) -> TranslationMapping:
@@ -60,7 +55,6 @@ class TestPy2Cpp(TestCase):
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=verbose_on(), env={'cvars': {'AltCSP': 'CSP'}}),
 	})
 
-	@profiler(on=profiler_on())
 	@data_provider([
 		('', 'import_stmt[1]', defs.Import, '#include <functional>'),
 

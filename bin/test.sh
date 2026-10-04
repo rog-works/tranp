@@ -3,6 +3,8 @@
 cwd=$(cd $(dirname $0); pwd)
 appdir=${cwd}/..
 
+source ${cwd}/.env.sh
+
 if [ "$1" == "-h" ]; then
 	cat << EOS
 # Usage
@@ -38,7 +40,7 @@ if [ "$1" == "-l" ]; then
 			shift
 		fi
 
-		case=$(python ${appdir}/tranp/app/test/case_discovery.py ${module} | cat - | peco ${peco_opt})
+		case=$(python tranp/app/test/case_discovery.py ${module} | cat - | peco ${peco_opt})
 		target="${target}.${case}"
 	fi
 fi
@@ -55,11 +57,10 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-source ${cwd}/.env.sh
 
 if [ "$target" == "" ]; then
-	echo python -m unittest discover ${appdir}/tests/
-	python -m unittest discover ${appdir}/tests/
+	echo python -m unittest discover tests/
+	python -m unittest discover tests/
 else
 	echo python -m unittest ${target} ${profiler}
 	python -m unittest ${target} ${profiler}

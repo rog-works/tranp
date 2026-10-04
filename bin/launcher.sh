@@ -5,4 +5,4 @@ appdir=${cwd}/..
 
 source ${cwd}/.env.sh
 
-python tranp/app/bin/launcher.py $*
+python ${appdir}/tranp/app/bin/launcher.py $*

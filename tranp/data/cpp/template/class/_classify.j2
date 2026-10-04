@@ -2,6 +2,8 @@
 struct
 {%- elif deco_query.contains('Embed.union') -%}
 union
+{%- elif deco_query.contains('Embed.namespace') -%}
+namespace
 {%- else -%}
 class
 {%- endif -%}

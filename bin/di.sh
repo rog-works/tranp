@@ -5,4 +5,4 @@ appdir=${cwd}/..
 
 source ${cwd}/.env.sh
 
-python tranp/app/bin/di_defs.py $*
+cd ${appdir} && python tranp/app/bin/di_defs.py $*

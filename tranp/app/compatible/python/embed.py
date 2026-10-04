@@ -82,7 +82,7 @@ class Embed:
 		"""Python専用としてマークアップ。Python以外の言語へのトランスパイルは対象外となる
 
 		Args:
-			wrapped: ラップ対象
+			wrapped: デコレート対象
 		Returns:
 			デコレート対象
 		"""
@@ -109,11 +109,22 @@ class Embed:
 		return decorator
 
 	@classmethod
+	def namespace[T](cls, wrapped: T) -> T:
+		"""クラスを名前空間としてマークアップ
+
+		Args:
+			wrapped: デコレート対象
+		Returns:
+			デコレート対象
+		"""
+		return wrapped
+
+	@classmethod
 	def allow_override[T](cls, wrapped: T) -> T:
 		"""関数を仮想関数としてマークアップ
 
 		Args:
-			wrapped: ラップ対象
+			wrapped: デコレート対象
 		Returns:
 			デコレート対象
 		Note:
@@ -129,7 +140,7 @@ class Embed:
 		"""関数を副作用のない関数としてマークアップ
 
 		Args:
-			wrapped: ラップ対象
+			wrapped: デコレート対象
 		Returns:
 			デコレート対象
 		Note:
@@ -142,7 +153,7 @@ class Embed:
 		"""関数をprivate関数としてマークアップ
 
 		Args:
-			wrapped: ラップ対象
+			wrapped: デコレート対象
 		Returns:
 			デコレート対象
 		Note:
@@ -155,7 +166,7 @@ class Embed:
 		"""関数をprotected関数としてマークアップ
 
 		Args:
-			wrapped: ラップ対象
+			wrapped: デコレート対象
 		Returns:
 			デコレート対象
 		Note:
@@ -168,7 +179,7 @@ class Embed:
 		"""関数をpublic関数としてマークアップ
 
 		Args:
-			wrapped: ラップ対象
+			wrapped: デコレート対象
 		Returns:
 			デコレート対象
 		Note:
@@ -181,7 +192,7 @@ class Embed:
 		"""クラスを構造体としてマークアップ
 
 		Args:
-			wrapped: ラップ対象
+			wrapped: デコレート対象
 		Returns:
 			デコレート対象
 		"""
@@ -192,7 +203,7 @@ class Embed:
 		"""クラスをユニオン型としてマークアップ
 
 		Args:
-			wrapped: ラップ対象
+			wrapped: デコレート対象
 		Returns:
 			デコレート対象
 		"""

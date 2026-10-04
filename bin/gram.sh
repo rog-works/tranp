@@ -5,4 +5,4 @@ appdir=${cwd}/..
 
 source ${cwd}/.env.sh
 
-python tranp/app/bin/gram_check.py $*
+python ${appdir}/tranp/app/bin/gram_check.py $*

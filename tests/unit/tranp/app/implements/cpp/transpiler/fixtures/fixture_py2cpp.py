@@ -373,6 +373,9 @@ class ForClass:
 	@Embed.python
 	class Proto(Protocol): ...
 
+	@Embed.namespace
+	class NS: ...
+
 	class DeclPropsBase:
 		anno_n: int
 		move_s: str

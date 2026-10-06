@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from collections.abc import Callable
+from datetime import datetime
 from types import MethodType
 from typing import Any, TypedDict
 
@@ -103,10 +104,7 @@ class AnalyzeApp(App):
 	@property
 	def now(self) -> str:
 		"""Returns: 現在時刻"""
-		from datetime import datetime, timedelta, timezone
-
-		zone = timezone(timedelta(hours=9), 'JST')
-		return datetime.now(zone).strftime('%Y-%m-%d %H:%M:%S')
+		return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 	def fetch_entrypoint(self, module_path: str) -> defs.Entrypoint:
 		"""モジュールのエントリーポイントを取得

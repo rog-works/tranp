@@ -27,6 +27,10 @@ if [ "$1" == "-l" ]; then
 	fi
 
 	module=$(find tests/ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
+	if [ "${module}" == "" ]; then
+		exit
+	fi
+
 	target=$(echo "$module" | sed -e 's/^.\///g')
 	target=$(echo "$target" | sed -e 's/\//\./g')
 	target=$(echo "$target" | sed -e 's/\.py$//g')
@@ -40,6 +44,10 @@ if [ "$1" == "-l" ]; then
 		fi
 
 		case=$(cd ${appdir} && python tranp/app/test/case_discovery.py ${module} | cat - | peco ${peco_opt})
+		if [ "${case}" == "" ]; then
+			exit
+		fi
+
 		target="${target}.${case}"
 	fi
 fi

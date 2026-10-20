@@ -92,7 +92,7 @@ collections.abc#Sequence
 # ... 中略 ...
 typing#Union
 --------------
-Class fullyname here. Type `exit` to Menu:
+Index or Class fullyname here. Type `exit` to Menu:
 ```
 
 * `Class List`に表示されている完全修飾名(`fullyname`)を入力
@@ -154,7 +154,7 @@ tranp.app.compatible.libralies.classes
 collections.abc
 typing
 --------------
-Module path here. Type `exit` to Menu:
+Index or Module path here. Type `exit` to Menu:
 ```
 
 * `Module List`に表示されているモジュールパスを入力
@@ -185,7 +185,7 @@ tranp.app.compatible.libralies.classes
 collections.abc
 typing
 --------------
-Module path here. Type `exit` to Menu:
+Index or Module path here. Type `exit` to Menu:
 ```
 
 * `Module List`に表示されているモジュールパスを入力

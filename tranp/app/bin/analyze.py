@@ -274,23 +274,28 @@ class AnalyzeApp(App):
 	def task_class(self) -> None:
 		"""タスク(クラス表示)"""
 		while True:
+			fulynames = self.serialize_classes()
+			columns = len(str(len(fulynames))) + 1
 			prompt = '\n'.join([
 				'==============',
 				'Class List',
 				'--------------',
-				*self.serialize_classes(),
+				*['{}{}{}'.format(index, ' ' * (columns - len(str(index))), fullyname) for index, fullyname in enumerate(fulynames)],
 				'--------------',
-				'Class fullyname here. Type `exit` to Menu:',
+				'Index or Class fullyname here. Type `exit` to Menu:',
 			])
 			name = readline(prompt)
 			if name == 'exit':
 				break
 
 			try:
+				if name.isdigit():
+					name = fulynames[int(name)]
+
 				symbol = self.resolve(Reflections).from_fullyname(name)
 				print('--------------')
 				print(self.serialize_class(symbol.types))
-			except Errors.Error as e:
+			except Exception as e:
 				print('--------------')
 				print(ErrorRender(e))
 
@@ -325,19 +330,24 @@ class AnalyzeApp(App):
 	def task_pretty(self) -> None:
 		"""タスク(ノード階層表示)"""
 		while True:
+			module_paths = self.serialize_modules()
+			columns = len(str(len(module_paths))) + 1
 			prompt = '\n'.join([
 				'==============',
 				'Module List',
 				'--------------',
-				*self.serialize_modules(),
+				*['{}{}{}'.format(index, ' ' * (columns - len(str(index))), module_path) for index, module_path in enumerate(module_paths)],
 				'--------------',
-				'Module path here. Type `exit` to Menu:',
+				'Index or Module path here. Type `exit` to Menu:',
 			])
 			module_path = readline(prompt)
 			if module_path == 'exit':
 				return
 
 			try:
+				if module_path.isdigit():
+					module_path = module_paths[int(module_path)]
+
 				entrypoint = self.fetch_entrypoint(module_path)
 				title = '\n'.join([
 					'==============',
@@ -346,7 +356,7 @@ class AnalyzeApp(App):
 				])
 				print(title)
 				print(entrypoint.pretty())
-			except FileNotFoundError as e:
+			except Exception as e:
 				print('--------------')
 				print(ErrorRender(e))
 
@@ -354,22 +364,27 @@ class AnalyzeApp(App):
 		"""タスク(シンボル詳細表示)"""
 		entrypoint: Entrypoint | None = None
 		while True:
+			module_paths = self.serialize_modules()
+			columns = len(str(len(module_paths))) + 1
 			prompt = '\n'.join([
 				'==============',
 				'Module List',
 				'--------------',
-				*self.serialize_modules(),
+				*['{}{}{}'.format(index, ' ' * (columns - len(str(index))), module_path) for index, module_path in enumerate(module_paths)],
 				'--------------',
-				'Module path here. Type `exit` to Menu:',
+				'Index or Module path here. Type `exit` to Menu:',
 			])
 			module_path = readline(prompt)
 			if module_path == 'exit':
 				return
 
 			try:
+				if module_path.isdigit():
+					module_path = module_paths[int(module_path)]
+
 				entrypoint = self.fetch_entrypoint(module_path)
 				break
-			except FileNotFoundError as e:
+			except Exception as e:
 				print('--------------')
 				print(ErrorRender(e))
 

@@ -141,7 +141,8 @@ class AnalyzeApp(App):
 		Returns:
 			データ
 		"""
-		return sorted([raw.decl.fullyname for raw in self.resolve(SymbolDB).values() if raw.decl.is_a(defs.Class)])
+		# XXX typesは適当ではなく、declを使うと衝突するためsetで重複を排除
+		return sorted(set([raw.decl.fullyname for raw in self.resolve(SymbolDB).values() if raw.decl.is_a(defs.Class)]))
 
 	def serialize_class(self, types: defs.ClassDef) -> str:
 		"""シンボル定義ノードをシリアライズ

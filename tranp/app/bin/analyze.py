@@ -139,7 +139,7 @@ class AnalyzeApp(App):
 		Returns:
 			データ
 		"""
-		return [raw.decl.fullyname for raw in self.resolve(SymbolDB).values() if raw.decl.is_a(defs.Class)]
+		return sorted([raw.decl.fullyname for raw in self.resolve(SymbolDB).values() if raw.decl.is_a(defs.Class)])
 
 	def serialize_class(self, types: defs.ClassDef) -> str:
 		"""シンボル定義ノードをシリアライズ
@@ -157,7 +157,7 @@ class AnalyzeApp(App):
 		Returns:
 			データ
 		"""
-		return [module.path for module in self.resolve(Modules).loaded()]
+		return sorted([module.path for module in self.resolve(Modules).loaded()])
 
 	def serialize_node(self, node: Node) -> dict[str, Any]:
 		"""ノードをシリアライズ

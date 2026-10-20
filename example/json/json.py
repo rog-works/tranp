@@ -2,7 +2,7 @@ from collections.abc import Callable
 from enum import Enum
 from typing import ClassVar, TypeAlias
 
-from example.FW.string import String
+from example.json.FW.string import String
 from tranp.app.compatible.cpp.classes import char, void
 from tranp.app.compatible.cpp.cvar import CP, CSP
 from tranp.app.compatible.python.embed import Embed

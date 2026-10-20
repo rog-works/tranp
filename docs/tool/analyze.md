@@ -136,7 +136,7 @@ Symbol DB
 ```bash
 --------------
 Module filepath here. Type `exit` to Menu:
-example/json.py
+example/json/json.py
 --------------
 Module load completed!
 ```

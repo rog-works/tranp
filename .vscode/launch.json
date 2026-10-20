@@ -104,34 +104,7 @@
 			"request": "launch",
 			"module":"tranp.app.bin.transpile",
 			"args": [
-				"-c", "example/config.yml",
-			],
-			"cwd": "${workspaceFolder}",
-			"windows": {
-				"env": {
-					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
-					"PYTHONDONTWRITEBYTECODE": "1",
-					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
-				},
-			},
-			"linux": {
-				"env": {
-					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
-					"PYTHONDONTWRITEBYTECODE": "1",
-					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
-				},
-			},
-			"console": "internalConsole",
-			"justMyCode": true,
-		},
-		{
-			"name": "Python: bin/transpile - force",
-			"type": "debugpy",
-			"request": "launch",
-			"module":"tranp.app.bin.transpile",
-			"args": [
-				"-c", "example/config.yml",
-				"-f",
+				"-c", "example/json/config.yml",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {
@@ -157,7 +130,7 @@
 			"request": "launch",
 			"module":"tranp.app.bin.transpile",
 			"args": [
-				"-c", "example/config.yml",
+				"-c", "tranp/config.yml",
 				"-it",
 			],
 			"cwd": "${workspaceFolder}",

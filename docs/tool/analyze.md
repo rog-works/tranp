@@ -92,14 +92,12 @@ collections.abc#Sequence
 # ... 中略 ...
 typing#Union
 --------------
-Class fullyname here:
+Class fullyname here. Type `exit` to Menu:
 ```
 
 * `Class List`に表示されている完全修飾名(`fullyname`)を入力
 
 ```bash
---------------
-Class fullyname here:
 typing#Union
 --------------
 <Class: @131 typing#Union (14, 1)..(17, 1)>
@@ -137,7 +135,7 @@ Symbol DB
 
 ```bash
 --------------
-Module filepath here:
+Module filepath here. Type `exit` to Menu:
 example/json.py
 --------------
 Module load completed!
@@ -156,14 +154,12 @@ tranp.app.compatible.libralies.classes
 collections.abc
 typing
 --------------
-Module path here:
+Module path here. Type `exit` to Menu:
 ```
 
 * `Module List`に表示されているモジュールパスを入力
 
 ```bash
---------------
-Module path here:
 typing
 ==============
 AST
@@ -189,14 +185,12 @@ tranp.app.compatible.libralies.classes
 collections.abc
 typing
 --------------
-Module path here:
+Module path here. Type `exit` to Menu:
 ```
 
 * `Module List`に表示されているモジュールパスを入力
 
 ```bash
---------------
-Module path here:
 typing
 ==============
 Node/Symbol fullyname or full_path or id here. Type `exit` to Menu:

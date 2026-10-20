@@ -1,0 +1,5 @@
+{%- if operator == '-' and left == '1.0' -%}
+	{{ env_get('i18n.coms.one_minus') }}: [{{ right }}]
+{%- else -%}
+	{{ env_get('i18n.ops.' + operator) }}: [{{ left }}, {{ right }}]
+{%- endif -%}

@@ -1,0 +1,8 @@
+{%- set deco_query = parse_decorators(decorators) -%}
+{%- if deco_query.contains('Embed.python') %}
+# function {{ symbol }}
+{%- else %}
+{{ symbol }}:
+{%- import 'function/_block.j2' as block -%}
+{{ block.get_content(symbol, comment, parameters, statements) }}
+{%- endif -%}

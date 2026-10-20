@@ -200,9 +200,10 @@ Node/Symbol fullyname or full_path or id here. Type `exit` to Menu:
 * ※1: class/db/prettyタスク等を利用して確認
 
 ```bash
-==============
-Node/Symbol fullyname or full_path or id here. Type `exit` to Menu:
 typing#Any
+==============
+Symbol
+--------------
 {
   "Node": {
     "accessor": "public",

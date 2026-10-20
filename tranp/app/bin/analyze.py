@@ -25,6 +25,7 @@ from tranp.app.semantics.reflection.base import IReflection
 from tranp.app.semantics.reflection.db import SymbolDB
 from tranp.app.semantics.reflections import Reflections
 from tranp.app.syntax.ast.parser import ParserSetting, SourceProvider
+from tranp.app.syntax.node.definition.general import Entrypoint
 from tranp.app.syntax.node.node import Node
 from tranp.app.view.error_render import ErrorRender
 
@@ -304,59 +305,73 @@ class AnalyzeApp(App):
 
 			raise FileNotFoundError(f'No such file or directory. filepath: {filepath}')
 
-		prompt = '\n'.join([
-			'--------------',
-			'Module filepath here. Type `exit` to Menu:',
-		])
-		filepath = readline(prompt)
-		if filepath == 'exit':
-			return
+		while True:
+			prompt = '\n'.join([
+				'--------------',
+				'Module filepath here. Type `exit` to Menu:',
+			])
+			filepath = readline(prompt)
+			if filepath == 'exit':
+				return
 
-		try:
-			self.resolve(Modules).load(resolve_module_path(filepath))
-			print('--------------')
-			print('Module load completed!')
-		except FileNotFoundError as e:
-			print('--------------')
-			print('Module load failed!')
-			print(ErrorRender(e))
+			try:
+				self.resolve(Modules).load(resolve_module_path(filepath))
+				print('--------------')
+				print('Module load completed!')
+			except FileNotFoundError as e:
+				print('--------------')
+				print(ErrorRender(e))
 
 	def task_pretty(self) -> None:
 		"""タスク(ノード階層表示)"""
-		prompt = '\n'.join([
-			'==============',
-			'Module List',
-			'--------------',
-			*self.serialize_modules(),
-			'--------------',
-			'Module path here. Type `exit` to Menu:',
-		])
-		module_path = readline(prompt)
-		if module_path == 'exit':
-			return
+		while True:
+			prompt = '\n'.join([
+				'==============',
+				'Module List',
+				'--------------',
+				*self.serialize_modules(),
+				'--------------',
+				'Module path here. Type `exit` to Menu:',
+			])
+			module_path = readline(prompt)
+			if module_path == 'exit':
+				return
 
-		entrypoint = self.fetch_entrypoint(module_path)
-		title = '\n'.join([
-			'==============',
-			'AST',
-			'--------------',
-		])
-		print(title)
-		print(entrypoint.pretty())
+			try:
+				entrypoint = self.fetch_entrypoint(module_path)
+				title = '\n'.join([
+					'==============',
+					'AST',
+					'--------------',
+				])
+				print(title)
+				print(entrypoint.pretty())
+			except FileNotFoundError as e:
+				print('--------------')
+				print(ErrorRender(e))
 
 	def task_symbol(self) -> None:
 		"""タスク(シンボル詳細表示)"""
-		prompt = '\n'.join([
-			'==============',
-			'Module List',
-			'--------------',
-			*self.serialize_modules(),
-			'--------------',
-			'Module path here. Type `exit` to Menu:',
-		])
-		module_path = readline(prompt)
-		if module_path == 'exit':
-			return
+		entrypoint: Entrypoint | None = None
+		while True:
+			prompt = '\n'.join([
+				'==============',
+				'Module List',
+				'--------------',
+				*self.serialize_modules(),
+				'--------------',
+				'Module path here. Type `exit` to Menu:',
+			])
+			module_path = readline(prompt)
+			if module_path == 'exit':
+				return
+
+			try:
+				entrypoint = self.fetch_entrypoint(module_path)
+				break
+			except FileNotFoundError as e:
+				print('--------------')
+				print(ErrorRender(e))
 
 		while True:
 			prompt = '\n'.join([
@@ -367,10 +382,15 @@ class AnalyzeApp(App):
 			if name == 'exit':
 				break
 
-			entrypoint = self.fetch_entrypoint(module_path)
 			candidates = [node for node in entrypoint.procedural() if node.fullyname == name or node.full_path == name or str(node.id) == name]
 
 			if len(candidates):
+				title = '\n'.join([
+					'==============',
+					'Symbol',
+					'--------------',
+				])
+				print(title)
 				print(json.dumps(self.serialize_node(candidates[0]), indent=2))
 			else:
 				print('--------------')

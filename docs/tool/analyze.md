@@ -86,11 +86,11 @@ AST
 ==============
 Class List
 --------------
-tranp.app.compatible.libralies.type#type
-collections.abc#Callable
-collections.abc#Sequence
+0  collections.abc#Callable
+1  collections.abc#ItemsView
+2  collections.abc#Iterator
 # ... 中略 ...
-typing#Union
+40 typing#Union
 --------------
 Index or Class fullyname here. Type `exit` to Menu:
 ```
@@ -149,10 +149,10 @@ Module load completed!
 ==============
 Module List
 --------------
-tranp.app.compatible.libralies.type
-tranp.app.compatible.libralies.classes
-collections.abc
-typing
+0 collections.abc
+1 tranp.app.compatible.libralies.classes
+2 tranp.app.compatible.libralies.type
+3 typing
 --------------
 Index or Module path here. Type `exit` to Menu:
 ```
@@ -180,10 +180,10 @@ AST
 ==============
 Module List
 --------------
-tranp.app.compatible.libralies.type
-tranp.app.compatible.libralies.classes
-collections.abc
-typing
+0 collections.abc
+1 tranp.app.compatible.libralies.classes
+2 tranp.app.compatible.libralies.type
+3 typing
 --------------
 Index or Module path here. Type `exit` to Menu:
 ```

@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 from collections.abc import Callable
 from datetime import datetime
 from types import MethodType
@@ -271,18 +272,26 @@ class AnalyzeApp(App):
 
 	def task_class(self) -> None:
 		"""タスク(クラス表示)"""
-		prompt = '\n'.join([
-			'==============',
-			'Class List',
-			'--------------',
-			*self.serialize_classes(),
-			'--------------',
-			'Class fullyname here:',
-		])
-		name = readline(prompt)
+		while True:
+			prompt = '\n'.join([
+				'==============',
+				'Class List',
+				'--------------',
+				*self.serialize_classes(),
+				'--------------',
+				'Class fullyname here. Type `exit` to Menu:',
+			])
+			name = readline(prompt)
+			if name == 'exit':
+				break
 
-		print('--------------')
-		print(self.serialize_class(self.resolve(Reflections).from_fullyname(name).types))
+			try:
+				symbol = self.resolve(Reflections).from_fullyname(name)
+				print('--------------')
+				print(self.serialize_class(symbol.types))
+			except Errors.Error as e:
+				print('--------------')
+				print(ErrorRender(e))
 
 	def task_load(self) -> None:
 		"""タスク(モジュールロード)"""
@@ -297,9 +306,12 @@ class AnalyzeApp(App):
 
 		prompt = '\n'.join([
 			'--------------',
-			'Module filepath here:',
+			'Module filepath here. Type `exit` to Menu:',
 		])
 		filepath = readline(prompt)
+		if filepath == 'exit':
+			return
+
 		try:
 			self.resolve(Modules).load(resolve_module_path(filepath))
 			print('--------------')
@@ -317,9 +329,11 @@ class AnalyzeApp(App):
 			'--------------',
 			*self.serialize_modules(),
 			'--------------',
-			'Module path here:',
+			'Module path here. Type `exit` to Menu:',
 		])
 		module_path = readline(prompt)
+		if module_path == 'exit':
+			return
 
 		entrypoint = self.fetch_entrypoint(module_path)
 		title = '\n'.join([
@@ -338,9 +352,11 @@ class AnalyzeApp(App):
 			'--------------',
 			*self.serialize_modules(),
 			'--------------',
-			'Module path here:',
+			'Module path here. Type `exit` to Menu:',
 		])
 		module_path = readline(prompt)
+		if module_path == 'exit':
+			return
 
 		while True:
 			prompt = '\n'.join([

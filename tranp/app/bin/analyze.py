@@ -8,8 +8,9 @@ from typing import Any, TypedDict
 
 import tranp.app.syntax.node.definition as defs
 from tranp.app.app.app import App
-from tranp.app.app.dir import repository_dir, tranp_dir
+from tranp.app.app.dir import tranp_dir
 from tranp.app.app.dummy import WrapSourceProvider
+from tranp.app.app.env import SourceEnvPath
 from tranp.app.bin.io import readline, tty
 from tranp.app.errors import Errors
 from tranp.app.file.loader import ISourceLoader
@@ -71,6 +72,8 @@ class Args:
 class AnalyzeApp(App):
 	"""アナライザーアプリケーション"""
 
+	# region DI
+
 	@classmethod
 	@injectable
 	def make_parser_setting(cls, args: Args) -> ParserSetting:
@@ -101,6 +104,9 @@ class AnalyzeApp(App):
 		# XXX このスクリプトではLinux形式で入力する想定のためos.path.sepは使用しない
 		return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])
 
+	# endregion
+	# region ユーティリティー
+
 	@property
 	def now(self) -> str:
 		"""Returns: 現在時刻"""
@@ -115,6 +121,9 @@ class AnalyzeApp(App):
 			エントリーポイントノード
 		"""
 		return self.resolve(Modules).load(module_path).entrypoint
+
+	# endregion
+	# region シンボルダンプ
 
 	def serialize_db(self) -> dict[str, str]:
 		"""シンボルテーブルをシリアライズ
@@ -214,6 +223,9 @@ class AnalyzeApp(App):
 			'stacktrace': [attr_formatter(layer) for layer in symbol.stacktrace()],
 		}
 
+	# endregion
+	# region タスク
+
 	def task_analyze(self) -> None:
 		"""タスク(インタラクティブ解析)"""
 		def make_result(source_code: str) -> str:
@@ -274,18 +286,28 @@ class AnalyzeApp(App):
 
 	def task_load(self) -> None:
 		"""タスク(モジュールロード)"""
+		def resolve_module_path(filepath: str) -> str:
+			env_paths = self.resolve(SourceEnvPath)
+			for basedir in env_paths.paths:
+				abs_filepath = os.path.abspath(os.path.join(basedir, filepath))
+				if os.path.isfile(abs_filepath):
+					return filepath_to_module_path(abs_filepath, basedir)
+
+			raise FileNotFoundError(f'No such file or directory. filepath: {filepath}')
+
 		prompt = '\n'.join([
 			'--------------',
 			'Module filepath here:',
 		])
 		filepath = readline(prompt)
-		if not os.path.isabs(filepath):
-			filepath = os.path.abspath(filepath)
-
-		module_path = filepath_to_module_path(filepath, repository_dir())
-		self.resolve(Modules).load(module_path)
-		print('--------------')
-		print('Module load completed!')
+		try:
+			self.resolve(Modules).load(resolve_module_path(filepath))
+			print('--------------')
+			print('Module load completed!')
+		except FileNotFoundError as e:
+			print('--------------')
+			print('Module load failed!')
+			print(ErrorRender(e))
 
 	def task_pretty(self) -> None:
 		"""タスク(ノード階層表示)"""
@@ -401,6 +423,9 @@ class AnalyzeApp(App):
 			action = actions.get(input, self.task_help)
 			action()
 
+	# endregion
+	# region レンダリング
+
 	def show_classes(self) -> None:
 		"""表示(クラス一覧)"""
 		print('\n'.join(self.serialize_classes()))
@@ -438,6 +463,9 @@ class AnalyzeApp(App):
 		symbol = self.resolve(Reflections).from_fullyname(fullyname)
 		print(json.dumps(self.serialize_node(symbol.types), indent=2))
 
+	# endregion
+	# region エントリーポイント
+
 	@injectable
 	def main(self, args: Args, modules: Modules) -> None:
 		"""アプリケーションのエントリーポイント
@@ -463,6 +491,8 @@ class AnalyzeApp(App):
 		}
 		action = actions.get(args.command, self.task_help)
 		action()
+
+	# endregion
 
 
 def main() -> None:

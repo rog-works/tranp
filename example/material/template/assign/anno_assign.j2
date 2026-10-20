@@ -1,0 +1,5 @@
+{%- set group_name = reg_match('^((a_)?[a-z]+)', receiver)[1] -%}
+{%- set pattern = '^ex_(' + env_get('i18n.types.exports') + '): \[' -%}
+{%- set replaced = 'ex_\\1: [' + receiver + ', ' + group_name + ', "' + md5(receiver) + '", ' -%}
+{%- set ex_value = reg_replace(pattern, replaced, value) -%}
+{{ env_get('i18n.coms.var') }}: [{{ receiver }}, {{ ex_value }}]

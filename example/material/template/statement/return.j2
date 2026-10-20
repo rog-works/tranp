@@ -1,0 +1,9 @@
+{%- set is_tuple = reg_fullmatch('\{[\w\d]+(, [\w\d]+)+\}', return_value) -%}
+{%- if is_tuple -%}
+	{%- for symbol in return_value[1:-1].split(', ') -%}
+		{%- if loop.index0 > 0 %}{{ '\n' }}{% endif -%}
+		{{ env_get('i18n.coms.returns') }}: [{{ symbol }}, {{ symbol }}]
+	{%- endfor -%}
+{%- else -%}
+	{{ env_get('i18n.coms.returns') }}: [{{ env_get('i18n.keys.result') }}, {{ return_value }}]
+{%- endif -%}

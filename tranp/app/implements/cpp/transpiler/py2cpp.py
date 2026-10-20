@@ -758,7 +758,7 @@ class Py2Cpp(ITranspiler):
 			```
 			### インクルードパスの生成方法に関して
 			1. 翻訳データにインポート置換用のDSNを登録 @see tranp.app.dsn.translation.import_dsn
-			2. 環境変数のインポートディレクトリーを元に生成 @see example/config.yml
+			2. 環境変数のインポートディレクトリーを元に生成 @see tranp/config.yml
 			```
 		"""
 		module_path = node.import_path.tokens

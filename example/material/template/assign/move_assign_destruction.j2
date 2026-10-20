@@ -1,0 +1,5 @@
+{%- if value.startswith(env_get('i18n.coms.get') + ': [') -%}
+	{{ env_get('i18n.coms.vars') }}: [{{ receivers | select('!=', '_') | join(', ') }}, {{ value[6:-4] }}]
+{%- else -%}
+	{{ env_get('i18n.coms.vars') }}: [{{ receivers | select('!=', '_') | join(', ') }}, {{ value }}]
+{%- endif -%}

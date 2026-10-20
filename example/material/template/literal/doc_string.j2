@@ -1,0 +1,11 @@
+@desc|{{ data.description }}
+{% for arg in data.args -%}
+@param_{{ arg.name }}|{{ arg.description }}
+{% endfor -%}
+{%- if data.returns.description.startswith('(') -%}
+{%- for return_desc in data.returns.description[1:-1].split(', ') -%}
+@return_{{ loop.index0 }}|{{ return_desc }}
+{% endfor -%}
+{% else -%}
+@return_0|{{ data.returns.description }}
+{% endif -%}

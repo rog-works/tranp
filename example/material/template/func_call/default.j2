@@ -1,0 +1,19 @@
+{%- if calls in env_get('i18n.types.texture') -%}
+	{{ calls }}: [{{ arguments | join(', ') }}]
+{%- elif reg_fullmatch(env_get('i18n.types.vectors'), calls) -%}
+	{%- set prefix = '' if (arguments | length) == (arguments | filter_fullmatch('-?[\d.]+') | length) else 'make_' -%}
+	{{ prefix + calls }}: [{{ arguments | join(', ') }}]
+{%- elif reg_fullmatch('ME::(' + env_get('i18n.coms.proxies') + ')', calls) -%}
+	{%- set exp_name = calls.split('::')[1] -%}
+	proxy_{{ exp_name }}: [{{ arguments | join(', ') }}]
+{%- elif calls.startswith('ME::') -%}
+	{%- set exp_name = calls.split('::')[1] -%}
+	{{ exp_name }}: [{{ arguments | join(', ') }}]
+{%- elif reg_match('\.(' + env_get('i18n.types.methods') + ')$', calls) -%}
+	{%- set elems = calls.split('.') -%}
+	{%- set exp_name = elems.pop() -%}
+	{%- set receiver = elems | join('.') -%}
+	{{ exp_name }}: [{{ receiver }}{% if arguments %}{{ arguments | join(', ') }}{% endif %}]
+{%- else -%}
+	{{ calls }}: [{{ arguments | join(', ') }}]
+{%- endif -%}

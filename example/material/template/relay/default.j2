@@ -1,0 +1,11 @@
+{%- if operator == 'Static' -%}
+	{{ receiver }}::{{ prop }}
+{%- elif operator == 'Address' -%}
+	{{ receiver }}->{{ prop }}
+{%- elif reg_fullmatch(env_get('i18n.types.props'), prop) -%}
+	{{ env_get('i18n.coms.mask') }}: [{{ receiver }}, {{ prop }}]
+{%- elif receiver == env_get('i18n.keys.exports') -%}
+	{{ prop }}
+{%- else -%}
+	{{ receiver }}.{{ prop }}
+{%- endif -%}

@@ -1,0 +1,6 @@
+# {{ meta_header }}
+{%- for statement in statements %}
+{%- if statement -%}
+{{ statement }}
+{%- endif -%}
+{%- endfor %}{{ '\n' }}

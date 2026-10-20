@@ -1,0 +1,28 @@
+{%- macro get_content(symbol, comment, parameters, statements) -%}
+  {%- set doc = namespace(on={}) -%}
+  {%- for line in comment.split('\n') -%}
+    {%- set line_elems = line.split('|') -%}
+    {%- set _ = doc.on.update({line_elems[0]: line_elems[1]}) -%}
+  {%- endfor -%}
+  {%- filter indent('  ') %}
+{{ env_get('i18n.keys.name') }}: {{ symbol }}
+{{ env_get('i18n.keys.desc') }}: '{{ doc.on['@desc'] }}'
+{{ env_get('i18n.keys.params') }}:{% if parameters | length == 0 %} []{% endif %}
+  {%- for parameter in parameters -%}
+    {%- set param_elems = parameter.split('|') %}
+  - {{ env_get('i18n.coms.var') }}: [{{ param_elems[1] }}, {{ env_get('i18n.coms.param') }}: [{{ param_elems[0] }}, {{ param_elems[1] }}, {{ param_elems[2] }}, '{{ doc.on['@param_' + param_elems[1]] }}']]
+  {%- endfor %}
+{{ env_get('i18n.keys.statements') }}:
+  {%- for statement in statements %}
+    {%- if statement.startswith('#') %}
+  {{ statement }}
+    {%- elif statement.startswith('returns') %}
+      {%- for ret in statement.split('\n') %}
+  - {{ ret[:-1] }}, '{{ doc.on['@return_' + (loop.index0 | string)] }}']
+      {%- endfor %}
+    {%- elif statement %}
+  - {{ statement }}
+    {%- endif -%}
+  {%- endfor %}
+  {%- endfilter %}
+{%- endmacro %}

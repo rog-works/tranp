@@ -1,18 +1,20 @@
 class Errors:
 	"""エラーの名前空間"""
 
-	# ----- Base
+	# region Base
 
 	class Error(Exception): """アプリケーション例外の基底クラス"""
 	class Never(Error): """未到達。設計ミス"""
 	class Fatal(Error): """致命的。原因不明のエラー"""
 	class Logic(Error): """実装不備。ランタイムエラー"""
 
-	# ----- General
+	# endregion
+	# region General
 
 	class InvalidSchema(Logic): """スキーマ・書式が不正。外因によるエラー"""
 
-	# ----- Transpiler
+	# endregion
+	# region Transpiler
 
 	class Syntax(Logic): """シンタックスエラー"""
 	class Semantics(Logic): """意味解析由来のエラー(基底)"""
@@ -29,3 +31,5 @@ class Errors:
 	class SymbolNotDefined(ReflectionError): """未定義のシンボルを検索。シンボル検索が対象"""
 	class OperationNotAllowed(ReflectionError): """許可されない(または未実装)の操作(演算/代入など)を指定"""
 	class NotSupported(ReflectionError): """非対応の機能を使用"""
+
+	# endregion

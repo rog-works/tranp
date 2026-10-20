@@ -3,16 +3,16 @@ trans_mapping: ${tranp_dir}/data/i18n.yml
 template_dirs:
   - ${tranp_dir}/data/cpp/template
 input_globs:
-  - example/**/*.py
+  - example/json/**/*.py
 exclude_patterns:
-  - example/FW/*
+  - example/json/FW/*
 output_dirs:
   - ./
 output_language: cpp:h
 env:
   transpiler:
     include_dirs:
-      - example/
+      - example/json/
   view:
     immutable_param_types:
       - std::string

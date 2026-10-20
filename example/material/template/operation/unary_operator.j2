@@ -1,0 +1,7 @@
+{%- if operator == '!' -%}
+{{ env_get('i18n.ops.!') }}: [{{ value }}]
+{%- elif operator == '-' and not reg_fullmatch('-?[\d.]+', value) -%}
+{{ env_get('i18n.ops.*') }}: [{{ value }}, -1.0]
+{%- else -%}
+{{ operator }}{{ value }}
+{%- endif -%}

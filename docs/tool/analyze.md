@@ -86,20 +86,18 @@ AST
 ==============
 Class List
 --------------
-tranp.app.compatible.libralies.type#type
-collections.abc#Callable
-collections.abc#Sequence
+0  collections.abc#Callable
+1  collections.abc#ItemsView
+2  collections.abc#Iterator
 # ... 中略 ...
-typing#Union
+40 typing#Union
 --------------
-Class fullyname here:
+Index or Class fullyname here. Type `exit` to Menu:
 ```
 
 * `Class List`に表示されている完全修飾名(`fullyname`)を入力
 
 ```bash
---------------
-Class fullyname here:
 typing#Union
 --------------
 <Class: @131 typing#Union (14, 1)..(17, 1)>
@@ -137,8 +135,8 @@ Symbol DB
 
 ```bash
 --------------
-Module filepath here:
-example/json.py
+Module filepath here. Type `exit` to Menu:
+example/json/json.py
 --------------
 Module load completed!
 ```
@@ -151,19 +149,17 @@ Module load completed!
 ==============
 Module List
 --------------
-tranp.app.compatible.libralies.type
-tranp.app.compatible.libralies.classes
-collections.abc
-typing
+0 collections.abc
+1 tranp.app.compatible.libralies.classes
+2 tranp.app.compatible.libralies.type
+3 typing
 --------------
-Module path here:
+Index or Module path here. Type `exit` to Menu:
 ```
 
 * `Module List`に表示されているモジュールパスを入力
 
 ```bash
---------------
-Module path here:
 typing
 ==============
 AST
@@ -184,19 +180,17 @@ AST
 ==============
 Module List
 --------------
-tranp.app.compatible.libralies.type
-tranp.app.compatible.libralies.classes
-collections.abc
-typing
+0 collections.abc
+1 tranp.app.compatible.libralies.classes
+2 tranp.app.compatible.libralies.type
+3 typing
 --------------
-Module path here:
+Index or Module path here. Type `exit` to Menu:
 ```
 
 * `Module List`に表示されているモジュールパスを入力
 
 ```bash
---------------
-Module path here:
 typing
 ==============
 Node/Symbol fullyname or full_path or id here. Type `exit` to Menu:
@@ -206,9 +200,10 @@ Node/Symbol fullyname or full_path or id here. Type `exit` to Menu:
 * ※1: class/db/prettyタスク等を利用して確認
 
 ```bash
-==============
-Node/Symbol fullyname or full_path or id here. Type `exit` to Menu:
 typing#Any
+==============
+Symbol
+--------------
 {
   "Node": {
     "accessor": "public",

@@ -1,0 +1,56 @@
+grammar: ${tranp_dir}/data/grammar.lark
+trans_mapping: ${tranp_dir}/data/i18n.yml
+template_dirs:
+  - example/material/template
+  - ${tranp_dir}/data/cpp/template
+input_globs:
+  - example/material/mfs_*.py
+exclude_patterns: []
+output_dirs:
+  - example/material/:./data/material
+  - ./data
+output_language: yml
+env:
+  transpiler:
+    include_dirs: []
+  view:
+    immutable_param_types:
+      - std::string
+      - std::vector
+      - std::map
+      - std::function
+    i18n:
+      ops:
+        '+': add
+        '-': sub
+        '*': mul
+        '/': div
+        '%': mod
+        '>=': op_ge
+        '<=': op_le
+        '>': op_gt
+        '<': op_lt
+        '!': op_not
+      types:
+        vectors: 'float2|float3|float4'
+        exports: 'bool|float|float3|texture|curve'
+        props: 'x|y|z|w|xy|xyz'
+        methods: 'append|cross|dot|length|normalize'
+        texture: texture
+      keys:
+        name: name
+        desc: desc
+        params: params
+        statements: statements
+        result: result
+        exports: exports
+      coms:
+        get: get
+        mask: mask
+        one_minus: one_minus
+        param: param
+        returns: returns
+        ternary: ternary
+        var: var
+        vars: vars
+        proxies: 'atan2_fast|rand_fast|sign|rgb_to_srgb|srgb_to_rgb'

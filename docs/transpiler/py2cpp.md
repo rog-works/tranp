@@ -480,9 +480,12 @@ std::string func(int index) {
 |ジェネレーター式|〇|
 |可変長tuple|〇|
 |モジュールの全体インポート|〇|
+|`Unpack`|△|
+|`NotRequired`など|△|
 |`__call__`|△|
 |`property.setter`|△|
 |`TypeVar.constrints`|△|
+|`with`の`as`の変数展開|△|
 |`match`|-|
 |`async/await`|-|
 |`__init__.py`|-|

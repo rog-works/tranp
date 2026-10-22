@@ -621,10 +621,11 @@ class TestPy2Cpp(TestCase):
 
 		# FIXME パラメーターの型を無理やり変更する影響で型が食い違ってしまう
 		('ForLambda.params', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'std::function<int(std::string)> func = [](const std::string& s) -> int { return 1; };'),
-		('ForLambda.params', 'function_def_raw.block.funccall[1]', defs.FuncCall, '([this](int a) mutable -> void { this->expression(); })(1);'),
-		('ForLambda.params', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'this->params([](int* np, bool b) -> std::string { return ""; });'),
-		('ForLambda.params', 'function_def_raw.block.assign', defs.MoveAssign, 'ForLambda::A<int> a{[](int e) -> void { printf(e); }};'),
-		('ForLambda.params', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'a.call([](int e) -> void { printf(e); });'),
+		('ForLambda.params', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'this->callback = [](const std::string& s) -> int { return 1; };'),
+		('ForLambda.params', 'function_def_raw.block.funccall[2]', defs.FuncCall, '([this](int a) mutable -> void { this->expression(); })(1);'),
+		('ForLambda.params', 'function_def_raw.block.funccall[3]', defs.FuncCall, 'this->params([](int* np, bool b) -> std::string { return ""; });'),
+		('ForLambda.params', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'ForLambda::A<int> a{[](int e) -> void { printf(e); }};'),
+		('ForLambda.params', 'function_def_raw.block.funccall[5]', defs.FuncCall, 'a.call([](int e) -> void { printf(e); });'),
 		('ForLambda.params.make', 'function_def_raw.block.return_stmt', defs.Return, 'return [](int n, float f) -> std::string { return std::to_string(n); };'),
 
 		('ForLambda.expression', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<int()> f = []() -> int { return 1; };'),

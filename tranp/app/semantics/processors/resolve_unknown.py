@@ -145,6 +145,10 @@ class ResolveUnknown:
 			# 期待値: var: Callable[[A, B]: ...] = lambda a, b: ...
 			type_raw = reflections.type_of(parent).impl(refs.Object).actualize('alt')
 			return var_raw.declare(var_raw.node.as_a(defs.Declable), type_raw.attrs[index])
+		elif isinstance(parent, defs.MoveAssign):
+			# 期待値: self.callback = lambda a, b: ...
+			type_raw = reflections.type_of(parent.receivers[0]).impl(refs.Object).actualize('nullable', 'alt')
+			return var_raw.declare(var_raw.node.as_a(defs.Declable), type_raw.attrs[index])
 		elif isinstance(parent, defs.Argument):
 			# 期待値: func(lambda a, b: ...)
 			func_call = parent.parent.as_a(defs.FuncCall)

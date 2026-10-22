@@ -1094,12 +1094,18 @@ class ForComp:
 
 
 class ForLambda:
+	callback: Callable[[str], int] | None
+
+	def __init__(self) -> None:
+		self.callback = None
+
 	class A(Generic[T]):
 		def __init__(self, f: Callable[[T], None] | None) -> None: ...
 		def call(self, f: Callable[[T], None] | None) -> None: ...
 
 	def params(self, f: Callable[[CP[int], bool], str]) -> None:
 		func: Callable[[str], int] = lambda s: 1
+		self.callback = lambda s: 1
 		(lambda a: self.expression())(1)
 		self.params(lambda np, b: '')
 		a = ForLambda.A[int](lambda e: print(e))

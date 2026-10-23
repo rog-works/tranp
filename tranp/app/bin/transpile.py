@@ -318,7 +318,7 @@ class Runner:
 
 			filepath = self.output_filepath(module_path)
 			content = self.transpiler.transpile(self.by_entrypoint(module_path))
-			if not self.can_update(filepath, content):
+			if not self.config.force and not self.can_update(filepath, content):
 				continue
 
 			writer = Writer(filepath)

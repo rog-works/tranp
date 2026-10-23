@@ -1,3 +1,4 @@
+import hashlib
 import os
 import re
 import sys
@@ -310,18 +311,26 @@ class Runner:
 
 	def _run_impl(self) -> None:
 		"""トランスパイルの実行"""
-		target_paths = self.module_paths if self.config.force else [module_path for module_path in self.module_paths if self.can_transpile(module_path)]
-		for module_path in target_paths:
+		for module_path in self.module_paths:
+			new_meta = MetaHeader(self.module_meta_factory(module_path.path), self.transpiler.meta)
+			if not self.config.force and not self.can_transpile(module_path, new_meta):
+				continue
+
+			filepath = self.output_filepath(module_path)
 			content = self.transpiler.transpile(self.by_entrypoint(module_path))
-			writer = Writer(self.output_filepath(module_path))
+			if not self.can_update(filepath, content):
+				continue
+
+			writer = Writer(filepath)
 			writer.put(content)
 			writer.flush()
 
-	def can_transpile(self, module_path: ModulePath) -> bool:
+	def can_transpile(self, module_path: ModulePath, new_meta: MetaHeader) -> bool:
 		"""トランスパイルを実行するか判定
 
 		Args:
 			module_path: モジュールパス
+			new_meta: メタヘッダー(新)
 		Returns:
 			True = 実行
 		"""
@@ -329,8 +338,24 @@ class Runner:
 		if not old_meta:
 			return True
 
-		new_meta = MetaHeader(self.module_meta_factory(module_path.path), self.transpiler.meta)
 		return new_meta != old_meta
+
+	def can_update(self, filepath: str, new_content: str) -> bool:
+		"""トランスパイル結果を保存するか判定
+
+		Args:
+			filepath: 出力ファイルパス
+			new_content: コンテンツ(新)
+		Returns:
+			True = 保存
+		"""
+		if not os.path.isfile(filepath):
+			return True
+
+		old_content = self.sources.load(filepath)
+		old_hash = hashlib.md5(old_content[old_content.find('\n') + 1:].encode('utf-8')).hexdigest()
+		new_hash = hashlib.md5(new_content[new_content.find('\n') + 1:].encode('utf-8')).hexdigest()
+		return old_hash != new_hash
 
 	def by_entrypoint(self, module_path: ModulePath) -> Node:
 		"""エントリーポイントのノードを取得

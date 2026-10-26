@@ -79,29 +79,21 @@ def op_in(value: Annotated[float, preview_distance()], minimum: Annotated[float,
 	return op_ge(value, minimum) * op_le(value, maximum)
 
 
-def op_and(value: Annotated[float, preview_distance()], defaults: Annotated[float, 0.0], is_a: Annotated[bool, False], is_b: Annotated[bool, False]) -> float:
-	"""AND条件
+def op_bit4_on(flags: Annotated[float, 1.0], index: Annotated[float, 1.0]) -> float:
+	"""指定のビットを判定
 
 	Args:
-		value: 値
-		defaults: デフォルト値
-		is_a: 条件A
-		is_b: 条件B
+		flags: 1.0 ~ 15.0
+		index: 1.0 ~ 4.0
 	Returns:
-		真の値
+		0 or 1
 	"""
-	return (value if is_b else defaults) if is_a else defaults
-
-
-def op_or(value: Annotated[float, preview_distance()], defaults: Annotated[float, 0.0], is_a: Annotated[bool, False], is_b: Annotated[bool, False]) -> float:
-	"""OR条件
-
-	Args:
-		value: 値
-		defaults: デフォルト値
-		is_a: 条件A
-		is_b: 条件B
-	Returns:
-		真の値
-	"""
-	return value if is_a else (value if is_b else defaults)
+	mask_4 = float(index > 3.0)
+	mask_3 = float(index < 4.0) * float(index > 2.0)
+	mask_2 = float(index < 3.0) * float(index > 1.0)
+	mask_1 = float(index < 2.0)
+	bit4 = mask_4 * float((flags * 0.125) % 2.0 >= 1.0)
+	bit3 = mask_3 * float((flags * 0.25) % 2.0 >= 1.0)
+	bit2 = mask_2 * float((flags * 0.5) % 2.0 >= 1.0)
+	bit1 = mask_1 * float(flags % 2.0 >= 1.0)
+	return bit4 + bit3 + bit2 + bit1

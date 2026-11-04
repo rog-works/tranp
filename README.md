@@ -35,10 +35,10 @@ tranp (TRANspiler on Python)
 
 # 必須要件
 
-* Python 3.13
-* [Lark](https://lark-parser.readthedocs.io/en/latest/index.html) 1.3.1
-* [Jinja2](https://github.com/pallets/jinja) 3.1.4
-* [PyYAML](https://pypi.org/project/PyYAML/) 6.0.2
+* Python >= 3.13
+* [Lark](https://lark-parser.readthedocs.io/en/latest/index.html) >= 1.3.1
+* [Jinja2](https://github.com/pallets/jinja) >= 3.1.4
+* [PyYAML](https://pypi.org/project/PyYAML/) >= 6.0.2
 
 # 動作環境
 

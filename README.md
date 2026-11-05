@@ -35,10 +35,10 @@ tranp (TRANspiler on Python)
 
 # 必須要件
 
-* Python 3.13
-* [Lark](https://lark-parser.readthedocs.io/en/latest/index.html) 1.3.1
-* [Jinja2](https://github.com/pallets/jinja) 3.1.4
-* [PyYAML](https://pypi.org/project/PyYAML/) 6.0.2
+* Python >= 3.13
+* [Lark](https://lark-parser.readthedocs.io/en/latest/index.html) >= 1.3.1
+* [Jinja2](https://github.com/pallets/jinja) >= 3.1.4
+* [PyYAML](https://pypi.org/project/PyYAML/) >= 6.0.2
 
 # 動作環境
 
@@ -249,11 +249,12 @@ $ tranp analyze
 
 # 互換性
 
-* 本プロジェクトは実験的なプロジェクトであり、作者自身の課題を解決するために開発しています
+* 本リポジトリーは実験的なプロジェクトであり、作者自身の課題を解決するために開発しています
 * 事前の告知なく破壊的な仕様変更を行う可能性があり、バージョン毎の動作・互換性を保証するものではない旨、予めご理解ください
 * 継続的な利用にあたってはバージョンを固定することを推奨します
 
 # ライセンス
 
 * [MIT](LICENCE)
-* tranpを用いて生成したトランスパイル後のソースコードに関してはライセンスに含まれません
+* 本リポジトリー内の既存の成果物に関してはライセンスに従います (exampleなど)
+* tranpを利用し、独自に生成した成果物に関してはライセンスに含みません

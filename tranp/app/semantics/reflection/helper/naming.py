@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Protocol
 
 import tranp.app.syntax.node.definition as defs
+from tranp.app.compatible.python.embed import Embed
 from tranp.app.dsn.dsn import DSN
 from tranp.app.dsn.translation import alias_dsn
 from tranp.app.semantics.reflection.base import IReflection
@@ -9,7 +10,7 @@ from tranp.app.syntax.node.node import Node
 
 
 class AliasHandler(Protocol):
-	"""エイリアス解決ハンドラープロトコル"""
+	"""プロトコル(エイリアス解決)"""
 
 	def __call__(self, key: str, fallback: str = '') -> str:
 		"""キーに対応する文字列に変換
@@ -29,7 +30,7 @@ class AliasHandler(Protocol):
 
 
 class AliasTranspiler(Protocol):
-	"""エイリアストランスパイラープロトコル"""
+	"""プロトコル(トランスパイル)"""
 
 	def __call__(self, node: Node) -> str:
 		"""ノードからエイリアスにトランスパイル
@@ -42,6 +43,36 @@ class AliasTranspiler(Protocol):
 			@see tranp.app.transpiler.types.ITranspiler
 		"""
 		...
+
+
+class AliasDoneDomain(Protocol):
+	"""プロトコル(ドメイン名確定)"""
+
+	def __call__(self, domain_name: str) -> str:
+		"""ドメイン名を確定
+
+		Args:
+			domain_name: ドメイン名
+		Returns:
+			確定後のドメイン名
+		"""
+		...
+
+
+class AliasBundler:
+	"""エイリアス解決バンドラー"""
+
+	def __init__(self, t: AliasHandler, transpile: AliasTranspiler, done: AliasDoneDomain) -> None:
+		"""インスタンスを生成
+
+		Args:
+			t: エイリアス解決
+			transpile: トランスパイル
+			done: ドメイン確定
+		"""
+		self.t = t
+		self.transpile = transpile
+		self.done = done
 
 
 class PathMethods(Enum):
@@ -174,6 +205,81 @@ class ClassDomainNaming:
 			curr = curr.parent
 
 		return ancestors
+
+
+class PropNaming:
+	"""プロパティー名生成モジュール"""
+
+	@classmethod
+	def to_prop_name(cls, decl: defs.DeclVars, bundler: AliasBundler) -> str:
+		"""定義ノードからプロパティーの名前を取得
+
+		Args:
+			decl: 変数宣言ノード
+		Returns:
+			プロパティー名
+		"""
+		embedder = cls.__analyze_embedder(decl)
+		if embedder:
+			return bundler.done(cls.__from_embedder(decl, bundler, embedder))
+		else:
+			return bundler.done(cls.__from_decl(decl, bundler))
+
+	@classmethod
+	def __analyze_embedder(cls, decl: defs.DeclVars) -> defs.FuncCall | None:
+		"""プロパティー名の埋め込みを解析
+
+		Args:
+			decl: 変数宣言ノード
+		Returns:
+			関数コールノード(Embed.alias) | None
+		"""
+		declare: defs.AnnoAssign | None = None
+		if isinstance(decl.declare, defs.AnnoAssign):
+			declare = decl.declare
+		elif isinstance(decl, defs.DeclThisVar):
+			# クラス自身が所有している変数のみが対象
+			decl_this_vars = decl.class_types.as_a(defs.Class).decl_this_vars
+			if decl.domain_name in decl_this_vars:
+				declare = decl_this_vars[decl.domain_name]
+
+		if not declare:
+			return None
+
+		for annotation in declare.var_type.annotations:
+			if isinstance(annotation, defs.FuncCall) and annotation.calls.tokens == Embed.alias.__qualname__:
+				return annotation
+
+		return None
+
+	@classmethod
+	def __from_decl(cls, decl: defs.DeclVars, bundler: AliasBundler) -> str:
+		"""プロパティー名を解決(オリジナル/翻訳)
+
+		Args:
+			decl: 変数宣言ノード
+		Returns:
+			プロパティー名
+		"""
+		return bundler.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
+
+	@classmethod
+	def __from_embedder(cls, decl: defs.DeclVars, bundler: AliasBundler, embedder: defs.FuncCall) -> str:
+		"""プロパティー名を解決(埋め込み)
+
+		Args:
+			decl: 変数宣言ノード
+			embedder: 関数コールノード(Embed.alias)
+		Returns:
+			プロパティー名
+		"""
+		alias_node = embedder.arguments[0]
+		alias_name = alias_node.as_string if isinstance(alias_node, defs.String) else bundler.transpile(alias_node)[1:-1]
+		if len(embedder.arguments) == 1:
+			return alias_name
+
+		origin_name = cls.__from_decl(decl, bundler)
+		return f'{alias_name}{origin_name}'
 
 
 class ClassShorthandNaming:

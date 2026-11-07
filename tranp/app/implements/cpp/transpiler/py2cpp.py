@@ -25,7 +25,7 @@ from tranp.app.lang.defer import Defer
 from tranp.app.lang.module import to_fullyname
 from tranp.app.semantics.procedure import Procedure
 from tranp.app.semantics.reflection.base import IReflection
-from tranp.app.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
+from tranp.app.semantics.reflection.helper.naming import AliasBundler, ClassDomainNaming, ClassShorthandNaming, PropNaming
 from tranp.app.semantics.reflections import Reflections
 from tranp.app.syntax.node.definition.accessible import PythonClassOperations
 from tranp.app.syntax.node.node import Node
@@ -64,6 +64,7 @@ class Py2Cpp(ITranspiler):
 		self.string_formats = self.__build_string_formats(options)
 		self.cvars = CVars(options.env.get('cvars', {}))
 		self.accessor_prefix: str = options.env.get('accessor_prefix', 'p')
+		self.alias_bundler = AliasBundler(i18n.t, self.transpile, self.__done_domain_name)
 		self.__procedure = self.__build_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
@@ -315,7 +316,7 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			プロパティー名
 		"""
-		return self.to_prop_name_by_decl(prop_raw.node.one_of(*defs.DeclVarsTs))
+		return PropNaming.to_prop_name(prop_raw.node.one_of(*defs.DeclVarsTs), self.alias_bundler)
 
 	def to_prop_name_by_decl(self, decl: defs.DeclVars) -> str:
 		"""定義ノードからプロパティーの名前を取得
@@ -324,52 +325,20 @@ class Py2Cpp(ITranspiler):
 			decl: 変数宣言ノード
 		Returns:
 			プロパティー名
+		"""
+		return PropNaming.to_prop_name(decl, self.alias_bundler)
+
+	def __done_domain_name(self, domain_name: str) -> str:
+		"""ドメイン名を確定
+
+		Args:
+			domain_name: ドメイン名
+		Returns:
+			確定後のドメイン名
 		Note:
 			C++の予約識別子の対策として、接頭辞のアンダースコアの前に文字列を付与
 		"""
-		embedder = self.__analyze_prop_alias_embedder(decl)
-		prop_name = self.__prop_name_via_embedder(decl, embedder) if embedder else self.__prop_name_via_decl(decl)
-		return prop_name if prop_name.count('_', 0, 2) == 0 else f'{self.accessor_prefix}{prop_name}'
-
-	def __analyze_prop_alias_embedder(self, decl: defs.DeclVars) -> defs.FuncCall | None:
-		"""プロパティー名の埋め込みを解析
-
-		Args:
-			decl: 変数宣言ノード
-		Returns:
-			関数コールノード(Embed.alias) | None
-		"""
-		declare: defs.AnnoAssign | None = None
-		if isinstance(decl.declare, defs.AnnoAssign):
-			declare = decl.declare
-		elif isinstance(decl, defs.DeclThisVar):
-			# クラス自身が所有している変数のみが対象
-			decl_this_vars = decl.class_types.as_a(defs.Class).decl_this_vars
-			if decl.domain_name in decl_this_vars:
-				declare = decl_this_vars[decl.domain_name]
-
-		if not declare:
-			return None
-
-		for annotation in declare.var_type.annotations:
-			if isinstance(annotation, defs.FuncCall) and annotation.calls.tokens == Embed.alias.__qualname__:
-				return annotation
-
-		return None
-
-	def __prop_name_via_decl(self, decl: defs.DeclVars) -> str:
-		"""Args: decl: 変数宣言ノード Returns: プロパティー名(オリジナル/翻訳)"""
-		return self.i18n.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
-
-	def __prop_name_via_embedder(self, decl: defs.DeclVars, embedder: defs.FuncCall) -> str:
-		"""Args: decl: 変数宣言ノード, embedder: 関数コールノード(Embed.alias) Returns: プロパティー名(埋め込み)"""
-		alias_node = embedder.arguments[0]
-		alias_name = alias_node.as_string if isinstance(alias_node, defs.String) else self.transpile(alias_node)[1:-1]
-		if len(embedder.arguments) == 1:
-			return alias_name
-
-		origin_name = self.__prop_name_via_decl(decl)
-		return f'{alias_name}{origin_name}'
+		return domain_name if domain_name.count('_', 0, 2) == 0 else f'{self.accessor_prefix}{domain_name}'
 
 	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
 		"""Args: node: ファンクションノード Returns: ファンクションのテンプレート型名リスト"""

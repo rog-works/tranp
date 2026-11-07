@@ -163,16 +163,22 @@ class DeclOps {
 	public: std::vector<int*> inst_arr;
 	public: std::map<std::string, int*> inst_map;
 	public: std::vector<TSII> inst_tsiis;
+	protected: int p_protected_n;
+	private: int p__private_n;
 	public:
 	/** __init__ */
-	DeclOps() : inst_var0(nullptr), inst_var1{}, inst_arr{}, inst_map{}, inst_tsiis{} {
-		int n = this->prop();
+	DeclOps() : inst_var0(nullptr), inst_var1{}, inst_arr{}, inst_map{}, inst_tsiis{}, p_protected_n(0), p__private_n(0) {
+		void n = this->prop();
 	}
 	public:
 	/** prop */
-	int prop() {
-		return 1;
-	}
+	void prop() {}
+	protected:
+	/** p_protected_prop */
+	void p_protected_prop() {}
+	private:
+	/** p__private_prop */
+	void p__private_prop() {}
 };"""
 
 	DeclProps = """public:

@@ -96,7 +96,7 @@ class ClassDomainNaming:
 			ドメイン名
 		"""
 		if bundler:
-			return bundler.t(alias_dsn(types.fullyname), fallback=cls.__alias_or_domain_name(types, bundler))
+			return bundler.done(bundler.t(alias_dsn(types.fullyname), fallback=cls.__alias_or_domain_name(types, bundler)))
 
 		return cls.__alias_or_domain_name(types, bundler)
 

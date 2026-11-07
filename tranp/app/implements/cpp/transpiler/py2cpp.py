@@ -310,17 +310,17 @@ class Py2Cpp(ITranspiler):
 		"""プロパティーの名前を取得
 
 		Args:
-			prop_raw: メソッド・プロパティー
+			prop_raw: プロパティー
 		Returns:
 			プロパティー名
 		"""
-		return self.to_prop_name_by_decl(prop_raw.node.one_of(*defs.DeclAllTs))
+		return self.to_prop_name_by_decl(prop_raw.node.one_of(*defs.DeclVarsTs))
 
-	def to_prop_name_by_decl(self, decl: defs.DeclAll) -> str:
+	def to_prop_name_by_decl(self, decl: defs.DeclVars) -> str:
 		"""定義ノードからプロパティーの名前を取得
 
 		Args:
-			decl: メソッド・変数宣言ノード
+			decl: 変数宣言ノード
 		Returns:
 			プロパティー名
 		"""
@@ -330,11 +330,11 @@ class Py2Cpp(ITranspiler):
 		else:
 			return self.__prop_name_via_decl(decl)
 
-	def __analyze_prop_alias_embedder(self, decl: defs.DeclAll) -> defs.FuncCall | None:
+	def __analyze_prop_alias_embedder(self, decl: defs.DeclVars) -> defs.FuncCall | None:
 		"""プロパティー名の埋め込みを解析
 
 		Args:
-			decl: メソッド・変数宣言ノード
+			decl: 変数宣言ノード
 		Returns:
 			関数コールノード(Embed.alias) | None
 		"""
@@ -356,12 +356,12 @@ class Py2Cpp(ITranspiler):
 
 		return None
 
-	def __prop_name_via_decl(self, decl: defs.DeclAll) -> str:
-		"""Args: decl: メソッド・変数宣言ノード Returns: プロパティー名(オリジナル/翻訳)"""
+	def __prop_name_via_decl(self, decl: defs.DeclVars) -> str:
+		"""Args: decl: 変数宣言ノード Returns: プロパティー名(オリジナル/翻訳)"""
 		return self.i18n.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
 
-	def __prop_name_via_embedder(self, decl: defs.DeclAll, embedder: defs.FuncCall) -> str:
-		"""Args: decl: メソッド・変数宣言ノード embedder: 関数コールノード(Embed.alias) Returns: プロパティー名(埋め込み)"""
+	def __prop_name_via_embedder(self, decl: defs.DeclVars, embedder: defs.FuncCall) -> str:
+		"""Args: decl: 変数宣言ノード embedder: 関数コールノード(Embed.alias) Returns: プロパティー名(埋め込み)"""
 		alias_name = self.transpile(embedder.arguments[0])[1:-1]
 		if len(embedder.arguments) == 1:
 			return alias_name

@@ -63,6 +63,7 @@ class Py2Cpp(ITranspiler):
 		self.include_dirs = self.__build_include_dirs(options)
 		self.string_formats = self.__build_string_formats(options)
 		self.cvars = CVars(options.env.get('cvars', {}))
+		self.accessor_prefix: str = options.env.get('accessor_prefix', 'p')
 		self.__procedure = self.__build_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
@@ -323,12 +324,12 @@ class Py2Cpp(ITranspiler):
 			decl: 変数宣言ノード
 		Returns:
 			プロパティー名
+		Note:
+			C++の予約識別子の対策として、接頭辞のアンダースコアの前に文字列を付与
 		"""
 		embedder = self.__analyze_prop_alias_embedder(decl)
-		if embedder:
-			return self.__prop_name_via_embedder(decl, embedder)
-		else:
-			return self.__prop_name_via_decl(decl)
+		prop_name = self.__prop_name_via_embedder(decl, embedder) if embedder else self.__prop_name_via_decl(decl)
+		return prop_name if prop_name.count('_', 0, 2) == 0 else f'{self.accessor_prefix}{prop_name}'
 
 	def __analyze_prop_alias_embedder(self, decl: defs.DeclVars) -> defs.FuncCall | None:
 		"""プロパティー名の埋め込みを解析
@@ -361,7 +362,7 @@ class Py2Cpp(ITranspiler):
 		return self.i18n.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
 
 	def __prop_name_via_embedder(self, decl: defs.DeclVars, embedder: defs.FuncCall) -> str:
-		"""Args: decl: 変数宣言ノード embedder: 関数コールノード(Embed.alias) Returns: プロパティー名(埋め込み)"""
+		"""Args: decl: 変数宣言ノード, embedder: 関数コールノード(Embed.alias) Returns: プロパティー名(埋め込み)"""
 		alias_node = embedder.arguments[0]
 		alias_name = alias_node.as_string if isinstance(alias_node, defs.String) else self.transpile(alias_node)[1:-1]
 		if len(embedder.arguments) == 1:

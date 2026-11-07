@@ -362,7 +362,8 @@ class Py2Cpp(ITranspiler):
 
 	def __prop_name_via_embedder(self, decl: defs.DeclVars, embedder: defs.FuncCall) -> str:
 		"""Args: decl: 変数宣言ノード embedder: 関数コールノード(Embed.alias) Returns: プロパティー名(埋め込み)"""
-		alias_name = self.transpile(embedder.arguments[0])[1:-1]
+		alias_node = embedder.arguments[0]
+		alias_name = alias_node.as_string if isinstance(alias_node, defs.String) else self.transpile(alias_node)[1:-1]
 		if len(embedder.arguments) == 1:
 			return alias_name
 

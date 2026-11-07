@@ -77,6 +77,8 @@ class DeclOps:
 	inst_arr: list[CP[int]]
 	inst_map: dict[str, CP[int]]
 	inst_tsiis: list[TSII]
+	_protected_n: int
+	__private_n: int
 
 	def __init__(self) -> None:
 		self.inst_var0 = None
@@ -84,11 +86,16 @@ class DeclOps:
 		self.inst_arr = []
 		self.inst_map = {}
 		self.inst_tsiis = []
+		self._protected_n = 0
+		self.__private_n = 0
 		n = self.prop
 
 	@property
-	def prop(self) -> int:
-		return 1
+	def prop(self) -> None: ...
+	@property
+	def _protected_prop(self) -> None: ...
+	@property
+	def __private_prop(self) -> None: ...
 
 
 class CVarOps:

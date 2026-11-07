@@ -336,9 +336,14 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			確定後のドメイン名
 		Note:
-			C++の予約識別子の対策として、接頭辞のアンダースコアの前に文字列を付与
+			C++の予約識別子の対策として、接頭辞のアンダースコアの前に文字列を付与(特殊メソッドを除く)
 		"""
-		return domain_name if domain_name.count('_', 0, 2) == 0 else f'{self.accessor_prefix}{domain_name}'
+		if not domain_name.startswith('_') and not domain_name.startswith('__'):
+			return domain_name
+		elif domain_name.endswith('__'):
+			return domain_name
+		else:
+			return f'{self.accessor_prefix}{domain_name}'
 
 	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
 		"""Args: node: ファンクションノード Returns: ファンクションのテンプレート型名リスト"""

@@ -174,11 +174,11 @@ class DeclOps {
 	/** prop */
 	void prop() {}
 	protected:
-	/** _protected_prop */
-	void _protected_prop() {}
+	/** p_protected_prop */
+	void p_protected_prop() {}
 	private:
-	/** __private_prop */
-	void __private_prop() {}
+	/** p__private_prop */
+	void p__private_prop() {}
 };"""
 
 	DeclProps = """public:

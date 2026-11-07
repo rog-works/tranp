@@ -224,7 +224,7 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_raw = raw.impl(refs.Object).actualize('nullable')
-		make_org_var_type = lambda: ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		make_org_var_type = lambda: ClassDomainNaming.accessible_name(actual_raw.types, self.alias_bundler)
 		var_type = ''
 		if actual_raw.types.is_a(defs.Method):
 			var_type = self.__accessible_name_for_method(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in actual_raw.attrs])
@@ -239,7 +239,7 @@ class Py2Cpp(ITranspiler):
 		elif actual_raw.types.is_a(defs.AltClass):
 			var_type = self.__accessible_name_for_alt_class(actual_raw, make_org_var_type())
 		elif actual_raw.types.is_a(defs.TemplateClass):
-			var_type = ClassDomainNaming.domain_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+			var_type = ClassDomainNaming.domain_name(actual_raw.types, self.alias_bundler)
 		else:
 			var_type = make_org_var_type()
 
@@ -296,7 +296,7 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_type_raw = var_type_raw.impl(refs.Object).actualize('nullable')
-		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		return ClassShorthandNaming.domain_name(actual_type_raw, self.alias_bundler)
 
 	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
 		"""明示された型からドメイン名を取得
@@ -306,7 +306,7 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			型の参照名
 		"""
-		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		return ClassDomainNaming.domain_name(types, self.alias_bundler)
 
 	def to_prop_name(self, prop_raw: IReflection) -> str:
 		"""プロパティーの名前を取得

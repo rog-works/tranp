@@ -86,78 +86,73 @@ class ClassDomainNaming:
 	"""クラスのドメイン名生成モジュール"""
 
 	@classmethod
-	def domain_name(cls, types: defs.ClassDef, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None) -> str:
+	def domain_name(cls, types: defs.ClassDef, bundler: AliasBundler | None) -> str:
 		"""クラスのドメイン名を生成
 
 		Args:
 			types: クラス宣言ノード
-			alias_handler: エイリアス解決ハンドラー
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 		Returns:
 			ドメイン名
 		"""
-		if alias_handler:
-			return alias_handler(alias_dsn(types.fullyname), fallback=cls.__alias_or_domain_name(types, alias_transpiler))
+		if bundler:
+			return bundler.t(alias_dsn(types.fullyname), fallback=cls.__alias_or_domain_name(types, bundler))
 
-		return cls.__alias_or_domain_name(types, alias_transpiler)
+		return cls.__alias_or_domain_name(types, bundler)
 
 	@classmethod
-	def fullyname(cls, types: defs.ClassDef, alias_handler: AliasHandler | None) -> str:
+	def fullyname(cls, types: defs.ClassDef, bundler: AliasBundler | None) -> str:
 		"""クラスの完全参照名を生成
 
 		Args:
 			types: クラス宣言ノード
-			alias_handler: エイリアス解決ハンドラー
+			bundler: エイリアス解決バンドラー
 		Returns:
 			完全参照名
-		Note:
-			XXX 完全参照名はエイリアス化前の名前で登録されるため、AliasTranspilerは指定しない
 		"""
-		return DSN.join(types.module_path, cls.__namespace(types, alias_handler, None), cls.domain_name(types, alias_handler, None))
+		return DSN.join(types.module_path, cls.__namespace(types, bundler), cls.domain_name(types, bundler))
 
 	@classmethod
-	def accessible_name(cls, types: defs.ClassDef, alias_handler: AliasHandler | None , alias_transpiler: AliasTranspiler | None) -> str:
+	def accessible_name(cls, types: defs.ClassDef, bundler: AliasBundler | None) -> str:
 		"""クラスの名前空間上の参照名を生成
 
 		Args:
 			types: クラス宣言ノード
-			alias_handler: エイリアス解決ハンドラー
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 		Returns:
 			名前空間上の参照名
 		"""
-		return DSN.join(cls.__namespace(types, alias_handler, alias_transpiler), cls.domain_name(types, alias_handler, alias_transpiler))
+		return DSN.join(cls.__namespace(types, bundler), cls.domain_name(types, bundler))
 
 	@classmethod
-	def make_manualy(cls, types: defs.ClassDef, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None, path_method: PathMethods = PathMethods.Domain) -> str:
+	def make_manualy(cls, types: defs.ClassDef, bundler: AliasBundler | None, path_method: PathMethods = PathMethods.Domain) -> str:
 		"""クラスのドメイン名を生成
 
 		Args:
 			types: クラス宣言ノード
-			alias_handler: エイリアス解決ハンドラー
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 			path_method: パス生成方式 (default = Domain)
 		Returns:
 			ドメイン名
 		"""
 		if path_method == PathMethods.Fully:
-			return cls.fullyname(types, alias_handler)
+			return cls.fullyname(types, bundler)
 		if path_method == PathMethods.Accessible:
-			return cls.accessible_name(types, alias_handler, alias_transpiler)
+			return cls.accessible_name(types, bundler)
 		else:
-			return cls.domain_name(types, alias_handler, alias_transpiler)
+			return cls.domain_name(types, bundler)
 
 	@classmethod
-	def __alias_or_domain_name(cls, types: defs.ClassDef, alias_transpiler: AliasTranspiler | None) -> str:
+	def __alias_or_domain_name(cls, types: defs.ClassDef, bundler: AliasBundler | None) -> str:
 		"""クラスのドメイン名を解決
 
 		Args:
 			types: クラス宣言ノード
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 		Returns:
 			ドメイン名
 		"""
-		if not alias_transpiler:
+		if not bundler:
 			return types.domain_name
 
 		embedder = types.alias_embedder
@@ -165,25 +160,24 @@ class ClassDomainNaming:
 			return types.domain_name
 
 		alias_node = embedder.arguments[0].value
-		alias = alias_node.as_string if isinstance(alias_node, defs.String) else alias_transpiler(alias_node)[1:-1]
+		alias = alias_node.as_string if isinstance(alias_node, defs.String) else bundler.transpile(alias_node)[1:-1]
 		is_prefix = len(embedder.arguments) == 2
 		return f'{alias}{types.domain_name}' if is_prefix else alias
 
 	@classmethod
-	def __namespace(cls, types: defs.ClassDef, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None) -> str:
+	def __namespace(cls, types: defs.ClassDef, bundler: AliasBundler | None) -> str:
 		"""クラスの名前空間を生成
 
 		Args:
 			types: クラス宣言ノード
-			alias_handler: エイリアス解決ハンドラー
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 		Returns:
 			名前空間
 		"""
-		if not alias_handler:
+		if not bundler:
 			return DSN.shift(DSN.relativefy(types.namespace, types.module_path), -1)
 
-		return DSN.join(*[cls.domain_name(ancestor, alias_handler, alias_transpiler) for ancestor in cls.__ancestor_classes(types)])
+		return DSN.join(*[cls.domain_name(ancestor, bundler) for ancestor in cls.__ancestor_classes(types)])
 
 	@classmethod
 	def __ancestor_classes(cls, types: defs.ClassDef) -> list[defs.ClassDef]:
@@ -216,6 +210,7 @@ class PropNaming:
 
 		Args:
 			decl: 変数宣言ノード
+			bundler: エイリアス解決バンドラー
 		Returns:
 			プロパティー名
 		"""
@@ -258,6 +253,7 @@ class PropNaming:
 
 		Args:
 			decl: 変数宣言ノード
+			bundler: エイリアス解決バンドラー
 		Returns:
 			プロパティー名
 		"""
@@ -269,6 +265,7 @@ class PropNaming:
 
 		Args:
 			decl: 変数宣言ノード
+			bundler: エイリアス解決バンドラー
 			embedder: 関数コールノード(Embed.alias)
 		Returns:
 			プロパティー名
@@ -295,43 +292,40 @@ class ClassShorthandNaming:
 	"""
 
 	@classmethod
-	def domain_name(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None) -> str:
+	def domain_name(cls, raw: IReflection, bundler: AliasBundler) -> str:
 		"""クラスの短縮表記を生成(ドメイン名)
 
 		Args:
 			raw: シンボル
-			alias_handler: エイリアス解決ハンドラー
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 		Returns:
 			短縮表記
 		"""
-		return cls.__make_general(raw, alias_handler, alias_transpiler, PathMethods.Domain)
+		return cls.__make_general(raw, bundler, PathMethods.Domain)
 
 	@classmethod
-	def fullyname(cls, raw: IReflection, alias_handler: AliasHandler | None) -> str:
+	def fullyname(cls, raw: IReflection, bundler: AliasBundler) -> str:
 		"""クラスの短縮表記を生成(完全参照名)
 
 		Args:
 			raw: シンボル
-			alias_handler: エイリアス解決ハンドラー
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 		Returns:
 			短縮表記
 		"""
-		return cls.__make_general(raw, alias_handler, None, PathMethods.Fully)
+		return cls.__make_general(raw, bundler, PathMethods.Fully)
 
 	@classmethod
-	def accessible_name(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None) -> str:
+	def accessible_name(cls, raw: IReflection, bundler: AliasBundler) -> str:
 		"""クラスの短縮表記を生成(名前空間上の参照名)
 
 		Args:
 			raw: シンボル
-			alias_handler: エイリアス解決ハンドラー
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 		Returns:
 			短縮表記
 		"""
-		return cls.__make_general(raw, alias_handler, alias_transpiler, PathMethods.Accessible)
+		return cls.__make_general(raw, bundler, PathMethods.Accessible)
 
 	@classmethod
 	def domain_name_for_debug(cls, raw: IReflection) -> str:
@@ -344,50 +338,48 @@ class ClassShorthandNaming:
 		Note:
 			XXX エイリアス化前の名前になる点に注意
 		"""
-		return cls.__make_decorate(raw, None, None, PathMethods.Domain)
+		return cls.__make_decorate(raw, None, PathMethods.Domain)
 
 	@classmethod
-	def __make_general(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None, path_method: PathMethods) -> str:
+	def __make_general(cls, raw: IReflection, bundler: AliasBundler | None, path_method: PathMethods) -> str:
 		"""クラスの短縮表記を生成(一般型)
 
 		Args:
 			raw: シンボル
-			alias_handler: エイリアス解決ハンドラー
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 			path_method: パス生成方式
 		Returns:
 			短縮表記
 		"""
 		attrs = raw.attrs
-		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, alias_transpiler, path_method)
+		symbol_name = ClassDomainNaming.make_manualy(raw.types, bundler, path_method)
 		if len(attrs) == 0 or raw.types.is_a(defs.AltClass):
 			return symbol_name
 
-		attrs_str = [cls.__make_general(attr, alias_handler, alias_transpiler, path_method) for attr in attrs]
+		attrs_str = [cls.__make_general(attr, bundler, path_method) for attr in attrs]
 		return f'{symbol_name}<{", ".join(attrs_str)}>'
 
 	@classmethod
-	def __make_decorate(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None, path_method: PathMethods) -> str:
+	def __make_decorate(cls, raw: IReflection, bundler: AliasBundler | None, path_method: PathMethods) -> str:
 		"""クラスの短縮表記を生成(装飾型)
 
 		Args:
 			raw: シンボル
-			alias_handler: エイリアス解決ハンドラー
-			alias_transpiler: エイリアストランスパイラー
+			bundler: エイリアス解決バンドラー
 			path_method: パス生成方式
 		Returns:
 			短縮表記
 		"""
-		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, alias_transpiler, path_method)
+		symbol_name = ClassDomainNaming.make_manualy(raw.types, bundler, path_method)
 		if len(raw.attrs) == 0:
 			return symbol_name
 
 		if raw.types.is_a(defs.AltClass):
-			attrs = [cls.__make_decorate(attr, alias_handler, alias_transpiler, path_method) for attr in raw.attrs]
+			attrs = [cls.__make_decorate(attr, bundler, path_method) for attr in raw.attrs]
 			return f'{symbol_name}={attrs[0]}'
 		elif raw.types.is_a(defs.Function):
-			attrs = [cls.__make_decorate(attr, alias_handler, alias_transpiler, path_method) for attr in raw.attrs]
+			attrs = [cls.__make_decorate(attr, bundler, path_method) for attr in raw.attrs]
 			return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
 		else:
-			attrs = [cls.__make_decorate(attr, alias_handler, alias_transpiler, path_method) for attr in raw.attrs]
+			attrs = [cls.__make_decorate(attr, bundler, path_method) for attr in raw.attrs]
 			return f'{symbol_name}<{", ".join(attrs)}>'

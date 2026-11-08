@@ -333,6 +333,31 @@ pattern: '[\w\d]*'
 accessor_prefix: 'p'
 ```
 
+## 付与対象
+
+* クラス
+* クラス変数
+* インスタンス変数
+* メソッド
+* 関数
+
+## 変換例
+
+```python
+class A:
+  n: int
+  _protected_n: int
+  __private_n: int
+```
+↓
+```cpp
+class A {
+  public: int n;
+  protected: int p_protected_n;
+  private: int p__private_n;
+};
+```
+
 # view
 
 * ビュー用の環境変数

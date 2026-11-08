@@ -62,17 +62,23 @@ from typing import ClassVar
 class A:
   cls_n: ClassVar = 0
   n: int
+  _protected_n: int
+  __private_n: int
 
   def __init__(self, n: int) -> None:
     self.n = n
+    self._protected_n = n
+    self.__private_n = n
 ```
 ↓
 ```cpp
 class A {
 public: inline static int cls_n = 0;
 public: int n;
+protected: int p_protected_n;
+private: int p__private_n;
 public:
-  A(int n) : n(n) {}
+  A(int n) : n(n), p_protected_n(n), p__private_n(n) {}
 };
 ```
 
@@ -333,7 +339,7 @@ class Abstract {
 public: virtual ~Abstract() = default;
 public: virtual int interface_func() = 0;
 public:
-  virtual int abstract_func(self) {
+  virtual int abstract_func() {
     return 1;
   }
 };

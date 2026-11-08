@@ -29,13 +29,13 @@ class BlockExpects:
 	def list_slice(cls, symbol: str, begin: str, end: str, step: str, var_type: str) -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{var_type}> ' '{',
-			f'	std::vector<{var_type}> __ret;',
-			f'	auto __begin = {symbol}.begin();',
-			f'	auto __end = {end if end else f"{symbol}.size()"};',
-			f'	for (auto __index = {begin if begin else "0"}; __index < __end; __index += {step if step else "1"}) ' '{',
-			'		__ret.push_back(*(__begin + __index));',
+			f'	std::vector<{var_type}> l_ret;',
+			f'	auto l_begin = {symbol}.begin();',
+			f'	auto l_end = {end if end else f"{symbol}.size()"};',
+			f'	for (auto l_index = {begin if begin else "0"}; l_index < l_end; l_index += {step if step else "1"}) ' '{',
+			'		l_ret.push_back(*(l_begin + l_index));',
 			'	}',
-			'	return __ret;',
+			'	return l_ret;',
 			'}();',
 		])
 
@@ -43,10 +43,10 @@ class BlockExpects:
 	def list_pop(cls, symbol: str, index: str, var_type: str) -> str:
 		return '\n'.join([
 			f'[&]() -> {var_type} ' '{',
-			f'	auto __iter = {symbol}' + (f'.begin() + {index};' if index else '.end() - 1;'),
-			'	auto __copy = *__iter;',
-			f'	{symbol}.erase(__iter);',
-			'	return __copy;',
+			f'	auto l_iter = {symbol}' + (f'.begin() + {index};' if index else '.end() - 1;'),
+			'	auto l_copy = *l_iter;',
+			f'	{symbol}.erase(l_iter);',
+			'	return l_copy;',
 			'}();',
 		])
 
@@ -54,11 +54,11 @@ class BlockExpects:
 	def list_values(cls, symbol: str, var_type: str) -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{var_type}> ' '{',
-			f'	std::vector<{var_type}> __ret;',
-			f'	for (auto& __value : {symbol}) ' '{',
-			'		__ret.push_back(__value);',
+			f'	std::vector<{var_type}> l_ret;',
+			f'	for (auto& l_value : {symbol}) ' '{',
+			'		l_ret.push_back(l_value);',
 			'	}',
-			'	return __ret;',
+			'	return l_ret;',
 			'}();'
 		])
 
@@ -66,9 +66,9 @@ class BlockExpects:
 	def dict_pop(cls, symbol: str, key: str, var_type: str) -> str:
 		return '\n'.join([
 			f'[&]() -> {var_type} ' '{',
-			f'	auto __copy = {symbol}[{key}];',
+			f'	auto l_copy = {symbol}[{key}];',
 			f'	{symbol}.erase({key});',
-			'	return __copy;',
+			'	return l_copy;',
 			'}();',
 		])
 
@@ -76,11 +76,11 @@ class BlockExpects:
 	def dict_keys(cls, symbol: str, var_type: str) -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{var_type}> ' '{',
-			f'	std::vector<{var_type}> __ret;',
-			f'	for (auto& [__key, _] : {symbol}) ' '{',
-			'		__ret.push_back(__key);',
+			f'	std::vector<{var_type}> l_ret;',
+			f'	for (auto& [l_key, l_] : {symbol}) ' '{',
+			'		l_ret.push_back(l_key);',
 			'	}',
-			'	return __ret;',
+			'	return l_ret;',
 			'}();'
 		])
 
@@ -88,11 +88,11 @@ class BlockExpects:
 	def dict_values(cls, symbol: str, var_type: str) -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{var_type}> ' '{',
-			f'	std::vector<{var_type}> __ret;',
-			f'	for (auto& [_, __value] : {symbol}) ' '{',
-			'		__ret.push_back(__value);',
+			f'	std::vector<{var_type}> l_ret;',
+			f'	for (auto& [l_, l_value] : {symbol}) ' '{',
+			'		l_ret.push_back(l_value);',
 			'	}',
-			'	return __ret;',
+			'	return l_ret;',
 			'}();'
 		])
 
@@ -110,11 +110,11 @@ class BlockExpects:
 	def list_comp(cls, proj_value: str, proj_type: str, iterates: str, proj_symbols: str = '', proj_infer: str = 'auto&') -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{proj_type}> ' '{',
-			f'	std::vector<{proj_type}> __ret;',
+			f'	std::vector<{proj_type}> l_ret;',
 			f'	for ({proj_infer} {proj_symbols or proj_value} : {iterates}) ' '{',
-			f'		__ret.push_back({proj_value});',
+			f'		l_ret.push_back({proj_value});',
 			'	}',
-			'	return __ret;',
+			'	return l_ret;',
 			'}()',
 		])
 
@@ -122,11 +122,11 @@ class BlockExpects:
 	def list_comp_range(cls, proj_value: str, proj_type: str, size: str, proj_symbol: str) -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{proj_type}> ' '{',
-			f'	std::vector<{proj_type}> __ret;',
+			f'	std::vector<{proj_type}> l_ret;',
 			f'	for (auto {proj_symbol} = 0; {proj_symbol} < {size}; {proj_symbol}++) ' '{',
-			f'		__ret.push_back({proj_value});',
+			f'		l_ret.push_back({proj_value});',
 			'	}',
-			'	return __ret;',
+			'	return l_ret;',
 			'}()',
 		])
 
@@ -134,11 +134,11 @@ class BlockExpects:
 	def list_comp_enumerate(cls, proj_value: str, proj_type: str, iterates: str, proj_symbols: list[str]) -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{proj_type}> ' '{',
-			f'	std::vector<{proj_type}> __ret;',
-			f'	for (auto [{proj_symbols[0]}, __iter, __end, {proj_symbols[1]}] = std::tuple' '{' f'0, {iterates}.begin(), {iterates}.end(), *({iterates}.begin())' '}' f'; __iter < __end; __iter++, {proj_symbols[1]} = *__iter) ' '{',
-			f'		__ret.push_back({proj_value});',
+			f'	std::vector<{proj_type}> l_ret;',
+			f'	for (auto [{proj_symbols[0]}, l_iter, l_end, {proj_symbols[1]}] = std::tuple' '{' f'0, {iterates}.begin(), {iterates}.end(), *({iterates}.begin())' '}' f'; l_iter < l_end; l_iter++, {proj_symbols[1]} = *l_iter) ' '{',
+			f'		l_ret.push_back({proj_value});',
 			'	}',
-			'	return __ret;',
+			'	return l_ret;',
 			'}()',
 		])
 
@@ -146,11 +146,11 @@ class BlockExpects:
 	def dict_comp(cls, proj_key: str, proj_value: str, proj_key_type: str, proj_value_type: str, iterates: str, proj_symbols: str, proj_infer: str = 'auto&') -> str:
 		return '\n'.join([
 			f'[&]() -> std::map<{proj_key_type}, {proj_value_type}> ' '{',
-			f'	std::map<{proj_key_type}, {proj_value_type}> __ret;',
+			f'	std::map<{proj_key_type}, {proj_value_type}> l_ret;',
 			f'	for ({proj_infer} {proj_symbols} : {iterates}) ' '{',
-			f'		__ret[{proj_key}] = {proj_value};',
+			f'		l_ret[{proj_key}] = {proj_value};',
 			'	}',
-			'	return __ret;',
+			'	return l_ret;',
 			'}()',
 		])
 
@@ -158,21 +158,29 @@ class BlockExpects:
 class DeclOps {
 	public: inline static Sub* class_bp = nullptr;
 	public: inline static std::map<std::string, std::map<std::string, std::vector<int*>>> class_map = {{"a", {{"b", {}}}}};
+	protected: inline static int p_protected_class_n = 0;
+	private: inline static int p__private_class_n = 0;
 	public: Sub* inst_var0;
 	public: Sub inst_var1;
 	public: std::vector<int*> inst_arr;
 	public: std::map<std::string, int*> inst_map;
 	public: std::vector<TSII> inst_tsiis;
+	protected: int p_protected_n;
+	private: int p__private_n;
 	public:
 	/** __init__ */
-	DeclOps() : inst_var0(nullptr), inst_var1{}, inst_arr{}, inst_map{}, inst_tsiis{} {
-		int n = this->prop();
+	DeclOps() : inst_var0(nullptr), inst_var1{}, inst_arr{}, inst_map{}, inst_tsiis{}, p_protected_n(0), p__private_n(0) {
+		void n = this->prop();
 	}
 	public:
 	/** prop */
-	int prop() {
-		return 1;
-	}
+	void prop() {}
+	protected:
+	/** p_protected_prop */
+	void p_protected_prop() {}
+	private:
+	/** p__private_prop */
+	void p__private_prop() {}
 };"""
 
 	DeclProps = """public:
@@ -277,10 +285,10 @@ Iterator_numbers numbers() {
 	ForIteratorDict = """public:
 /** items */
 struct Iterator_items {
-	std::map<std::string, int>* __iterates;
-	Iterator_items(std::map<std::string, int>* iterates) : __iterates(iterates) {}
-	std::map<std::string, int>::iterator begin() { return {this->__iterates->begin()}; }
-	std::map<std::string, int>::iterator end() { return {this->__iterates->end()}; }
+	std::map<std::string, int>* p_iterates;
+	Iterator_items(std::map<std::string, int>* iterates) : p_iterates(iterates) {}
+	std::map<std::string, int>::iterator begin() { return {this->p_iterates->begin()}; }
+	std::map<std::string, int>::iterator end() { return {this->p_iterates->end()}; }
 };
 Iterator_items items() {
 	return {&(this->d)};

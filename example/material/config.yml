@@ -13,6 +13,7 @@ output_language: yml
 env:
   transpiler:
     include_dirs: []
+    accessor_prefix: ''
   view:
     immutable_param_types:
       - std::string

@@ -1,7 +1,7 @@
 [&]() -> {{ i18n('classes', 'list') }}<{{ var_type }}> {
-	{{ i18n('classes', 'list') }}<{{ var_type }}> __ret;
-	for (auto& [__key, _] : {{ receiver }}) {
-		__ret.{{ i18n('classes', 'list.append') }}(__key);
+	{{ i18n('classes', 'list') }}<{{ var_type }}> l_ret;
+	for (auto& [l_key, l_] : {{ receiver }}) {
+		l_ret.{{ i18n('classes', 'list.append') }}(l_key);
 	}
-	return __ret;
+	return l_ret;
 }(){% if is_statement %};{% endif %}

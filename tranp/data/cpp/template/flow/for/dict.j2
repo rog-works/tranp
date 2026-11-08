@@ -1,8 +1,14 @@
 {%- set infer = ('const ' if is_const else '') + 'auto' + ('' if is_addr_raw else '&') -%}
+{%- if method == 'keys' -%}
+for ({{ infer }} [{{ symbols[0] }}, l_] : {{ iterates }}) {
+{%- elif method == 'values' -%}
+for ({{ infer }} [l_, {{ symbols[0] }}] : {{ iterates }}) {
+{%- else -%}
 for ({{ infer }} [{{ symbols | join(', ') }}] : {{ iterates }}) {
-{%- filter indent('\t') %}
+{%- endif -%}
+{%- filter indent('\t') -%}
 {%- for statement in statements %}
 {{ statement }}
-{%- endfor %}
+{%- endfor -%}
 {%- endfilter %}
 }

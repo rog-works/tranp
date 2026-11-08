@@ -25,7 +25,7 @@ from tranp.app.lang.defer import Defer
 from tranp.app.lang.module import to_fullyname
 from tranp.app.semantics.procedure import Procedure
 from tranp.app.semantics.reflection.base import IReflection
-from tranp.app.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
+from tranp.app.semantics.reflection.helper.naming import AliasBundler, ClassDomainNaming, ClassShorthandNaming, PropNaming
 from tranp.app.semantics.reflections import Reflections
 from tranp.app.syntax.node.definition.accessible import PythonClassOperations
 from tranp.app.syntax.node.node import Node
@@ -63,6 +63,8 @@ class Py2Cpp(ITranspiler):
 		self.include_dirs = self.__build_include_dirs(options)
 		self.string_formats = self.__build_string_formats(options)
 		self.cvars = CVars(options.env.get('cvars', {}))
+		self.accessor_prefix: str = options.env.get('accessor_prefix', 'p')
+		self.alias_bundler = AliasBundler(i18n.t, self.transpile, self.__done_domain_name)
 		self.__procedure = self.__build_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
@@ -222,7 +224,7 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_raw = raw.impl(refs.Object).actualize('nullable')
-		make_org_var_type = lambda: ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		make_org_var_type = lambda: ClassDomainNaming.accessible_name(actual_raw.types, self.alias_bundler)
 		var_type = ''
 		if actual_raw.types.is_a(defs.Method):
 			var_type = self.__accessible_name_for_method(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in actual_raw.attrs])
@@ -237,7 +239,7 @@ class Py2Cpp(ITranspiler):
 		elif actual_raw.types.is_a(defs.AltClass):
 			var_type = self.__accessible_name_for_alt_class(actual_raw, make_org_var_type())
 		elif actual_raw.types.is_a(defs.TemplateClass):
-			var_type = ClassDomainNaming.domain_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+			var_type = ClassDomainNaming.domain_name(actual_raw.types, self.alias_bundler)
 		else:
 			var_type = make_org_var_type()
 
@@ -294,7 +296,7 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_type_raw = var_type_raw.impl(refs.Object).actualize('nullable')
-		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		return ClassShorthandNaming.domain_name(actual_type_raw, self.alias_bundler)
 
 	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
 		"""明示された型からドメイン名を取得
@@ -304,70 +306,46 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			型の参照名
 		"""
-		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		return ClassDomainNaming.domain_name(types, self.alias_bundler)
 
 	def to_prop_name(self, prop_raw: IReflection) -> str:
 		"""プロパティーの名前を取得
 
 		Args:
-			prop_raw: メソッド・プロパティー
+			prop_raw: プロパティー
 		Returns:
 			プロパティー名
 		"""
-		return self.to_prop_name_by_decl(prop_raw.node.one_of(*defs.DeclAllTs))
+		return PropNaming.to_prop_name(prop_raw.node.one_of(*defs.DeclVarsTs), self.alias_bundler)
 
-	def to_prop_name_by_decl(self, decl: defs.DeclAll) -> str:
+	def to_prop_name_by_decl(self, decl: defs.DeclVars) -> str:
 		"""定義ノードからプロパティーの名前を取得
 
 		Args:
-			decl: メソッド・変数宣言ノード
+			decl: 変数宣言ノード
 		Returns:
 			プロパティー名
 		"""
-		embedder = self.__analyze_prop_alias_embedder(decl)
-		if embedder:
-			return self.__prop_name_via_embedder(decl, embedder)
-		else:
-			return self.__prop_name_via_decl(decl)
+		return PropNaming.to_prop_name(decl, self.alias_bundler)
 
-	def __analyze_prop_alias_embedder(self, decl: defs.DeclAll) -> defs.FuncCall | None:
-		"""プロパティー名の埋め込みを解析
+	def __done_domain_name(self, domain_name: str) -> str:
+		"""ドメイン名を確定
 
 		Args:
-			decl: メソッド・変数宣言ノード
+			domain_name: ドメイン名
 		Returns:
-			関数コールノード(Embed.alias) | None
+			確定後のドメイン名
+		Note:
+			C++の予約識別子の対策として、接頭辞のアンダースコアの前に文字列を付与(特殊メソッドを除く)
 		"""
-		declare: defs.AnnoAssign | None = None
-		if isinstance(decl.declare, defs.AnnoAssign):
-			declare = decl.declare
-		elif isinstance(decl, defs.DeclThisVar):
-			# クラス自身が所有している変数のみが対象
-			decl_this_vars = decl.class_types.as_a(defs.Class).decl_this_vars
-			if decl.domain_name in decl_this_vars:
-				declare = decl_this_vars[decl.domain_name]
-
-		if not declare:
-			return None
-
-		for annotation in declare.var_type.annotations:
-			if isinstance(annotation, defs.FuncCall) and annotation.calls.tokens == Embed.alias.__qualname__:
-				return annotation
-
-		return None
-
-	def __prop_name_via_decl(self, decl: defs.DeclAll) -> str:
-		"""Args: decl: メソッド・変数宣言ノード Returns: プロパティー名(オリジナル/翻訳)"""
-		return self.i18n.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
-
-	def __prop_name_via_embedder(self, decl: defs.DeclAll, embedder: defs.FuncCall) -> str:
-		"""Args: decl: メソッド・変数宣言ノード embedder: 関数コールノード(Embed.alias) Returns: プロパティー名(埋め込み)"""
-		alias_name = self.transpile(embedder.arguments[0])[1:-1]
-		if len(embedder.arguments) == 1:
-			return alias_name
-
-		origin_name = self.__prop_name_via_decl(decl)
-		return f'{alias_name}{origin_name}'
+		if not self.accessor_prefix:
+			return domain_name
+		elif not domain_name.startswith('_') and not domain_name.startswith('__'):
+			return domain_name
+		elif domain_name.endswith('__'):
+			return domain_name
+		else:
+			return f'{self.accessor_prefix}{domain_name}'
 
 	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
 		"""Args: node: ファンクションノード Returns: ファンクションのテンプレート型名リスト"""
@@ -518,8 +496,7 @@ class Py2Cpp(ITranspiler):
 		method_name = node.iterates.as_a(defs.FuncCall).calls.as_a(defs.Relay).prop.tokens
 		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 		iterates = f'*({receiver})' if operator == '->' else receiver
-		dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-		return self.render(node, f'flow/{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_raw': False})
+		return self.render(node, f'flow/{node.classification}/dict', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_raw': False, 'method': method_name})
 
 	def proc_for_each(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
@@ -787,7 +764,7 @@ class Py2Cpp(ITranspiler):
 		return self.render(node, f'expression/{node.classification}', vars={'label': node.tokens})
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> str:
-		return self.render(node, f'symbol/{node.classification}', vars={'symbol': self.i18n.t(alias_dsn(node.fullyname), node.tokens)})
+		return self.render(node, f'symbol/{node.classification}', vars={'symbol': self.to_prop_name_by_decl(node)})
 
 	def on_decl_this_var_forward(self, node: defs.DeclThisVarForward) -> str:
 		return self.render(node, f'symbol/{node.classification}', vars={'symbol': self.to_prop_name_by_decl(node)})
@@ -1348,8 +1325,7 @@ class Py2Cpp(ITranspiler):
 			method_name = node.iterates.calls.prop.tokens
 			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 			iterates = f'*({receiver})' if operator == '->' else receiver
-			dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-			return self.render(node, f'comp/{node.classification}', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'is_const': is_const, 'is_addr_raw': False})
+			return self.render(node, f'comp/{node.classification}_dict', vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_raw': False, 'method': method_name})
 		else:
 			return self.render(node, f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
 

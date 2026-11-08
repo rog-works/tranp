@@ -26,6 +26,7 @@
     * [include_dirs](#include_dirs)
     * [cvars](#cvars)
     * [string_formats](#string_formats)
+    * [accessor_prefix](#accessor_prefix)
   * [view](#view)
     * [immutable_param_types](#immutable_param_types)
 * [JSONSchema](#jsonschema)
@@ -313,6 +314,25 @@ string_formats:
   MyPtr: '%p'
 ```
 
+# accessor_prefix
+
+* Pythonのアクセス修飾子用の命名規則を、C++の予約規則に準拠させるための接頭辞
+* アンダースコアから始まるシンボル名の先頭に設定値を付与
+* 予約規則への準拠が不要なら空文字でも良い
+
+## 書式
+
+```yaml
+type: string
+pattern: '[\w\d]*'
+```
+
+## 設定例
+
+```yaml
+accessor_prefix: 'p'
+```
+
 # view
 
 * ビュー用の環境変数
@@ -431,6 +451,9 @@ properties:
               '[\w\d]+':
                 type: string
                 pattern: '%\w+'
+          accessor_prefix:
+            type: string
+            pattern: '[\w\d]*'
       view:
         type: object
         required: true

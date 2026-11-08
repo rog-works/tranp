@@ -180,7 +180,7 @@ class LiteralEvaluator:
 		elif prop == '__name__':
 			# XXX エイリアスの解決が不完全
 			receiver_raw = self._reflections.type_of(node.receiver).impl(refs.Object).actualize()
-			receiver_name = ClassDomainNaming.domain_name(receiver_raw.types, alias_handler=None, alias_transpiler=None)
+			receiver_name = ClassDomainNaming.domain_name(receiver_raw.types, bundler=None)
 			return f'"{receiver_name}"'
 
 		# 上記以外は全て無視して良い

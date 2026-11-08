@@ -1,13 +1,13 @@
 [&]() -> {{ i18n('classes', 'list') }}<{{ projection_types[0] }}> {
-	{{ i18n('classes', 'list') }}<{{ projection_types[0] }}> __ret;
+	{{ i18n('classes', 'list') }}<{{ projection_types[0] }}> l_ret;
 	for ({{ comp_for }}) {
 		{%- if condition %}
 		if ({{ condition }}) {
-			__ret.{{ i18n('classes', 'list.append') }}({{ projection }});
+			l_ret.{{ i18n('classes', 'list.append') }}({{ projection }});
 		}
 		{%- else %}
-		__ret.{{ i18n('classes', 'list.append') }}({{ projection }});
+		l_ret.{{ i18n('classes', 'list.append') }}({{ projection }});
 		{%- endif %}
 	}
-	return __ret;
+	return l_ret;
 }()

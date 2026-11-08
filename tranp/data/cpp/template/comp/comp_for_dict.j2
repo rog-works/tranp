@@ -1,0 +1,8 @@
+{%- set infer = ('const ' if is_const else '') + 'auto' + ('' if is_addr_raw else '&') -%}
+{%- if method == 'keys' -%}
+{{ infer }} [{{ symbols[0] }}, l_] : {{ iterates }}
+{%- elif method == 'values' -%}
+{{ infer }} [l_, {{ symbols[0] }}] : {{ iterates }}
+{%- else -%}
+{{ infer }} [{{ symbols | join(', ') }}] : {{ iterates }}
+{%- endif -%}

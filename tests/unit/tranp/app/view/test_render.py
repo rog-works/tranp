@@ -547,6 +547,17 @@ class TestRenderer(TestCase):
 		self.assertRender('comp/comp_for', vars, expected)
 
 	@data_provider([
+		({'symbols': ['key'], 'iterates': 'items', 'is_const': False, 'is_addr_raw': False, 'method': dict.keys.__name__}, 'auto& [key, l_] : items'),
+		({'symbols': ['key'], 'iterates': 'items', 'is_const': True, 'is_addr_raw': False, 'method': dict.keys.__name__}, 'const auto& [key, l_] : items'),
+		({'symbols': ['value'], 'iterates': 'items', 'is_const': False, 'is_addr_raw': False, 'method': dict.values.__name__}, 'auto& [l_, value] : items'),
+		({'symbols': ['value'], 'iterates': 'items', 'is_const': False, 'is_addr_raw': True, 'method': dict.values.__name__}, 'auto [l_, value] : items'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': False, 'is_addr_raw': False, 'method': dict.items.__name__}, 'auto& [key, value] : items'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True, 'is_addr_raw': True, 'method': dict.items.__name__}, 'const auto [key, value] : items'),
+	])
+	def test_render_comp_for_dict(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('comp/comp_for_dict', vars, expected)
+
+	@data_provider([
 		({'initializer_indexs': [], 'initializer_index_of_super': -1, 'statements': ['this->a += 2;']}, ''),
 		({'initializer_indexs': [0, 1], 'initializer_index_of_super': -1, 'statements': ['int this->a = 1;', 'int this->b{};', 'this->a += 2;']}, ' : a(1), b{}'),
 		({'initializer_indexs': [], 'initializer_index_of_super': 0, 'statements': ['NS::A::__init__(a, b);', 'this->a += 2;']}, ' : A(a, b)'),

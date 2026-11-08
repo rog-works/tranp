@@ -496,8 +496,7 @@ class Py2Cpp(ITranspiler):
 		method_name = node.iterates.as_a(defs.FuncCall).calls.as_a(defs.Relay).prop.tokens
 		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 		iterates = f'*({receiver})' if operator == '->' else receiver
-		dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-		return self.render(node, f'flow/{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_raw': False})
+		return self.render(node, f'flow/{node.classification}/dict', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_raw': False, 'method': method_name})
 
 	def proc_for_each(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
@@ -1326,8 +1325,7 @@ class Py2Cpp(ITranspiler):
 			method_name = node.iterates.calls.prop.tokens
 			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 			iterates = f'*({receiver})' if operator == '->' else receiver
-			dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-			return self.render(node, f'comp/{node.classification}', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'is_const': is_const, 'is_addr_raw': False})
+			return self.render(node, f'comp/{node.classification}_dict', vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_raw': False, 'method': method_name})
 		else:
 			return self.render(node, f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
 

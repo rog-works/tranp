@@ -765,7 +765,7 @@ class Py2Cpp(ITranspiler):
 		return self.render(node, f'expression/{node.classification}', vars={'label': node.tokens})
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> str:
-		return self.render(node, f'symbol/{node.classification}', vars={'symbol': self.i18n.t(alias_dsn(node.fullyname), node.tokens)})
+		return self.render(node, f'symbol/{node.classification}', vars={'symbol': self.to_prop_name_by_decl(node)})
 
 	def on_decl_this_var_forward(self, node: defs.DeclThisVarForward) -> str:
 		return self.render(node, f'symbol/{node.classification}', vars={'symbol': self.to_prop_name_by_decl(node)})

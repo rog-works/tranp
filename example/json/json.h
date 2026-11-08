@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"0.9.19","module":{"hash":"52bc528b857822fefbd65b1fe08b3f57","path":"example.json.json"},"transpiler":{"version":"0.9.6","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"0.9.20","module":{"hash":"52bc528b857822fefbd65b1fe08b3f57","path":"example.json.json"},"transpiler":{"version":"0.9.7","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include <functional>
 // #include "enum.h"
@@ -30,7 +30,7 @@ class JsonParser {
 	 * @return JSONエントリー情報リスト
 	 */
 	static std::vector<JsonEntryInfo> parse(const std::string& json_str) {
-		return std::get<0>(JsonParser::_parse_entry(json_str, 0, ""));
+		return std::get<0>(JsonParser::p_parse_entry(json_str, 0, ""));
 	}
 	protected:
 	/**
@@ -40,27 +40,27 @@ class JsonParser {
 	 * @param path エントリーパス
 	 * @return JSONエントリー情報リスト, 読み取り終了位置
 	 */
-	static std::tuple<std::vector<JsonEntryInfo>, int> _parse_entry(const std::string& json_str, int begin, const std::string& path) {
+	static std::tuple<std::vector<JsonEntryInfo>, int> p_parse_entry(const std::string& json_str, int begin, const std::string& path) {
 		int end = begin;
 		std::vector<JsonEntryInfo> info_list = {};
-		auto [at_type, begin_value] = JsonParser::_analyze_type(json_str, begin);
+		auto [at_type, begin_value] = JsonParser::p_analyze_type(json_str, begin);
 		end = begin_value;
 		if (at_type == JsonEntryTypes::Boolean) {
-			end = JsonParser::_parse_boolean(json_str, begin_value);
+			end = JsonParser::p_parse_boolean(json_str, begin_value);
 			info_list.push_back({path, begin_value, end});
 		} else if (at_type == JsonEntryTypes::Number) {
-			end = JsonParser::_parse_number(json_str, begin_value);
+			end = JsonParser::p_parse_number(json_str, begin_value);
 			info_list.push_back({path, begin_value, end});
 		} else if (at_type == JsonEntryTypes::String) {
-			end = JsonParser::_parse_string(json_str, begin_value);
+			end = JsonParser::p_parse_string(json_str, begin_value);
 			info_list.push_back({path, begin_value, end});
 		} else if (at_type == JsonEntryTypes::Array) {
-			auto [in_entries, next_pos] = JsonParser::_parse_array(json_str, begin_value, path);
+			auto [in_entries, next_pos] = JsonParser::p_parse_array(json_str, begin_value, path);
 			end = next_pos;
 			info_list.push_back({path, begin_value, end});
 			info_list.insert(info_list.end(), in_entries);
 		} else if (at_type == JsonEntryTypes::Object) {
-			auto [in_entries, next_pos] = JsonParser::_parse_object(json_str, begin_value, path);
+			auto [in_entries, next_pos] = JsonParser::p_parse_object(json_str, begin_value, path);
 			end = next_pos;
 			info_list.push_back({path, begin_value, end});
 			info_list.insert(info_list.end(), in_entries);
@@ -74,7 +74,7 @@ class JsonParser {
 	 * @param begin 読み取り開始位置
 	 * @return 読み取り終了位置
 	 */
-	static int _parse_boolean(const std::string& json_str, int begin) {
+	static int p_parse_boolean(const std::string& json_str, int begin) {
 		int end = begin;
 		std::string string = "";
 		while (end < json_str.size()) {
@@ -93,7 +93,7 @@ class JsonParser {
 	 * @param begin 読み取り開始位置
 	 * @return 読み取り終了位置
 	 */
-	static int _parse_number(const std::string& json_str, int begin) {
+	static int p_parse_number(const std::string& json_str, int begin) {
 		int end = begin;
 		while (end < json_str.size()) {
 			end += 1;
@@ -110,7 +110,7 @@ class JsonParser {
 	 * @param begin 読み取り開始位置
 	 * @return 読み取り終了位置
 	 */
-	static int _parse_string(const std::string& json_str, int begin) {
+	static int p_parse_string(const std::string& json_str, int begin) {
 		int end = json_str.find("\"", begin);
 		while (end < json_str.size()) {
 			end += 1;
@@ -131,17 +131,17 @@ class JsonParser {
 	 * @param path エントリーパス
 	 * @return JSONエントリー情報リスト, 読み取り終了位置
 	 */
-	static std::tuple<std::vector<JsonEntryInfo>, int> _parse_array(const std::string& json_str, int begin, const std::string& path) {
+	static std::tuple<std::vector<JsonEntryInfo>, int> p_parse_array(const std::string& json_str, int begin, const std::string& path) {
 		int end = json_str.find("[", begin);
 		std::vector<JsonEntryInfo> info_list = {};
 		end += 1;
 		int element_at = 0;
 		while (end < json_str.size()) {
-			JsonEntryTypes entry_type = std::get<0>(JsonParser::_analyze_type(json_str, end, "]"));
+			JsonEntryTypes entry_type = std::get<0>(JsonParser::p_analyze_type(json_str, end, "]"));
 			if (entry_type == JsonEntryTypes::Unknown || json_str[end] == ']') {
 				break;
 			}
-			auto [in_info_list, next_pos] = JsonParser::_parse_entry(json_str, end, JsonParser::join_path(path, std::to_string(element_at)));
+			auto [in_info_list, next_pos] = JsonParser::p_parse_entry(json_str, end, JsonParser::join_path(path, std::to_string(element_at)));
 			end = next_pos;
 			info_list.insert(info_list.end(), in_info_list);
 			element_at += 1;
@@ -156,17 +156,17 @@ class JsonParser {
 	 * @param path エントリーパス
 	 * @return JSONエントリー情報リスト, 読み取り終了位置
 	 */
-	static std::tuple<std::vector<JsonEntryInfo>, int> _parse_object(const std::string& json_str, int begin, const std::string& path) {
+	static std::tuple<std::vector<JsonEntryInfo>, int> p_parse_object(const std::string& json_str, int begin, const std::string& path) {
 		int end = json_str.find("{", begin);
 		std::vector<JsonEntryInfo> info_list = {};
 		end += 1;
 		while (end < json_str.size()) {
-			JsonEntryTypes entry_type = std::get<0>(JsonParser::_analyze_type(json_str, end, "}"));
+			JsonEntryTypes entry_type = std::get<0>(JsonParser::p_analyze_type(json_str, end, "}"));
 			if (entry_type == JsonEntryTypes::Unknown || json_str[end] == '}') {
 				break;
 			}
-			auto [key, begin_value] = JsonParser::_parse_key(json_str, end);
-			auto [in_info_list, next_pos] = JsonParser::_parse_entry(json_str, begin_value, JsonParser::join_path(path, key));
+			auto [key, begin_value] = JsonParser::p_parse_key(json_str, end);
+			auto [in_info_list, next_pos] = JsonParser::p_parse_entry(json_str, begin_value, JsonParser::join_path(path, key));
 			end = next_pos;
 			info_list.insert(info_list.end(), in_info_list);
 		}
@@ -179,7 +179,7 @@ class JsonParser {
 	 * @param begin 読み取り開始位置
 	 * @return キー, 読み取り終了位置
 	 */
-	static std::tuple<std::string, int> _parse_key(const std::string& json_str, int begin) {
+	static std::tuple<std::string, int> p_parse_key(const std::string& json_str, int begin) {
 		int key_begin = json_str.find("\"", begin);
 		int end = json_str.find("\"", key_begin + 1);
 		std::string key = json_str.substr(key_begin + 1, end - (key_begin + 1));
@@ -194,7 +194,7 @@ class JsonParser {
 	 * @throw RuntimeError 解析に失敗
 	 */
 	static JsonEntryTypes analyze_type(const std::string& json_str, int begin) {
-		JsonEntryTypes entry_type = std::get<0>(JsonParser::_analyze_type(json_str, begin));
+		JsonEntryTypes entry_type = std::get<0>(JsonParser::p_analyze_type(json_str, begin));
 		if (entry_type == JsonEntryTypes::Unknown) {
 			throw std::runtime_error(std::format("%s, %s, %d", "Invalid JSON schema", (json_str).c_str(), begin));
 		}
@@ -208,7 +208,7 @@ class JsonParser {
 	 * @param end_token 終端記号 (default = '')
 	 * @return JSONエントリーの種別, 読み取り終了位置
 	 */
-	static std::tuple<JsonEntryTypes, int> _analyze_type(const std::string& json_str, int begin, const std::string& end_token = "") {
+	static std::tuple<JsonEntryTypes, int> p_analyze_type(const std::string& json_str, int begin, const std::string& end_token = "") {
 		int end = begin;
 		while (end < json_str.size()) {
 			if (json_str[end] == 'f' || json_str[end] == 't') {
@@ -309,15 +309,15 @@ class Json {
 		{JsonEntryTypes::Array, "std::vector"},
 		{JsonEntryTypes::Object, "Json"},
 	};
-	protected: std::vector<std::shared_ptr<Json>> _jsons;
-	protected: std::vector<JsonEntry> _entries;
-	protected: Json* _root;
-	protected: int _entry_id;
+	protected: std::vector<std::shared_ptr<Json>> p_jsons;
+	protected: std::vector<JsonEntry> p_entries;
+	protected: Json* p_root;
+	protected: int p_entry_id;
 	public:
 	/**
 	 * インスタンスを生成
 	 */
-	Json() : object(), _jsons{}, _entries{}, _root((this)), _entry_id(0) {}
+	Json() : object(), p_jsons{}, p_entries{}, p_root((this)), p_entry_id(0) {}
 	// method __repr__
 	public:
 	/**
@@ -340,11 +340,11 @@ class Json {
 			auto [path, begin, end] = info_list[entry_id];
 			JsonEntryTypes entry_type = JsonParser::analyze_type(json_str, begin);
 			if (entry_type == JsonEntryTypes::Boolean || entry_type == JsonEntryTypes::Number || entry_type == JsonEntryTypes::String) {
-				root->_jsons.push_back(root->_make_for_entry(entry_id));
-				root->_entries.push_back(JsonEntry::make(path, entry_type, JsonEntity::for_scalar(json_str.substr(begin, end - (begin)), entry_type)));
+				root->p_jsons.push_back(root->p_make_for_entry(entry_id));
+				root->p_entries.push_back(JsonEntry::make(path, entry_type, JsonEntity::for_scalar(json_str.substr(begin, end - (begin)), entry_type)));
 			} else {
-				root->_jsons.push_back(root->_make_for_entry(entry_id));
-				root->_entries.push_back(JsonEntry::make(path, entry_type, JsonEntity()));
+				root->p_jsons.push_back(root->p_make_for_entry(entry_id));
+				root->p_entries.push_back(JsonEntry::make(path, entry_type, JsonEntity()));
 			}
 		}
 		return root;
@@ -355,7 +355,7 @@ class Json {
 	 * @param value 値
 	 * @return インスタンス
 	 */
-	std::shared_ptr<Json> _jsonify_of_bool(bool value) {
+	std::shared_ptr<Json> p_jsonify_of_bool(bool value) {
 		return Json::parse(value ? "true" : "false");
 	}
 	protected:
@@ -364,7 +364,7 @@ class Json {
 	 * @param value 値
 	 * @return インスタンス
 	 */
-	std::shared_ptr<Json> _jsonify_of_number(float value) {
+	std::shared_ptr<Json> p_jsonify_of_number(float value) {
 		return Json::parse(std::to_string(value));
 	}
 	protected:
@@ -373,7 +373,7 @@ class Json {
 	 * @param value 値
 	 * @return インスタンス
 	 */
-	std::shared_ptr<Json> _jsonify_of_string(const std::string& value) {
+	std::shared_ptr<Json> p_jsonify_of_string(const std::string& value) {
 		return Json::parse("\"" + String::escape(value, '"') + "\"");
 	}
 	protected:
@@ -382,10 +382,10 @@ class Json {
 	 * @param entry_id エントリーID
 	 * @return インスタンス
 	 */
-	std::shared_ptr<Json> _make_for_entry(int entry_id) {
+	std::shared_ptr<Json> p_make_for_entry(int entry_id) {
 		std::shared_ptr<Json> under = std::make_shared<Json>();
-		under->_root = (this);
-		under->_entry_id = entry_id;
+		under->p_root = (this);
+		under->p_entry_id = entry_id;
 		return under;
 	}
 	protected:
@@ -394,11 +394,11 @@ class Json {
 	 * @param path パス
 	 * @return True = 配下要素
 	 */
-	bool _is_under(const std::string& path) {
+	bool p_is_under(const std::string& path) {
 		if (!(this->path().size() < path.size())) {
 			return false;
 		}
-		if (!this->_starts_with(path, this->path())) {
+		if (!this->p_starts_with(path, this->path())) {
 			return false;
 		}
 		int dots1 = path.count(".");
@@ -426,8 +426,8 @@ class Json {
 	 * @param entry_id エントリーID
 	 * @return JSON
 	 */
-	Json* _at_json(int entry_id) {
-		return (this->root()->_jsons[entry_id]).get();
+	Json* p_at_json(int entry_id) {
+		return (this->root()->p_jsons[entry_id]).get();
 	}
 	public:
 	/**
@@ -435,7 +435,7 @@ class Json {
 	 * @return True = ルートオブジェクト
 	 */
 	bool is_root() {
-		return this->_root == nullptr;
+		return this->p_root == nullptr;
 	}
 	public:
 	/**
@@ -443,7 +443,7 @@ class Json {
 	 * @return ルートオブジェクト
 	 */
 	Json* root() {
-		return this->_root ? this->_root : (this);
+		return this->p_root ? this->p_root : (this);
 	}
 	public:
 	/**
@@ -451,7 +451,7 @@ class Json {
 	 * @return JSONパス
 	 */
 	std::string path() {
-		return this->root()->_entries[this->_entry_id].path;
+		return this->root()->p_entries[this->p_entry_id].path;
 	}
 	public:
 	/**
@@ -468,7 +468,7 @@ class Json {
 	 * @return JSONエントリーの種別
 	 */
 	JsonEntryTypes entry_type() {
-		return this->root()->_entries[this->_entry_id].entry_type;
+		return this->root()->p_entries[this->p_entry_id].entry_type;
 	}
 	public:
 	/**
@@ -476,7 +476,7 @@ class Json {
 	 * @return 型の名前
 	 */
 	std::string type_name() {
-		return Json::_to_type_names[this->entry_type()];
+		return Json::p_to_type_names[this->entry_type()];
 	}
 	public:
 	/**
@@ -485,13 +485,13 @@ class Json {
 	 */
 	void* entity_at() {
 		if (this->scalar_with(JsonEntryTypes::Boolean)) {
-			return (&(this->root()->_entries[this->_entry_id].entity.as_bool));
+			return (&(this->root()->p_entries[this->p_entry_id].entity.as_bool));
 		} else if (this->scalar_with(JsonEntryTypes::Number)) {
-			return (&(this->root()->_entries[this->_entry_id].entity.as_number));
+			return (&(this->root()->p_entries[this->p_entry_id].entity.as_number));
 		} else if (this->scalar_with(JsonEntryTypes::String)) {
-			return (&(this->root()->_entries[this->_entry_id].entity.as_string));
+			return (&(this->root()->p_entries[this->p_entry_id].entity.as_string));
 		} else {
-			return this->_at_json(this->_entry_id);
+			return this->p_at_json(this->p_entry_id);
 		}
 	}
 	public:
@@ -501,7 +501,7 @@ class Json {
 	 * @return True = 存在
 	 */
 	bool exists(const std::string& jsonpath) {
-		for (auto& entry : this->root()->_entries) {
+		for (auto& entry : this->root()->p_entries) {
 			if (jsonpath == entry.path) {
 				return true;
 			}
@@ -524,11 +524,11 @@ class Json {
 	 */
 	std::vector<Json*> unders() {
 		std::vector<Json*> under_values = {};
-		int remain = this->root()->_entries.size() - this->_entry_id;
+		int remain = this->root()->p_entries.size() - this->p_entry_id;
 		for (auto i = 0; i < remain; i += 1) {
-			int entry_id = i + this->_entry_id;
-			Json* entry_json = this->_at_json(entry_id);
-			if (this->_is_under(entry_json->path())) {
+			int entry_id = i + this->p_entry_id;
+			Json* entry_json = this->p_at_json(entry_id);
+			if (this->p_is_under(entry_json->path())) {
 				under_values.push_back(entry_json);
 			}
 		}
@@ -562,8 +562,8 @@ class Json {
 	 * @throw RuntimeError 存在しないエントリーを指定
 	 */
 	Json* fetch(const std::string& jsonpath) {
-		for (auto entry_id = 0; entry_id < this->root()->_entries.size(); entry_id += 1) {
-			Json* entry_json = this->_at_json(entry_id);
+		for (auto entry_id = 0; entry_id < this->root()->p_entries.size(); entry_id += 1) {
+			Json* entry_json = this->p_at_json(entry_id);
 			if (jsonpath == entry_json->path()) {
 				return entry_json;
 			}
@@ -578,13 +578,13 @@ class Json {
 	 */
 	std::vector<Json*> filter(const std::function<bool(Json*)>& query) {
 		return [&]() -> std::vector<Json*> {
-			std::vector<Json*> __ret;
-			for (auto& in_json : this->_jsons) {
+			std::vector<Json*> l_ret;
+			for (auto& in_json : this->p_jsons) {
 				if (query((in_json).get())) {
-					__ret.push_back((in_json).get());
+					l_ret.push_back((in_json).get());
 				}
 			}
-			return __ret;
+			return l_ret;
 		}();
 	}
 	public:
@@ -633,7 +633,7 @@ class Json {
 		if (!this->scalar_with(JsonEntryTypes::Boolean)) {
 			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
-		return this->root()->_entries[this->_entry_id].entity.as_bool;
+		return this->root()->p_entries[this->p_entry_id].entity.as_bool;
 	}
 	public:
 	/**
@@ -645,7 +645,7 @@ class Json {
 		if (!this->scalar_with(JsonEntryTypes::Number)) {
 			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
-		return this->root()->_entries[this->_entry_id].entity.as_number;
+		return this->root()->p_entries[this->p_entry_id].entity.as_number;
 	}
 	public:
 	/**
@@ -657,7 +657,7 @@ class Json {
 		if (!this->scalar_with(JsonEntryTypes::String)) {
 			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
-		return this->root()->_entries[this->_entry_id].entity.as_string;
+		return this->root()->p_entries[this->p_entry_id].entity.as_string;
 	}
 	public:
 	/**
@@ -666,10 +666,10 @@ class Json {
 	 */
 	void set_bool(bool value) {
 		if (this->scalar_with()) {
-			this->root()->_entries[this->_entry_id].entity.as_bool = value;
-			this->root()->_entries[this->_entry_id].entry_type = JsonEntryTypes::Boolean;
+			this->root()->p_entries[this->p_entry_id].entity.as_bool = value;
+			this->root()->p_entries[this->p_entry_id].entry_type = JsonEntryTypes::Boolean;
 		} else {
-			this->_swap_entry(this->_jsonify_of_bool(value));
+			this->p_swap_entry(this->p_jsonify_of_bool(value));
 		}
 	}
 	public:
@@ -679,10 +679,10 @@ class Json {
 	 */
 	void set_number(float value) {
 		if (this->scalar_with()) {
-			this->root()->_entries[this->_entry_id].entity.as_number = value;
-			this->root()->_entries[this->_entry_id].entry_type = JsonEntryTypes::Number;
+			this->root()->p_entries[this->p_entry_id].entity.as_number = value;
+			this->root()->p_entries[this->p_entry_id].entry_type = JsonEntryTypes::Number;
 		} else {
-			this->_swap_entry(this->_jsonify_of_number(value));
+			this->p_swap_entry(this->p_jsonify_of_number(value));
 		}
 	}
 	public:
@@ -692,10 +692,10 @@ class Json {
 	 */
 	void set_string(const std::string& value) {
 		if (this->scalar_with()) {
-			this->root()->_entries[this->_entry_id].entity.as_string = value;
-			this->root()->_entries[this->_entry_id].entry_type = JsonEntryTypes::String;
+			this->root()->p_entries[this->p_entry_id].entity.as_string = value;
+			this->root()->p_entries[this->p_entry_id].entry_type = JsonEntryTypes::String;
 		} else {
-			this->_swap_entry(this->_jsonify_of_string(value));
+			this->p_swap_entry(this->p_jsonify_of_string(value));
 		}
 	}
 	public:
@@ -708,7 +708,7 @@ class Json {
 		if (value->entry_type() != JsonEntryTypes::Array) {
 			throw std::runtime_error(std::format("%s, %s", "Type not match", (value->type_name()).c_str()));
 		}
-		this->_swap_entry(value->isolate());
+		this->p_swap_entry(value->isolate());
 	}
 	public:
 	/**
@@ -720,7 +720,7 @@ class Json {
 		if (value->entry_type() != JsonEntryTypes::Object) {
 			throw std::runtime_error(std::format("%s, %s", "Type not match", (value->type_name()).c_str()));
 		}
-		this->_swap_entry(value->isolate());
+		this->p_swap_entry(value->isolate());
 	}
 	public:
 	/**
@@ -751,7 +751,7 @@ class Json {
 		if (this->exists(jsonpath)) {
 			this->fetch(jsonpath)->set_bool(value);
 		} else {
-			this->_add_entry(key, this->_jsonify_of_bool(value));
+			this->p_add_entry(key, this->p_jsonify_of_bool(value));
 		}
 	}
 	public:
@@ -765,7 +765,7 @@ class Json {
 		if (this->exists(jsonpath)) {
 			this->fetch(jsonpath)->set_number(value);
 		} else {
-			this->_add_entry(key, this->_jsonify_of_number(value));
+			this->p_add_entry(key, this->p_jsonify_of_number(value));
 		}
 	}
 	public:
@@ -779,7 +779,7 @@ class Json {
 		if (this->exists(jsonpath)) {
 			this->fetch(jsonpath)->set_string(value);
 		} else {
-			this->_add_entry(key, this->_jsonify_of_string(value));
+			this->p_add_entry(key, this->p_jsonify_of_string(value));
 		}
 	}
 	public:
@@ -797,7 +797,7 @@ class Json {
 		if (this->exists(jsonpath)) {
 			this->fetch(jsonpath)->set_array(value);
 		} else {
-			this->_add_entry(key, value->isolate());
+			this->p_add_entry(key, value->isolate());
 		}
 	}
 	public:
@@ -815,7 +815,7 @@ class Json {
 		if (this->exists(jsonpath)) {
 			this->fetch(jsonpath)->set_object(value);
 		} else {
-			this->_add_entry(key, value->isolate());
+			this->p_add_entry(key, value->isolate());
 		}
 	}
 	public:
@@ -939,7 +939,7 @@ class Json {
 		if (!this->exists(jsonpath)) {
 			throw std::runtime_error(std::format("%s, %s", "Entry not found", (jsonpath).c_str()));
 		}
-		this->_remove_entry(this->fetch(jsonpath)->_entry_id);
+		this->p_remove_entry(this->fetch(jsonpath)->p_entry_id);
 	}
 	protected:
 	/**
@@ -949,34 +949,34 @@ class Json {
 	 * @throw RuntimeError Array/Object以外で使用
 	 * @note XXX このメソッドを実行する前に必ずexists/has_keyで重複がないことを確認すること
 	 */
-	void _add_entry(const std::string& key, std::shared_ptr<Json> entry_json) {
+	void p_add_entry(const std::string& key, std::shared_ptr<Json> entry_json) {
 		if (this->scalar_with()) {
 			throw std::runtime_error(std::format("%s, %s", "Operation not allowed", (this->type_name()).c_str()));
 		}
-		this->_insert_entry(this->root()->_entries.size(), JsonParser::join_path(this->path(), key), entry_json);
+		this->p_insert_entry(this->root()->p_entries.size(), JsonParser::join_path(this->path(), key), entry_json);
 	}
 	protected:
 	/**
 	 * 自身のエントリーを基点に新たなJSONエントリーに置き換え
 	 * @param entry_json JSON
 	 */
-	void _swap_entry(std::shared_ptr<Json> entry_json) {
+	void p_swap_entry(std::shared_ptr<Json> entry_json) {
 		std::string self_path = this->path();
-		this->_remove_entry(this->_entry_id);
-		this->_insert_entry(this->_entry_id, self_path, entry_json);
+		this->p_remove_entry(this->p_entry_id);
+		this->p_insert_entry(this->p_entry_id, self_path, entry_json);
 	}
 	protected:
 	/**
 	 * 指定位置のJSONエントリーとその下位要素を削除
 	 * @param entry_id エントリーID
 	 */
-	void _remove_entry(int entry_id) {
-		std::vector<int> relayed_ids = this->_relayed_entry_ids(entry_id);
+	void p_remove_entry(int entry_id) {
+		std::vector<int> relayed_ids = this->p_relayed_entry_ids(entry_id);
 		for (auto i = 0; i < relayed_ids.size(); i += 1) {
 			int index = relayed_ids.size() - 1 - i;
 			int relayed_id = entry_id + index;
-			this->root()->_jsons.erase(this->root()->_jsons.begin() + relayed_id);
-			this->root()->_entries.erase(this->root()->_entries.begin() + relayed_id);
+			this->root()->p_jsons.erase(this->root()->p_jsons.begin() + relayed_id);
+			this->root()->p_entries.erase(this->root()->p_entries.begin() + relayed_id);
 		}
 	}
 	protected:
@@ -986,26 +986,26 @@ class Json {
 	 * @param begin_path 基準のJSONパス
 	 * @param entry_json JSON
 	 */
-	void _insert_entry(int begin_id, const std::string& begin_path, std::shared_ptr<Json> entry_json) {
+	void p_insert_entry(int begin_id, const std::string& begin_path, std::shared_ptr<Json> entry_json) {
 		// ルートではない場合、ルートオブジェクトに変換
 		if (!entry_json->is_root()) {
 			entry_json = entry_json->isolate();
 		}
 		// JSONエントリーを挿入
-		for (auto i = 0; i < entry_json->root()->_entries.size(); i += 1) {
-			JsonEntry org_entry = entry_json->root()->_entries[i];
+		for (auto i = 0; i < entry_json->root()->p_entries.size(); i += 1) {
+			JsonEntry org_entry = entry_json->root()->p_entries[i];
 			std::string new_path = i > 0 ? JsonParser::join_path(begin_path, org_entry.path) : begin_path;
 			int new_entry_id = begin_id + i;
-			this->root()->_jsons.insert(this->root()->_jsons.begin() + new_entry_id, this->root()->_make_for_entry(new_entry_id));
-			this->root()->_entries.insert(this->root()->_entries.begin() + new_entry_id, JsonEntry::make(new_path, org_entry.entry_type, org_entry.entity));
+			this->root()->p_jsons.insert(this->root()->p_jsons.begin() + new_entry_id, this->root()->p_make_for_entry(new_entry_id));
+			this->root()->p_entries.insert(this->root()->p_entries.begin() + new_entry_id, JsonEntry::make(new_path, org_entry.entry_type, org_entry.entity));
 		}
 		// 挿入位置の末尾から先の既存要素のエントリーIDを修正
-		int post_id = begin_id + entry_json->root()->_entries.size();
-		int remain = this->root()->_entries.size() - post_id;
+		int post_id = begin_id + entry_json->root()->p_entries.size();
+		int remain = this->root()->p_entries.size() - post_id;
 		for (auto i = 0; i < remain; i += 1) {
 			int new_entry_id = post_id + i;
-			Json* in_entry_json = this->_at_json(new_entry_id);
-			in_entry_json->_entry_id = new_entry_id;
+			Json* in_entry_json = this->p_at_json(new_entry_id);
+			in_entry_json->p_entry_id = new_entry_id;
 		}
 	}
 	public:
@@ -1020,9 +1020,9 @@ class Json {
 	 */
 	std::shared_ptr<Json> isolate() {
 		std::shared_ptr<Json> instance = std::make_shared<Json>();
-		auto [jsons, entries] = this->_isolate_entries(instance);
-		instance->_jsons = jsons;
-		instance->_entries = entries;
+		auto [jsons, entries] = this->p_isolate_entries(instance);
+		instance->p_jsons = jsons;
+		instance->p_entries = entries;
 		return instance;
 	}
 	protected:
@@ -1031,15 +1031,15 @@ class Json {
 	 * @param new_root ルートオブジェクト
 	 * @return JSON, JSONエントリーリスト
 	 */
-	std::tuple<std::vector<std::shared_ptr<Json>>, std::vector<JsonEntry>> _isolate_entries(std::shared_ptr<Json> new_root) {
+	std::tuple<std::vector<std::shared_ptr<Json>>, std::vector<JsonEntry>> p_isolate_entries(std::shared_ptr<Json> new_root) {
 		std::vector<std::shared_ptr<Json>> jsons = {};
 		std::vector<JsonEntry> entries = {};
-		std::vector<int> ids = this->_relayed_entry_ids(this->_entry_id);
+		std::vector<int> ids = this->p_relayed_entry_ids(this->p_entry_id);
 		int new_entry_id = 0;
 		for (auto& entry_id : ids) {
-			JsonEntry entry = this->root()->_entries[entry_id];
+			JsonEntry entry = this->root()->p_entries[entry_id];
 			std::string new_path = new_entry_id > 0 ? entry.path.substr(this->path().size() + 1, entry.path.size() - (this->path().size() + 1)) : "";
-			jsons.push_back(new_root->_make_for_entry(new_entry_id));
+			jsons.push_back(new_root->p_make_for_entry(new_entry_id));
 			entries.push_back(JsonEntry::make(new_path, entry.entry_type, entry.entity));
 			new_entry_id++;
 		}
@@ -1051,13 +1051,13 @@ class Json {
 	 * @param entry_id エントリーID
 	 * @return エントリーIDリスト
 	 */
-	std::vector<int> _relayed_entry_ids(int entry_id) {
+	std::vector<int> p_relayed_entry_ids(int entry_id) {
 		std::vector<int> ids = {};
-		int remain = this->root()->_entries.size() - entry_id;
+		int remain = this->root()->p_entries.size() - entry_id;
 		for (auto i = 0; i < remain; i += 1) {
-			int in_entry_id = i + this->_entry_id;
-			std::string path = this->root()->_entries[in_entry_id].path;
-			if (this->_starts_with(path, this->path())) {
+			int in_entry_id = i + this->p_entry_id;
+			std::string path = this->root()->p_entries[in_entry_id].path;
+			if (this->p_starts_with(path, this->path())) {
 				ids.push_back(in_entry_id);
 			}
 		}
@@ -1071,7 +1071,7 @@ class Json {
 	 * @return True = 適合
 	 * @note XXX C++だと空文字を全く検証せず、ルート要素との比較をスキップしてしまうため、互換用に用意
 	 */
-	bool _starts_with(const std::string& string, const std::string& prefix) {
+	bool p_starts_with(const std::string& string, const std::string& prefix) {
 		return prefix.size() == 0 || string.starts_with(prefix);
 	}
 	public:
@@ -1088,21 +1088,21 @@ class Json {
 			return std::format("\"%s\"", (String::escape(this->as_string(), '"')).c_str());
 		} else if (this->entry_type() == JsonEntryTypes::Array) {
 			std::vector<std::string> values = [&]() -> std::vector<std::string> {
-				std::vector<std::string> __ret;
+				std::vector<std::string> l_ret;
 				for (auto under : this->unders()) {
-					__ret.push_back(under->to_string());
+					l_ret.push_back(under->to_string());
 				}
-				return __ret;
+				return l_ret;
 			}();
 			std::string join_values = ",".join(values);
 			return "[" + join_values + "]";
 		} else {
 			std::vector<std::string> values = [&]() -> std::vector<std::string> {
-				std::vector<std::string> __ret;
+				std::vector<std::string> l_ret;
 				for (auto under : this->unders()) {
-					__ret.push_back(std::format("\"%s\":%s", (under->symbol()).c_str(), (under->to_string()).c_str()));
+					l_ret.push_back(std::format("\"%s\":%s", (under->symbol()).c_str(), (under->to_string()).c_str()));
 				}
-				return __ret;
+				return l_ret;
 			}();
 			std::string join_values = ",".join(values);
 			return "{" + join_values + "}";

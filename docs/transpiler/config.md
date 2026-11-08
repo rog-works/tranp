@@ -323,8 +323,9 @@ string_formats:
 ## 書式
 
 ```yaml
-type: string
-pattern: '[\w\d]*'
+accessor_prefix:
+  type: string
+  pattern: '[\w\d]*'
 ```
 
 ## 設定例

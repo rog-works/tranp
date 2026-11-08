@@ -353,9 +353,9 @@ class A:
 ↓
 ```cpp
 class A {
-  public: int n;
-  protected: int p_protected_n;
-  private: int p__private_n;
+public: int n;
+protected: int p_protected_n;
+private: int p__private_n;
 };
 ```
 

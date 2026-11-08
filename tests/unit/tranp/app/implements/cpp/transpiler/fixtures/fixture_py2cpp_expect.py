@@ -158,6 +158,8 @@ class BlockExpects:
 class DeclOps {
 	public: inline static Sub* class_bp = nullptr;
 	public: inline static std::map<std::string, std::map<std::string, std::vector<int*>>> class_map = {{"a", {{"b", {}}}}};
+	protected: inline static int p_protected_class_n = 0;
+	private: inline static int p__private_class_n = 0;
 	public: Sub* inst_var0;
 	public: Sub inst_var1;
 	public: std::vector<int*> inst_arr;

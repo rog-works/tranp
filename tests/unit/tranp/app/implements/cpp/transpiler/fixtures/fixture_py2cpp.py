@@ -72,6 +72,8 @@ class Sub(Base):
 class DeclOps:
 	class_bp: ClassVar[CP[Sub] | None] = None
 	class_map: ClassVar[dict[str, dict[str, list[CP[int]]]]] = {'a': {'b': []}}
+	_protected_class_n: ClassVar = 0
+	__private_class_n: ClassVar = 0
 	inst_var0: CP[Sub] | None
 	inst_var1: Sub
 	inst_arr: list[CP[int]]

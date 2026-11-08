@@ -338,7 +338,9 @@ class Py2Cpp(ITranspiler):
 		Note:
 			C++の予約識別子の対策として、接頭辞のアンダースコアの前に文字列を付与(特殊メソッドを除く)
 		"""
-		if not domain_name.startswith('_') and not domain_name.startswith('__'):
+		if not self.accessor_prefix:
+			return domain_name
+		elif not domain_name.startswith('_') and not domain_name.startswith('__'):
 			return domain_name
 		elif domain_name.endswith('__'):
 			return domain_name

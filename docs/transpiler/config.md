@@ -323,8 +323,9 @@ string_formats:
 ## 書式
 
 ```yaml
-type: string
-pattern: '[\w\d]*'
+accessor_prefix:
+  type: string
+  pattern: '[\w\d]*'
 ```
 
 ## 設定例
@@ -352,9 +353,9 @@ class A:
 ↓
 ```cpp
 class A {
-  public: int n;
-  protected: int p_protected_n;
-  private: int p__private_n;
+public: int n;
+protected: int p_protected_n;
+private: int p__private_n;
 };
 ```
 

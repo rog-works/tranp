@@ -1,7 +1,7 @@
 [&]() -> {{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> {
-	{{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
+	{{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> l_ret;
 	for ({{ comp_for }}) {
-		{%- set receiver = '__ret' %}
+		{%- set receiver = 'l_ret' %}
 		{%- set key = projection_key %}
 		{%- set value = projection_value %}
 		{%- if condition %}
@@ -12,5 +12,5 @@
 		{% include('comp/_assign_dict.j2') %};
 		{%- endif %}
 	}
-	return __ret;
+	return l_ret;
 }()

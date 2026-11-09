@@ -22,6 +22,7 @@
   * [配列・連想配列](#配列連想配列)
   * [クロージャー・ラムダ](#クロージャーラムダ)
   * [文字列展開](#文字列展開)
+  * [例外処理](#例外処理)
 * [アノテーション](#アノテーション)
   * [エイリアス](#エイリアス)
   * [インターフェイス・抽象型](#インターフェイス抽象型)
@@ -273,7 +274,31 @@ s = 'b: {b}, n: {n}, f: {f}, s: {s}'.format(b=True, n=1, f=1.0, s='bar')
 ```
 ↓
 ```cpp
-std::string s = std::format('b: %d, n: %d, f: %f, s: %s', true, 1, 1.0f, std::string("bar").c_str());
+std::string s = std::format("b: %d, n: %d, f: %f, s: %s", true, 1, 1.0f, "bar");
+```
+
+## 例外処理
+
+```python
+from tranp.app.compatible.cpp.cvar import CP
+
+addr: CP[int] | None = None
+try:
+  if not addr:
+    raise Exception(addr)
+except Exception as e:
+  raise e
+```
+↓
+```cpp
+int* addr = nullptr;
+try {
+  if (!addr) {
+    throw std::exception(std::format("%p", addr));
+  }
+} catch (const std::exception& e) {
+  throw e;
+}
 ```
 
 # アノテーション

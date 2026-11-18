@@ -350,6 +350,8 @@ class Py2Cpp(ITranspiler):
 			return self.__domain_name_memo.assign(types, self.view.render('alias/_method', vars=alias_vars))
 		elif types.is_a(defs.ClassMethod):
 			return self.__domain_name_memo.assign(types, self.view.render('alias/_method', vars=alias_vars))
+		elif types.is_a(defs.Constructor):
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_method', vars=alias_vars))
 		elif types.is_a(defs.Function):
 			return self.__domain_name_memo.assign(types, self.view.render('alias/_function', vars=alias_vars))
 		else:

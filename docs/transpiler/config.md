@@ -314,51 +314,6 @@ string_formats:
   MyPtr: '%p'
 ```
 
-# accessor_prefix
-
-* Pythonのアクセス修飾子用の命名規則を、C++の予約規則に準拠させるための接頭辞
-* アンダースコアから始まるシンボル名の先頭に設定値を付与
-* 予約規則への準拠が不要なら空文字でも良い
-
-## 書式
-
-```yaml
-accessor_prefix:
-  type: string
-  pattern: '[\w\d]*'
-```
-
-## 設定例
-
-```yaml
-accessor_prefix: 'p'
-```
-
-## 付与対象
-
-* クラス
-* クラス変数
-* インスタンス変数
-* メソッド
-* 関数
-
-## 変換例
-
-```python
-class A:
-  n: int
-  _protected_n: int
-  __private_n: int
-```
-↓
-```cpp
-class A {
-public: int n;
-protected: int p_protected_n;
-private: int p__private_n;
-};
-```
-
 # view
 
 * ビュー用の環境変数

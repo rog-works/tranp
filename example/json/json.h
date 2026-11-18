@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"0.9.20","module":{"hash":"52bc528b857822fefbd65b1fe08b3f57","path":"example.json.json"},"transpiler":{"version":"0.9.7","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"0.9.21","module":{"hash":"52bc528b857822fefbd65b1fe08b3f57","path":"example.json.json"},"transpiler":{"version":"0.9.8","module":"tranp.app.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include <functional>
 // #include "enum.h"
@@ -302,7 +302,7 @@ struct JsonEntry {
  * JSON
  */
 class Json {
-	protected: inline static std::map<JsonEntryTypes, std::string> _to_type_names = {
+	protected: inline static std::map<JsonEntryTypes, std::string> p_to_type_names = {
 		{JsonEntryTypes::Boolean, "bool"},
 		{JsonEntryTypes::Number, "float"},
 		{JsonEntryTypes::String, "std::string"},

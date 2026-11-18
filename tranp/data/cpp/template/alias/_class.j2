@@ -1,0 +1,7 @@
+{%- if prefix -%}
+{{ alias }}{{ original }}
+{%- elif alias -%}
+{% if alias.startswith('_') and not alias.endswith('__') %}p{% endif %}{{ alias }}
+{%- else -%}
+{% if original.startswith('_') and not original.endswith('__') %}p{% endif %}{{ original }}
+{%- endif -%}

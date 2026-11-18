@@ -1,0 +1,7 @@
+{%- if prefix -%}
+{{ alias }}{{ original }}
+{%- elif alias -%}
+{{ alias }}
+{%- else -%}
+{{ original }}
+{%- endif -%}

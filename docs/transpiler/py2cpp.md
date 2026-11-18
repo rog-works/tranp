@@ -63,6 +63,7 @@
   * [`alias/_function.j2`](../../tranp/data/cpp/template/alias/_function.j2)
   * [`alias/_method.j2`](../../tranp/data/cpp/template/alias/_method.j2)
   * [`alias/_other.j2`](../../tranp/data/cpp/template/alias/_other.j2)
+  * [`alias/_prop.j2`](../../tranp/data/cpp/template/alias/_prop.j2)
 
 ```
 ※1: これらのテンプレートはエイリアスと兼用である点に注意

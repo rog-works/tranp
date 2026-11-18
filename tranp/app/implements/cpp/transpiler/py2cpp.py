@@ -343,7 +343,7 @@ class Py2Cpp(ITranspiler):
 		if self.__domain_name_memo.has(types):
 			return self.__domain_name_memo.get(types)
 
-		alias_vars = {'original': domain_name, 'alias': alias, 'prefix': prefix}
+		alias_vars = {'original': domain_name, 'alias': alias, 'prefix': prefix, 'module_path': types.module_path}
 		if types.is_a(defs.Class):
 			return self.__domain_name_memo.assign(types, self.view.render('alias/_class', vars=alias_vars))
 		elif types.is_a(defs.Method):

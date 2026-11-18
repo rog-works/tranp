@@ -58,7 +58,15 @@
 
 * Pythonのアクセス修飾子用の命名規則をC++の予約規則に合わせて変換
 * アンダースコアから始まるシンボル名の先頭に接頭辞を付与 (特殊メソッドを除く)
-* 参照: `template/alias/*.j2`
+* 対応テンプレート ※1
+  * [`alias/_class.j2`](../../tranp/data/cpp/template/alias/_class.j2)
+  * [`alias/_function.j2`](../../tranp/data/cpp/template/alias/_function.j2)
+  * [`alias/_method.j2`](../../tranp/data/cpp/template/alias/_method.j2)
+  * [`alias/_other.j2`](../../tranp/data/cpp/template/alias/_other.j2)
+
+```
+※1: これらのテンプレートはエイリアスと兼用である点に注意
+```
 
 ### 付与対象
 

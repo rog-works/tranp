@@ -554,7 +554,8 @@ class Py2Cpp(ITranspiler):
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = {template_name: True for template_name in [*template_params, *self.fetch_function_template_names(node)]}.keys()
 		return_type_annotations = [self.transpile(annotation) for annotation in node.return_type.annotations]
-		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
+		org_name = node.domain_name
+		_symbol = ClassOperationMaps.operators.get(org_name, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotations': return_type_annotations}
 		# XXX イテレーターメソッド用の特殊化 @see data/cpp/template/function/_iterator_list_complex.j2
@@ -565,7 +566,7 @@ class Py2Cpp(ITranspiler):
 				iterates = calls_len.as_a(defs.FuncCall).arguments[0].value
 				method_vars['iterates_type'] = self.to_accessible_name(self.reflections.type_of(iterates))
 
-		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
+		spec = ClassOperationMaps.ctors.get(org_name, node.classification)
 		return self.render(node, f'function/{spec}', vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:

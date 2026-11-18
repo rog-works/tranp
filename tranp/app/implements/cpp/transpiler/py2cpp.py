@@ -5,6 +5,7 @@ from typing import Any, ClassVar, Self, TypedDict, TypeVarTuple, cast, override
 
 import tranp.app.semantics.reflection.definition as refs
 import tranp.app.syntax.node.definition as defs
+from tranp.app.cache.memo3 import Memoize3
 from tranp.app.compatible.cpp.classes import byte, char, double, int64, uint32, uint64
 from tranp.app.compatible.cpp.cvar import CP, CSP, CUP, CW, CWP
 from tranp.app.compatible.cpp.function import c_func_invoke, c_func_ref
@@ -63,9 +64,9 @@ class Py2Cpp(ITranspiler):
 		self.include_dirs = self.__build_include_dirs(options)
 		self.string_formats = self.__build_string_formats(options)
 		self.cvars = CVars(options.env.get('cvars', {}))
-		self.accessor_prefix: str = options.env.get('accessor_prefix', 'p')
-		self.alias_bundler = AliasBundler(i18n.t, self.transpile, self.__done_domain_name)
+		self.alias_bundler = AliasBundler(i18n.t, self.transpile, self.__alias_done_types, self.__alias_done_prop)
 		self.__procedure = self.__build_procedure(options)
+		self.__domain_name_memo = Memoize3[Node, str]()
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
 		emitter.on('depends', self.__on_view_depends)
@@ -241,7 +242,7 @@ class Py2Cpp(ITranspiler):
 		elif actual_raw.types.is_a(defs.TemplateClass):
 			var_type = ClassDomainNaming.domain_name(actual_raw.types, self.alias_bundler)
 		else:
-			var_type = make_org_var_type()
+			raise Errors.Never(actual_raw)
 
 		var_type = self.view.render('type/custom_type', vars={'var_type': var_type})
 		return DSN.join(*DSN.elements(var_type), delimiter='::')
@@ -328,24 +329,44 @@ class Py2Cpp(ITranspiler):
 		"""
 		return PropNaming.to_prop_name(decl, self.alias_bundler)
 
-	def __done_domain_name(self, domain_name: str) -> str:
-		"""ドメイン名を確定
+	def __alias_done_types(self, domain_name: str, alias: str, prefix: bool, types: defs.ClassDef) -> str:
+		"""ドメイン名を確定(クラス・関数)
 
 		Args:
 			domain_name: ドメイン名
+			alias: エイリアス
+			prefix: True = 接頭辞
+			types: クラス宣言ノード
 		Returns:
 			確定後のドメイン名
-		Note:
-			C++の予約識別子の対策として、接頭辞のアンダースコアの前に文字列を付与(特殊メソッドを除く)
 		"""
-		if not self.accessor_prefix:
-			return domain_name
-		elif not domain_name.startswith('_') and not domain_name.startswith('__'):
-			return domain_name
-		elif domain_name.endswith('__'):
-			return domain_name
+		if self.__domain_name_memo.has(types):
+			return self.__domain_name_memo.get(types)
+
+		alias_vars = {'original': domain_name, 'alias': alias, 'prefix': prefix}
+		if types.is_a(defs.Class):
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_class', vars=alias_vars))
+		elif types.is_a(defs.Method):
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_method', vars=alias_vars))
+		elif types.is_a(defs.ClassMethod):
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_method', vars=alias_vars))
+		elif types.is_a(defs.Function):
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_function', vars=alias_vars))
 		else:
-			return f'{self.accessor_prefix}{domain_name}'
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_other', vars=alias_vars))
+
+	def __alias_done_prop(self, domain_name: str, alias: str, prefix: bool) -> str:
+		"""ドメイン名を確定(プロパティー)
+
+		Args:
+			domain_name: ドメイン名
+			alias: エイリアス
+			prefix: True = 接頭辞
+		Returns:
+			確定後のドメイン名
+		"""
+		alias_vars = {'original': domain_name, 'alias': alias, 'prefix': prefix}
+		return self.view.render('alias/_prop', vars=alias_vars)
 
 	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
 		"""Args: node: ファンクションノード Returns: ファンクションのテンプレート型名リスト"""
@@ -554,7 +575,8 @@ class Py2Cpp(ITranspiler):
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = {template_name: True for template_name in [*template_params, *self.fetch_function_template_names(node)]}.keys()
 		return_type_annotations = [self.transpile(annotation) for annotation in node.return_type.annotations]
-		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
+		org_name = node.domain_name
+		_symbol = ClassOperationMaps.operators.get(org_name, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotations': return_type_annotations}
 		# XXX イテレーターメソッド用の特殊化 @see data/cpp/template/function/_iterator_list_complex.j2
@@ -565,7 +587,7 @@ class Py2Cpp(ITranspiler):
 				iterates = calls_len.as_a(defs.FuncCall).arguments[0].value
 				method_vars['iterates_type'] = self.to_accessible_name(self.reflections.type_of(iterates))
 
-		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
+		spec = ClassOperationMaps.ctors.get(org_name, node.classification)
 		return self.render(node, f'function/{spec}', vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:

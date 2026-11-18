@@ -45,14 +45,33 @@ class AliasTranspiler(Protocol):
 		...
 
 
-class AliasDoneDomain(Protocol):
-	"""プロトコル(ドメイン名確定)"""
+class AliasDoneTypes(Protocol):
+	"""プロトコル(ドメイン名確定/クラス・関数)"""
 
-	def __call__(self, domain_name: str) -> str:
+	def __call__(self, domain_name: str, alias: str, prefix: bool, types: defs.ClassDef) -> str:
 		"""ドメイン名を確定
 
 		Args:
 			domain_name: ドメイン名
+			alias: エイリアス
+			prefix: True = 接頭辞
+			types: クラス宣言ノード
+		Returns:
+			確定後のドメイン名
+		"""
+		...
+
+
+class AliasDoneProp(Protocol):
+	"""プロトコル(ドメイン名確定/プロパティー)"""
+
+	def __call__(self, domain_name: str, alias: str, prefix: bool) -> str:
+		"""ドメイン名を確定
+
+		Args:
+			domain_name: ドメイン名
+			alias: エイリアス
+			prefix: True = 接頭辞
 		Returns:
 			確定後のドメイン名
 		"""
@@ -62,17 +81,19 @@ class AliasDoneDomain(Protocol):
 class AliasBundler:
 	"""エイリアス解決バンドラー"""
 
-	def __init__(self, t: AliasHandler, transpile: AliasTranspiler, done: AliasDoneDomain) -> None:
+	def __init__(self, t: AliasHandler, transpile: AliasTranspiler, done_types: AliasDoneTypes, done_prop: AliasDoneProp) -> None:
 		"""インスタンスを生成
 
 		Args:
 			t: エイリアス解決
 			transpile: トランスパイル
-			done: ドメイン確定
+			done_types: ドメイン確定(クラス・関数)
+			done_prop: ドメイン確定(プロパティー)
 		"""
 		self.t = t
 		self.transpile = transpile
-		self.done = done
+		self.done_types = done_types
+		self.done_prop = done_prop
 
 
 class PathMethods(Enum):
@@ -96,9 +117,10 @@ class ClassDomainNaming:
 			ドメイン名
 		"""
 		if bundler:
-			return bundler.done(bundler.t(alias_dsn(types.fullyname), fallback=cls.__alias_or_domain_name(types, bundler)))
+			return bundler.done_types(*cls.__alias_or_domain_name(types, bundler), types)
 
-		return cls.__alias_or_domain_name(types, bundler)
+		domain_name, alias, prefix = cls.__alias_or_domain_name(types, bundler=None)
+		return f'{alias}{domain_name}' if prefix else alias or domain_name
 
 	@classmethod
 	def fullyname(cls, types: defs.ClassDef, bundler: AliasBundler | None) -> str:
@@ -143,26 +165,26 @@ class ClassDomainNaming:
 			return cls.domain_name(types, bundler)
 
 	@classmethod
-	def __alias_or_domain_name(cls, types: defs.ClassDef, bundler: AliasBundler | None) -> str:
+	def __alias_or_domain_name(cls, types: defs.ClassDef, bundler: AliasBundler | None) -> tuple[str, str, bool]:
 		"""クラスのドメイン名を解決
 
 		Args:
 			types: クラス宣言ノード
 			bundler: エイリアス解決バンドラー
 		Returns:
-			ドメイン名
+			(ドメイン名, エイリアス, 接頭辞フラグ)
 		"""
 		if not bundler:
-			return types.domain_name
+			return types.domain_name, '', False
 
+		alias = bundler.t(alias_dsn(types.fullyname))
 		embedder = types.alias_embedder
 		if not embedder:
-			return types.domain_name
+			return types.domain_name, alias, False
 
-		alias_node = embedder.arguments[0].value
-		alias = alias_node.as_string if isinstance(alias_node, defs.String) else bundler.transpile(alias_node)[1:-1]
-		is_prefix = len(embedder.arguments) == 2
-		return f'{alias}{types.domain_name}' if is_prefix else alias
+		embed_node = embedder.arguments[0].value
+		embed_name = embed_node.as_string if isinstance(embed_node, defs.String) else bundler.transpile(embed_node)[1:-1]
+		return alias or types.domain_name, embed_name, len(embedder.arguments) > 1
 
 	@classmethod
 	def __namespace(cls, types: defs.ClassDef, bundler: AliasBundler | None) -> str:
@@ -216,9 +238,9 @@ class PropNaming:
 		"""
 		embedder = cls.__analyze_embedder(decl)
 		if embedder:
-			return bundler.done(cls.__from_embedder(decl, bundler, embedder))
+			return bundler.done_prop(*cls.__from_embedder(decl, bundler, embedder))
 		else:
-			return bundler.done(cls.__from_decl(decl, bundler))
+			return bundler.done_prop(*cls.__from_decl(decl, bundler))
 
 	@classmethod
 	def __analyze_embedder(cls, decl: defs.DeclVars) -> defs.FuncCall | None:
@@ -248,19 +270,19 @@ class PropNaming:
 		return None
 
 	@classmethod
-	def __from_decl(cls, decl: defs.DeclVars, bundler: AliasBundler) -> str:
+	def __from_decl(cls, decl: defs.DeclVars, bundler: AliasBundler) -> tuple[str, str, bool]:
 		"""プロパティー名を解決(オリジナル/翻訳)
 
 		Args:
 			decl: 変数宣言ノード
 			bundler: エイリアス解決バンドラー
 		Returns:
-			プロパティー名
+			(プロパティー名, エイリアス, 接頭辞フラグ)
 		"""
-		return bundler.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
+		return decl.domain_name, bundler.t(alias_dsn(decl.fullyname)), False
 
 	@classmethod
-	def __from_embedder(cls, decl: defs.DeclVars, bundler: AliasBundler, embedder: defs.FuncCall) -> str:
+	def __from_embedder(cls, decl: defs.DeclVars, bundler: AliasBundler, embedder: defs.FuncCall) -> tuple[str, str, bool]:
 		"""プロパティー名を解決(埋め込み)
 
 		Args:
@@ -268,15 +290,11 @@ class PropNaming:
 			bundler: エイリアス解決バンドラー
 			embedder: 関数コールノード(Embed.alias)
 		Returns:
-			プロパティー名
+			(プロパティー名, エイリアス, 接頭辞フラグ)
 		"""
-		alias_node = embedder.arguments[0]
-		alias_name = alias_node.as_string if isinstance(alias_node, defs.String) else bundler.transpile(alias_node)[1:-1]
-		if len(embedder.arguments) == 1:
-			return alias_name
-
-		origin_name = cls.__from_decl(decl, bundler)
-		return f'{alias_name}{origin_name}'
+		embed_node = embedder.arguments[0]
+		embed_name = embed_node.as_string if isinstance(embed_node, defs.String) else bundler.transpile(embed_node)[1:-1]
+		return decl.domain_name, embed_name, len(embedder.arguments) > 1
 
 
 class ClassShorthandNaming:

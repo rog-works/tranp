@@ -340,9 +340,9 @@ class Py2Cpp(ITranspiler):
 		"""
 		if not self.accessor_prefix:
 			return domain_name
-		elif not domain_name.startswith('_') and not domain_name.startswith('__'):
+		elif not domain_name.startswith('_'):
 			return domain_name
-		elif domain_name.endswith('__'):
+		elif domain_name.startswith('__') and domain_name.endswith('__'):
 			return domain_name
 		else:
 			return f'{self.accessor_prefix}{domain_name}'

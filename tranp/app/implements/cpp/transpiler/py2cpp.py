@@ -63,8 +63,7 @@ class Py2Cpp(ITranspiler):
 		self.include_dirs = self.__build_include_dirs(options)
 		self.string_formats = self.__build_string_formats(options)
 		self.cvars = CVars(options.env.get('cvars', {}))
-		self.accessor_prefix: str = options.env.get('accessor_prefix', 'p')
-		self.alias_bundler = AliasBundler(i18n.t, self.transpile, self.__done_domain_name)
+		self.alias_bundler = AliasBundler(i18n.t, self.transpile, self.__alias_done_types, self.__alias_done_prop)
 		self.__procedure = self.__build_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
@@ -328,24 +327,41 @@ class Py2Cpp(ITranspiler):
 		"""
 		return PropNaming.to_prop_name(decl, self.alias_bundler)
 
-	def __done_domain_name(self, domain_name: str) -> str:
-		"""ドメイン名を確定
+	def __alias_done_types(self, domain_name: str, alias: str, prefix: bool, types: defs.ClassDef) -> str:
+		"""ドメイン名を確定(クラス・関数)
 
 		Args:
 			domain_name: ドメイン名
+			alias: エイリアス
+			prefix: True = 接頭辞
+			types: クラス宣言ノード
 		Returns:
 			確定後のドメイン名
-		Note:
-			C++の予約識別子の対策として、接頭辞のアンダースコアの前に文字列を付与(特殊メソッドを除く)
 		"""
-		if not self.accessor_prefix:
-			return domain_name
-		elif not domain_name.startswith('_'):
-			return domain_name
-		elif domain_name.startswith('__') and domain_name.endswith('__'):
-			return domain_name
+		alias_vars = {'original': domain_name, 'alias': alias, 'prefix': prefix}
+		if types.is_a(defs.Class):
+			return self.view.render('alias/_class', vars=alias_vars)
+		elif types.is_a(defs.Method):
+			return self.view.render('alias/_method', vars=alias_vars)
+		elif types.is_a(defs.ClassMethod):
+			return self.view.render('alias/_method', vars=alias_vars)
+		elif types.is_a(defs.Function):
+			return self.view.render('alias/_function', vars=alias_vars)
 		else:
-			return f'{self.accessor_prefix}{domain_name}'
+			return self.view.render('alias/_other', vars=alias_vars)
+
+	def __alias_done_prop(self, domain_name: str, alias: str, prefix: bool) -> str:
+		"""ドメイン名を確定(プロパティー)
+
+		Args:
+			domain_name: ドメイン名
+			alias: エイリアス
+			prefix: True = 接頭辞
+		Returns:
+			確定後のドメイン名
+		"""
+		alias_vars = {'original': domain_name, 'alias': alias, 'prefix': prefix}
+		return self.view.render('alias/_prop', vars=alias_vars)
 
 	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
 		"""Args: node: ファンクションノード Returns: ファンクションのテンプレート型名リスト"""

@@ -66,7 +66,7 @@ class Py2Cpp(ITranspiler):
 		self.cvars = CVars(options.env.get('cvars', {}))
 		self.alias_bundler = AliasBundler(i18n.t, self.transpile, self.__alias_done_types, self.__alias_done_prop)
 		self.__procedure = self.__build_procedure(options)
-		self.__domain_names = Memoize3[Node, str]()
+		self.__domain_name_memo = Memoize3[Node, str]()
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
 		emitter.on('depends', self.__on_view_depends)
@@ -340,20 +340,20 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			確定後のドメイン名
 		"""
-		if self.__domain_names.has(types):
-			return self.__domain_names.get(types)
+		if self.__domain_name_memo.has(types):
+			return self.__domain_name_memo.get(types)
 
 		alias_vars = {'original': domain_name, 'alias': alias, 'prefix': prefix}
 		if types.is_a(defs.Class):
-			return self.__domain_names.assign(types, self.view.render('alias/_class', vars=alias_vars))
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_class', vars=alias_vars))
 		elif types.is_a(defs.Method):
-			return self.__domain_names.assign(types, self.view.render('alias/_method', vars=alias_vars))
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_method', vars=alias_vars))
 		elif types.is_a(defs.ClassMethod):
-			return self.__domain_names.assign(types, self.view.render('alias/_method', vars=alias_vars))
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_method', vars=alias_vars))
 		elif types.is_a(defs.Function):
-			return self.__domain_names.assign(types, self.view.render('alias/_function', vars=alias_vars))
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_function', vars=alias_vars))
 		else:
-			return self.__domain_names.assign(types, self.view.render('alias/_other', vars=alias_vars))
+			return self.__domain_name_memo.assign(types, self.view.render('alias/_other', vars=alias_vars))
 
 	def __alias_done_prop(self, domain_name: str, alias: str, prefix: bool) -> str:
 		"""ドメイン名を確定(プロパティー)

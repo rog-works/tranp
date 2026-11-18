@@ -55,6 +55,7 @@ class AliasDoneTypes(Protocol):
 			domain_name: ドメイン名
 			alias: エイリアス
 			prefix: True = 接頭辞
+			types: クラス宣言ノード
 		Returns:
 			確定後のドメイン名
 		"""

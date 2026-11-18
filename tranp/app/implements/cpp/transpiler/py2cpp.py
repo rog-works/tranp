@@ -241,7 +241,7 @@ class Py2Cpp(ITranspiler):
 		elif actual_raw.types.is_a(defs.TemplateClass):
 			var_type = ClassDomainNaming.domain_name(actual_raw.types, self.alias_bundler)
 		else:
-			var_type = make_org_var_type()
+			raise Errors.Never(actual_raw)
 
 		var_type = self.view.render('type/custom_type', vars={'var_type': var_type})
 		return DSN.join(*DSN.elements(var_type), delimiter='::')

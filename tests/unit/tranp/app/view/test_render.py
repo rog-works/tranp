@@ -189,7 +189,7 @@ class TestRenderer(TestCase):
 		('_other', {'original': 'A', 'alias': 'A2', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'A2'),
 		('_prop', {'original': 'prop', 'alias': '', 'prefix': False}, 'prop'),
 		('_prop', {'original': '_prop', 'alias': '', 'prefix': False}, 'p_prop'),
-		('_prop', {'original': 'prop', 'alias': 'prop2', 'prefix': False}, 'prop2'),
+		('_prop', {'original': '_prop', 'alias': 'prop2', 'prefix': False}, 'prop2'),
 	])
 	def test_render_alias(self, spec: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'alias/{spec}', vars, expected)

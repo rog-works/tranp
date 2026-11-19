@@ -173,23 +173,23 @@ class TestRenderer(TestCase):
 			raise
 
 	@data_provider([
-		('_class', {'original': 'A', 'alias': '', 'prefix': False, 'module_path': 'module.path.to.A'}, 'A'),
-		('_class', {'original': '_A', 'alias': '', 'prefix': False, 'module_path': 'module.path.to.A'}, 'p_A'),
-		('_class', {'original': '__init__', 'alias': '', 'prefix': False, 'module_path': 'module.path.to.A'}, '__init__'),
-		('_class', {'original': 'A', 'alias': 'A2', 'prefix': False, 'module_path': 'module.path.to.A'}, 'A2'),
-		('_class', {'original': 'A', 'alias': 'U', 'prefix': True, 'module_path': 'module.path.to.A'}, 'UA'),
-		('_function', {'original': 'A', 'alias': '', 'prefix': False, 'module_path': 'module.path.to.A'}, 'A'),
-		('_function', {'original': '_A', 'alias': '', 'prefix': False, 'module_path': 'module.path.to.A'}, 'p_A'),
-		('_function', {'original': 'A', 'alias': 'A2', 'prefix': False, 'module_path': 'module.path.to.A'}, 'A2'),
-		('_method', {'original': 'A', 'alias': '', 'prefix': False, 'module_path': 'module.path.to.A'}, 'A'),
-		('_method', {'original': '_A', 'alias': '', 'prefix': False, 'module_path': 'module.path.to.A'}, 'p_A'),
-		('_method', {'original': 'A', 'alias': 'A2', 'prefix': False, 'module_path': 'module.path.to.A'}, 'A2'),
-		('_other', {'original': 'A', 'alias': '', 'prefix': False, 'module_path': 'module.path.to.A'}, 'A'),
-		('_other', {'original': '_A', 'alias': '', 'prefix': False, 'module_path': 'module.path.to.A'}, 'p_A'),
-		('_other', {'original': 'A', 'alias': 'A2', 'prefix': False, 'module_path': 'module.path.to.A'}, 'A2'),
+		('_class', {'original': 'A', 'alias': '', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'A'),
+		('_class', {'original': '_A', 'alias': '', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'p_A'),
+		('_class', {'original': '__init__', 'alias': '', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, '__init__'),
+		('_class', {'original': 'A', 'alias': 'A2', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'A2'),
+		('_class', {'original': 'A', 'alias': 'U', 'prefix': True, 'fullyname': 'module.path.to.A#A'}, 'UA'),
+		('_function', {'original': 'A', 'alias': '', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'A'),
+		('_function', {'original': '_A', 'alias': '', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'p_A'),
+		('_function', {'original': 'A', 'alias': 'A2', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'A2'),
+		('_method', {'original': 'A', 'alias': '', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'A'),
+		('_method', {'original': '_A', 'alias': '', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'p_A'),
+		('_method', {'original': 'A', 'alias': 'A2', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'A2'),
+		('_other', {'original': 'A', 'alias': '', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'A'),
+		('_other', {'original': '_A', 'alias': '', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'p_A'),
+		('_other', {'original': 'A', 'alias': 'A2', 'prefix': False, 'fullyname': 'module.path.to.A#A'}, 'A2'),
 		('_prop', {'original': 'prop', 'alias': '', 'prefix': False}, 'prop'),
 		('_prop', {'original': '_prop', 'alias': '', 'prefix': False}, 'p_prop'),
-		('_prop', {'original': 'prop', 'alias': 'prop2', 'prefix': False}, 'prop2'),
+		('_prop', {'original': '_prop', 'alias': 'prop2', 'prefix': False}, 'prop2'),
 	])
 	def test_render_alias(self, spec: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'alias/{spec}', vars, expected)

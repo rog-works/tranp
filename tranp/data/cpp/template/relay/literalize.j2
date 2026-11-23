@@ -1,5 +1,7 @@
-{%- if var_type in ['int', 'float'] -%}
+{%- if var_type == 'int' -%}
 {{ literal }}
+{%- elif var_type == 'float' -%}
+{{ literal }}f
 {%- else -%}
 "{{ literal }}"
 {%- endif -%}

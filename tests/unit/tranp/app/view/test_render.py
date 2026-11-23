@@ -1613,7 +1613,7 @@ class TestRenderer(TestCase):
 		({'prop': '__module_path__', 'var_type': 'str', 'literal': 'module.path.to.A'}, '"module.path.to.A"'),
 		({'prop': '__qualname__', 'var_type': 'str', 'literal': 'A.func'}, '"A.func"'),
 		({'prop': 'E.value', 'var_type': 'int', 'literal': '1'}, '1'),
-		({'prop': 'E.value', 'var_type': 'float', 'literal': '1.0'}, '1.0'),
+		({'prop': 'E.value', 'var_type': 'float', 'literal': '1.0'}, '1.0f'),
 		({'prop': 'E.value', 'var_type': 'str', 'literal': 'a'}, '"a"'),
 	])
 	def test_render_relay_literalize(self, vars: dict[str, Any], expected: str) -> None:
